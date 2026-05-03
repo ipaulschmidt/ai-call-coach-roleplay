@@ -8,35 +8,42 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* HubCoach — Consultant Mode (dark by default) */
+    --background: 222 47% 9%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 222 40% 13%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 222 40% 13%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 22 95% 55%;
+    --primary-foreground: 222 47% 9%;
+    --primary-glow: 22 100% 65%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217 25% 20%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 217 25% 18%;
+    --muted-foreground: 215 16% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 22 95% 55%;
+    --accent-foreground: 222 47% 9%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 217 25% 22%;
+    --input: 217 25% 22%;
+    --ring: 22 95% 55%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    --gradient-hero: radial-gradient(1200px 600px at 50% -10%, hsl(22 95% 55% / 0.18), transparent 60%), linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 7%));
+    --gradient-orb: radial-gradient(circle at 30% 30%, hsl(22 100% 65% / 0.9), hsl(22 95% 45% / 0.4) 60%, transparent 70%);
+    --shadow-glow: 0 0 60px hsl(22 95% 55% / 0.35);
+    --shadow-elevated: 0 20px 60px -20px hsl(0 0% 0% / 0.6);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +107,25 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--gradient-hero);
+    background-attachment: fixed;
   }
+
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .glow { box-shadow: var(--shadow-glow); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+  @keyframes pulse-orb {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+  .animate-pulse-orb { animation: pulse-orb 2.4s ease-in-out infinite; }
 }
