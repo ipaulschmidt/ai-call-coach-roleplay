@@ -173,6 +173,20 @@ const Call = () => {
     rec.onerror = (e: any) => {
       if (e.error === "no-speech" || e.error === "aborted") return;
       console.error("STT error:", e.error);
+      if (
+        e.error === "not-allowed" ||
+        e.error === "service-not-allowed" ||
+        e.error === "audio-capture"
+      ) {
+        setSupportsSTT(false);
+        setMuted(true);
+        cleanupSTT();
+        setStatus("idle");
+        toast.error(
+          "Mic blocked in this preview. Open the preview in a new tab (top-right ↗) or just type your replies below.",
+          { duration: 8000 },
+        );
+      }
     };
     rec.onend = () => {
       // Auto-restart if still listening
