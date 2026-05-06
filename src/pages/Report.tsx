@@ -60,16 +60,18 @@ const Report = () => {
       setEvaluation(ev);
       // Persist this coaching session for the admin area (best-effort, fire-and-forget)
       try {
-        await supabase.from("coaching_sessions").insert({
-          practice_area: config.practiceArea,
-          persona: config.persona,
-          difficulty: config.difficulty,
-          call_type: config.callType,
-          topics: config.topics || null,
-          consultant_name: sessionStorage.getItem("consultantName") || null,
-          transcript: transcript,
-          evaluation: ev,
-        });
+        await supabase.from("coaching_sessions").insert([
+          {
+            practice_area: config.practiceArea,
+            persona: config.persona,
+            difficulty: config.difficulty,
+            call_type: config.callType,
+            topics: config.topics || undefined,
+            consultant_name: sessionStorage.getItem("consultantName") || undefined,
+            transcript: transcript as any,
+            evaluation: ev as any,
+          },
+        ]);
       } catch (saveErr) {
         console.error("Failed to save session:", saveErr);
       }
