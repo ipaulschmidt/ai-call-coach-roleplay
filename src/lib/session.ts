@@ -33,6 +33,8 @@ export interface Evaluation {
     filler_words: string[];
     pacing: "slow" | "good" | "rushed";
   };
+  agenda_setting?: { score: number; notes: string };
+  active_listening?: { score: number; notes: string; examples: string[] };
   corrective_feedback: string[];
   wins: string[];
   summary: string;

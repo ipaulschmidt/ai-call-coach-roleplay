@@ -27,6 +27,12 @@ ${transcript}
 
 Evaluate the consultant on the three metrics. For technical_delivery, focus on whether they accurately explained the listed quiz topics. For consultant_confidence, infer from filler words ("um", "uh", "like", "you know"), hedging language, and pacing inferred from sentence length — note in your rationale that this is transcript-based.`;
 
+    const userPromptWithExtras = `${userPrompt}
+
+Also evaluate two additional skills:
+- agenda_setting: Did the consultant clearly state, early in the call, what they were going to cover (a verbal agenda)? Even on a short call, a strong rep says something like "I've got about X minutes — I want to cover A, B, C — sound good?" Score 0 if no agenda was set, 70 if vague, 90+ if explicit and time-boxed.
+- active_listening: Did the consultant paraphrase or repeat back what the prospect said before responding (e.g. "So what I'm hearing is…", "Just to make sure I understand, you're saying…")? Score based on how often and how accurately they reflected the prospect's actual words / pain back to them. Cite 1–3 short examples (or note their absence) in the examples array.`;
+
     const tool = {
       type: "function",
       function: {
@@ -66,6 +72,25 @@ Evaluate the consultant on the three metrics. For technical_delivery, focus on w
               required: ["score", "notes", "filler_words", "pacing"],
               additionalProperties: false,
             },
+            agenda_setting: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                notes: { type: "string" },
+              },
+              required: ["score", "notes"],
+              additionalProperties: false,
+            },
+            active_listening: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                notes: { type: "string" },
+                examples: { type: "array", items: { type: "string" } },
+              },
+              required: ["score", "notes", "examples"],
+              additionalProperties: false,
+            },
             corrective_feedback: { type: "array", items: { type: "string" } },
             wins: { type: "array", items: { type: "string" } },
             summary: { type: "string" },
@@ -74,6 +99,8 @@ Evaluate the consultant on the three metrics. For technical_delivery, focus on w
             "sales_strategy",
             "technical_delivery",
             "consultant_confidence",
+            "agenda_setting",
+            "active_listening",
             "corrective_feedback",
             "wins",
             "summary",
@@ -93,7 +120,7 @@ Evaluate the consultant on the three metrics. For technical_delivery, focus on w
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userPromptWithExtras },
         ],
         tools: [tool],
         tool_choice: { type: "function", function: { name: "submit_evaluation" } },
