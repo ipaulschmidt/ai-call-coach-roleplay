@@ -50,6 +50,7 @@ const Call = () => {
   const audioQueueRef = useRef<HTMLAudioElement[]>([]);
   const playingRef = useRef(false);
   const endedRef = useRef(false);
+  const shouldListenRef = useRef(false);
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -103,6 +104,7 @@ const Call = () => {
   };
 
   const cleanupSTT = () => {
+    shouldListenRef.current = false;
     try {
       recognitionRef.current?.stop();
     } catch {}
@@ -249,7 +251,7 @@ const Call = () => {
       }, 1200);
     };
     rec.onerror = (e: any) => {
-      if (e.error === "no-speech" || e.error === "aborted") return;
+      if (e.error === "no-speech" || e.error === "aborted" || e.error === "network") return;
       console.error("STT error:", e.error);
       if (
         e.error === "not-allowed" ||
@@ -267,16 +269,17 @@ const Call = () => {
       }
     };
     rec.onend = () => {
-      // Auto-restart if still listening
-      if (status === "listening" && recognitionRef.current === rec) {
-        try {
-          rec.start();
-        } catch {}
+      // Auto-restart if we're supposed to keep listening (browsers stop STT after ~60s of silence)
+      if (shouldListenRef.current && recognitionRef.current === rec && !endedRef.current) {
+        setTimeout(() => {
+          try { rec.start(); } catch {}
+        }, 100);
       }
     };
     recognitionRef.current = rec;
     try {
       rec.start();
+      shouldListenRef.current = true;
       setStatus("listening");
     } catch {}
   }, [setTranscript, status]);
