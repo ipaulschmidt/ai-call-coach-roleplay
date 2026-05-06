@@ -30,8 +30,9 @@ Evaluate the consultant on the three metrics. For technical_delivery, focus on w
     const userPromptWithExtras = `${userPrompt}
 
 Also evaluate two additional skills:
-- agenda_setting: Did the consultant clearly state, early in the call, what they were going to cover (a verbal agenda)? Even on a short call, a strong rep says something like "I've got about X minutes — I want to cover A, B, C — sound good?" Score 0 if no agenda was set, 70 if vague, 90+ if explicit and time-boxed.
-- active_listening: Did the consultant paraphrase or repeat back what the prospect said before responding (e.g. "So what I'm hearing is…", "Just to make sure I understand, you're saying…")? Score based on how often and how accurately they reflected the prospect's actual words / pain back to them. Cite 1–3 short examples (or note their absence) in the examples array.`;
+- agenda_setting: Did *someone* set a clear agenda early in the call? Ideally the consultant proactively sets it ("I've got about X minutes — I want to cover A, B, C — sound good?"). If the PROSPECT set the agenda first (jumped right in with what they wanted to cover) and the consultant did NOT step in to confirm/reframe/add to it, treat that as a coaching gap and score lower (max ~70) — note in 'notes' that the consultant should have taken control of the agenda. If the prospect set it AND the consultant acknowledged + confirmed it ("Great, so we'll cover X and Y — I'd also like to make sure we touch on Z"), that's strong (85+). Score 0 if no agenda was set at all by either side.
+- active_listening: Did the consultant paraphrase or repeat back what the prospect said before responding (e.g. "So what I'm hearing is…", "Just to make sure I understand, you're saying…")? Score based on how often and how accurately they reflected the prospect's actual words / pain back to them. Cite 1–3 short examples (or note their absence) in the examples array.
+- next_steps: Did the consultant clearly land a next step before the call ended? The gold standard is offering 2+ specific date/time options for a follow-up meeting. Even if the prospect declined to schedule, the consultant should still have proposed concrete times (e.g. "How about Tuesday at 2pm or Thursday morning?"). Score 95+ if a meeting was actually scheduled, 80–90 if specific times were offered but not booked, 50–70 if a vague next step was discussed ("I'll send something over"), 0–30 if no next step was raised at all. Set 'offered_times' true if specific dates/times were proposed. Set 'secured_meeting' true only if the prospect agreed to a specific time.`;
 
     const tool = {
       type: "function",
@@ -91,6 +92,17 @@ Also evaluate two additional skills:
               required: ["score", "notes", "examples"],
               additionalProperties: false,
             },
+            next_steps: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                notes: { type: "string" },
+                offered_times: { type: "boolean" },
+                secured_meeting: { type: "boolean" },
+              },
+              required: ["score", "notes", "offered_times", "secured_meeting"],
+              additionalProperties: false,
+            },
             corrective_feedback: { type: "array", items: { type: "string" } },
             wins: { type: "array", items: { type: "string" } },
             summary: { type: "string" },
@@ -101,6 +113,7 @@ Also evaluate two additional skills:
             "consultant_confidence",
             "agenda_setting",
             "active_listening",
+            "next_steps",
             "corrective_feedback",
             "wins",
             "summary",
