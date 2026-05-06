@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can view sessions" ON public.coaching_sessions FOR SELECT USING (true);
