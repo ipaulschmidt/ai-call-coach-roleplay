@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import {
   PERSONAS_BY_AREA,
   PRACTICE_AREAS,
+  DURATION_OPTIONS,
+  buildGoal,
   useSession,
   type CallType,
   type Difficulty,
@@ -44,6 +46,7 @@ const Index = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>("realistic");
   const [personaId, setPersonaId] = useState<string>(personas[0].id);
   const [callType, setCallType] = useState<CallType>("discovery");
+  const [durationMin, setDurationMin] = useState<number>(10);
   const [micTest, setMicTest] = useState<{
     status: "idle" | "testing" | "ok" | "fail";
     heard?: string;
@@ -119,12 +122,15 @@ const Index = () => {
   const start = () => {
     const persona = personas.find((p) => p.id === personaId)!;
     reset();
+    const finalTopics = topics.trim();
     setConfig({
-      topics: topics.trim(),
+      topics: finalTopics,
       difficulty,
       persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
       callType,
       practiceArea,
+      durationMin,
+      goal: buildGoal(practiceArea, callType, finalTopics),
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
@@ -265,6 +271,30 @@ const Index = () => {
                 </button>
               ))}
             </div>
+          </section>
+
+          <section>
+            <Label className="mb-3 block text-sm font-semibold">Roleplay length</Label>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {DURATION_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => setDurationMin(d.value)}
+                  className={`rounded-lg border p-3 text-left transition-all ${
+                    durationMin === d.value
+                      ? "border-primary bg-primary/10 ring-1 ring-primary"
+                      : "border-border/60 bg-background/40 hover:border-border"
+                  }`}
+                >
+                  <div className="text-sm font-semibold">{d.label}</div>
+                  <div className="mt-1 text-xs text-muted-foreground line-clamp-2">{d.desc}</div>
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Industry best practice for sales roleplays is 5–10 min. The prospect will start wrapping up as time runs out.
+            </p>
           </section>
 
           <Button

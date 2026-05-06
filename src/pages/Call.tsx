@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, MicOff, PhoneOff, Send } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Send, Target, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,8 @@ const Call = () => {
   const [textInput, setTextInput] = useState("");
   const [supportsSTT, setSupportsSTT] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [startedAt] = useState<number>(() => Date.now());
+  const [now, setNow] = useState<number>(Date.now());
 
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -68,6 +70,20 @@ const Call = () => {
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [transcript, interim]);
+
+  // Tick the timer every second
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const durationMs = (config?.durationMin ?? 10) * 60_000;
+  const elapsedMs = now - startedAt;
+  const remainingMs = Math.max(0, durationMs - elapsedMs);
+  const remainingMin = Math.floor(remainingMs / 60_000);
+  const remainingSec = Math.floor((remainingMs % 60_000) / 1000);
+  const overtime = elapsedMs > durationMs;
+  const lastTwoMin = !overtime && remainingMs <= 2 * 60_000;
 
   // Auto-greet when call opens
   useEffect(() => {
@@ -280,7 +296,16 @@ const Call = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: history, config }),
+        body: JSON.stringify({
+          messages: history,
+          config,
+          timing: {
+            elapsedMin: Math.floor(elapsedMs / 60_000),
+            remainingMin: Math.ceil(remainingMs / 60_000),
+            durationMin: config.durationMin,
+            phase: overtime ? "wrap" : remainingMs <= 2 * 60_000 ? "closing" : remainingMs <= durationMs / 2 ? "mid" : "open",
+          },
+        }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -405,10 +430,39 @@ const Call = () => {
             <div className="text-lg font-semibold">{config.persona.split(" — ")[0]}</div>
             <div className="text-sm text-muted-foreground">{config.persona.split(" — ")[1]}</div>
           </div>
-          <Button variant="destructive" onClick={endCall} className="gap-2">
-            <PhoneOff className="h-4 w-4" /> End call
-          </Button>
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium tabular-nums ${
+                overtime
+                  ? "border-destructive bg-destructive/10 text-destructive"
+                  : lastTwoMin
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card/60 text-muted-foreground"
+              }`}
+              title={`${config.durationMin} min target`}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              {overtime ? "Overtime" : `${remainingMin}:${remainingSec.toString().padStart(2, "0")}`}
+            </div>
+            <Button variant="destructive" onClick={endCall} className="gap-2">
+              <PhoneOff className="h-4 w-4" /> End call
+            </Button>
+          </div>
         </div>
+
+        <Card className="mb-6 border-primary/30 bg-primary/5 p-4 backdrop-blur">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-md bg-primary/15 p-2">
+              <Target className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                Your goal · {config.durationMin} min target
+              </div>
+              <p className="text-sm leading-relaxed text-foreground/90">{config.goal}</p>
+            </div>
+          </div>
+        </Card>
 
         <div className="grid gap-6 md:grid-cols-[1fr_1.1fr]">
           {/* Visualizer */}
