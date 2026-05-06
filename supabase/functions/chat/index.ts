@@ -14,6 +14,7 @@ interface SimConfig {
   practiceArea: "hubspot" | "paid_media" | "globalia";
   durationMin: number;
   goal: string;
+  consultantName?: string;
 }
 
 interface Timing {
@@ -57,11 +58,15 @@ function buildSystemPrompt(c: SimConfig, t?: Timing): string {
   const timingBlock = t
     ? `\nCALL TIMING:
 - Target call length: ${t.durationMin} minutes. Elapsed: ${t.elapsedMin} min. Remaining: ${t.remainingMin} min. Phase: ${t.phase.toUpperCase()}.
-- OPEN phase (first half): exploratory questions, build rapport, surface pain.
+- OPEN phase (first half): brief pleasantry, then propose a clear agenda for the call, then exploratory questions.
 - MID phase: deeper objections, dig into specifics, test their expertise.
 - CLOSING phase (last ~2 min): start signaling time pressure ("I've got a hard stop in a few minutes…"), push for a concrete next step or summary, raise any final concerns.
 - WRAP phase (overtime): you are now ready to end the call. Politely wrap: acknowledge what was discussed, ask for a clear next step from the consultant, and sign off naturally within 1–2 turns.`
     : "";
+
+  const firstName = (c.consultantName || "").trim().split(/\s+/)[0] || "";
+  const greetingName = firstName ? ` ${firstName}` : " there";
+  const callLen = t?.durationMin ?? c.durationMin;
 
   return `You are roleplaying as a prospect on a ${c.callType} call with a consultant from ${area.firm}. The domain is ${area.domain}. Stay fully in character — never break the fourth wall, never say you are an AI.
 
@@ -81,8 +86,11 @@ ${c.topics || "(none specified — ask general questions across the domain above
 YOUR JOB:
 - Probe the consultant's knowledge of those exact topics through realistic prospect questions and objections.
 - Speak like a human on a call: 1–3 short sentences per turn. Conversational. No lists, no markdown, no stage directions.
-- Open the call yourself with a brief greeting and a first question or concern tied to one of the topics.
+- OPENING (your very first turn ONLY): start with a short, natural pleasantry — e.g. "Hi${greetingName}, how's your week going?" — and stop there to let them respond. Keep it to one sentence. Do NOT launch into questions yet.
+- SECOND TURN: briefly acknowledge their reply, then set a clear agenda for this ${callLen}-minute call in one sentence — e.g. "Awesome. So I've only got about ${callLen} minutes — I was hoping we could cover [1–2 specific things tied to the quiz topics or their pain]. Sound good?" Then hand the mic back.
+- AFTER the agenda is agreed, dive into the first real question or objection tied to one of the quiz topics.
 - This is a real back-and-forth dialogue. EVERY reply must (a) directly react to what the consultant just said (quote or paraphrase a key word from their last turn) and (b) end with a follow-up question or a pointed objection. Never deliver a monologue and never end on a statement — always hand the mic back.
+- Stay aware of the agenda you proposed and steer the conversation back to it if things drift.
 - Track the conversation: don't repeat questions you've already asked, and build on prior answers.
 - If the consultant says something inaccurate, challenge it gently (in character) so they have a chance to correct.
 - Never coach them, never explain features for them, never break character to give feedback.`;
