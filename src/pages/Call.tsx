@@ -19,7 +19,8 @@ const SpeechRecognitionImpl: any =
     : null;
 
 // ElevenLabs voice ID used for all prospects
-const ELEVEN_VOICE_ID = "ZthjuvLPty3kTMaNKVKb";
+// Sarah — free-tier compatible. (Custom library voices require a paid ElevenLabs plan.)
+const ELEVEN_VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
 function voiceForPersona(_persona: string): string {
   return ELEVEN_VOICE_ID;
 }
@@ -159,7 +160,9 @@ const Call = () => {
         body: JSON.stringify({ text, voiceId }),
       });
       if (!resp.ok) {
-        console.error("TTS failed", await resp.text());
+        const errText = await resp.text();
+        console.error("TTS failed", resp.status, errText);
+        toast.error("Voice unavailable. The prospect's reply is shown in the transcript.");
         return;
       }
       const blob = await resp.blob();
@@ -170,6 +173,7 @@ const Call = () => {
       playNext();
     } catch (e) {
       console.error(e);
+      toast.error("Voice playback failed.");
     }
   };
 
