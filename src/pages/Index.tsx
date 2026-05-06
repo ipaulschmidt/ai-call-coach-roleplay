@@ -130,7 +130,7 @@ const Index = () => {
       callType,
       practiceArea,
       durationMin,
-      goal: buildGoal(practiceArea, callType, finalTopics),
+      goal: buildGoal(practiceArea, callType, finalTopics, durationMin),
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
