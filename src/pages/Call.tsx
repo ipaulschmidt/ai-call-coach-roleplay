@@ -264,19 +264,17 @@ const Call = () => {
     if (!config) return;
     endedRef.current = false;
     setStatus("thinking");
+    // Fully stop mic + audio capture so the prospect's voice isn't fed back into STT
     stopListening();
+    cleanupAudio();
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
     setTranscript(working);
 
     let assistantText = "";
-    let spokenUpTo = 0;
     let firstChunk = true;
     const voiceId = voiceForPersona(config.persona);
-    const speak = (text: string) => {
-      void speakViaEleven(text, voiceId);
-    };
 
     try {
       const resp = await fetch(CHAT_URL, {
@@ -328,12 +326,6 @@ const Call = () => {
               }
               working = [...history, { role: "assistant", content: assistantText }];
               setTranscript(working);
-              // Speak in sentence chunks for natural delivery
-              const m = assistantText.slice(spokenUpTo).match(/^[\s\S]*?[.!?]\s/);
-              if (m) {
-                speak(assistantText.slice(spokenUpTo, spokenUpTo + m[0].length));
-                spokenUpTo += m[0].length;
-              }
             }
           } catch {
             buffer = line + "\n" + buffer;
@@ -342,9 +334,10 @@ const Call = () => {
         }
       }
 
-      // Flush any remaining text
-      if (assistantText.length > spokenUpTo) {
-        speak(assistantText.slice(spokenUpTo));
+      // Speak the full reply once, as a single audio stream (no overlap)
+      if (assistantText.trim()) {
+        setStatus("speaking");
+        await speakViaEleven(assistantText, voiceId);
       }
 
       // Wait for TTS to finish, then resume listening
@@ -360,6 +353,8 @@ const Call = () => {
           check();
         });
       await waitForSpeech();
+      // Small buffer so the speaker's tail doesn't bleed back into the mic
+      await new Promise((r) => setTimeout(r, 350));
       setStatus("idle");
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
