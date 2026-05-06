@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coaching_sessions: {
+        Row: {
+          call_type: string
+          consultant_name: string | null
+          created_at: string
+          difficulty: string
+          evaluation: Json | null
+          id: string
+          persona: string
+          practice_area: string
+          topics: string | null
+          transcript: Json
+        }
+        Insert: {
+          call_type: string
+          consultant_name?: string | null
+          created_at?: string
+          difficulty: string
+          evaluation?: Json | null
+          id?: string
+          persona: string
+          practice_area: string
+          topics?: string | null
+          transcript: Json
+        }
+        Update: {
+          call_type?: string
+          consultant_name?: string | null
+          created_at?: string
+          difficulty?: string
+          evaluation?: Json | null
+          id?: string
+          persona?: string
+          practice_area?: string
+          topics?: string | null
+          transcript?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
