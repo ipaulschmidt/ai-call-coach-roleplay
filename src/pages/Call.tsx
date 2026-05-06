@@ -310,7 +310,10 @@ const Call = () => {
         },
         body: JSON.stringify({
           messages: history,
-          config,
+          config: {
+            ...config,
+            consultantName: sessionStorage.getItem("consultantName") || "",
+          },
           timing: {
             elapsedMin: Math.floor(elapsedMs / 60_000),
             remainingMin: Math.ceil(remainingMs / 60_000),
