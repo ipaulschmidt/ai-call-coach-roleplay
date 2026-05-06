@@ -56,7 +56,25 @@ const Report = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setEvaluation(data.evaluation as Evaluation);
+      const ev = data.evaluation as Evaluation;
+      setEvaluation(ev);
+      // Persist this coaching session for the admin area (best-effort, fire-and-forget)
+      try {
+        await supabase.from("coaching_sessions").insert([
+          {
+            practice_area: config.practiceArea,
+            persona: config.persona,
+            difficulty: config.difficulty,
+            call_type: config.callType,
+            topics: config.topics || undefined,
+            consultant_name: sessionStorage.getItem("consultantName") || undefined,
+            transcript: transcript as any,
+            evaluation: ev as any,
+          },
+        ]);
+      } catch (saveErr) {
+        console.error("Failed to save session:", saveErr);
+      }
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Could not generate report");

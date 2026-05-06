@@ -1,1 +1,9 @@
 project_id = "kvuxljfjbutgdkhlwtnr"
+[functions.chat]
+verify_jwt = false
+
+[functions.evaluate]
+verify_jwt = false
+
+[functions.admin-sessions]
+verify_jwt = false

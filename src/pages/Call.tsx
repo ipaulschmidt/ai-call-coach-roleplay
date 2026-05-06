@@ -340,9 +340,12 @@ const Call = () => {
   };
 
   const endCall = () => {
-    window.speechSynthesis.cancel();
+    // Hard-stop everything: TTS voice, STT recognition, mic stream, and any pending AI work
+    try { window.speechSynthesis.cancel(); } catch {}
     cleanupSTT();
     cleanupAudio();
+    setStatus("idle");
+    setInterim("");
     navigate("/report");
   };
 

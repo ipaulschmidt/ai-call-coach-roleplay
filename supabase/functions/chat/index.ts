@@ -11,7 +11,29 @@ interface SimConfig {
   difficulty: "easy" | "realistic" | "hard";
   persona: string;
   callType: "discovery" | "service";
+  practiceArea: "hubspot" | "paid_media" | "globalia";
 }
+
+const AREA_CONTEXT: Record<SimConfig["practiceArea"], { firm: string; domain: string; knowledge: string }> = {
+  hubspot: {
+    firm: "SmartBug, an Elite HubSpot Solutions Partner",
+    domain: "HubSpot consulting (discovery & service calls)",
+    knowledge:
+      "Use up-to-date 2026 HubSpot product knowledge: AEO Brand Visibility, Breeze AI agents, Smart CRM, Marketing/Sales/Service/Content/Operations Hubs, workflows, custom objects, reporting, Breeze Intelligence, integrations.",
+  },
+  paid_media: {
+    firm: "Point Success Media (paid media division of SmartBug)",
+    domain: "paid media strategy & execution (https://www.pointsuccessmedia.com/solutions-overview)",
+    knowledge:
+      "Service lines include: Paid Search (Google Ads, Microsoft Ads, Performance Max), Paid Social (Meta, LinkedIn, TikTok, Reddit, Pinterest), Programmatic Display & CTV/YouTube, Retail Media (Amazon, Walmart Connect, Instacart), B2B account-based advertising, Measurement & Analytics (GA4, server-side tagging via GTM, MMM vs MTA, incrementality testing), Creative Strategy, Landing Page CRO. Talk in real KPIs (ROAS, CAC, MER, CPL, CPQL, pipeline-influenced revenue) and current 2026 platform realities (PMax asset groups, Advantage+, signal loss, consent mode v2, etc.).",
+  },
+  globalia: {
+    firm: "Globalia Digital",
+    domain: "e-commerce, custom AI, application development, and WordPress (https://www.globaliadigital.com/en/)",
+    knowledge:
+      "Service lines include: E-commerce (Shopify, Shopify Plus, WooCommerce, headless commerce, Shopify Hydrogen, payment & shipping integrations, conversion optimization), Custom AI (RAG agents, OpenAI/Anthropic/Gemini integrations, internal copilots, AI workflow automation, evals & guardrails), Application Development (custom web & mobile apps, React/Next.js, Node, Laravel, mobile via React Native/Flutter, API design, DevOps), WordPress (custom theme/plugin dev, WooCommerce, performance optimization, security hardening, multilingual sites, ongoing maintenance & SEO). Talk in real terms: tech stack, timelines, QA, hosting, Core Web Vitals, accessibility, ROI.",
+  },
+};
 
 function buildSystemPrompt(c: SimConfig): string {
   const difficultyRules: Record<string, string> = {
@@ -21,23 +43,27 @@ function buildSystemPrompt(c: SimConfig): string {
     hard: "Be tough: skeptical, time-pressed, ask sharp objections, demand concrete proof, ROI numbers, and accurate technical detail. Catch fluff. Don't let weak answers slide.",
   };
 
-  return `You are roleplaying as a prospect on a ${c.callType} call with a HubSpot consultant from SmartBug. Stay fully in character — never break the fourth wall, never say you are an AI.
+  const area = AREA_CONTEXT[c.practiceArea];
+
+  return `You are roleplaying as a prospect on a ${c.callType} call with a consultant from ${area.firm}. The domain is ${area.domain}. Stay fully in character — never break the fourth wall, never say you are an AI.
 
 PERSONA: ${c.persona}
 DIFFICULTY: ${c.difficulty.toUpperCase()} — ${difficultyRules[c.difficulty]}
 
+DOMAIN KNOWLEDGE TO GROUND YOUR QUESTIONS IN:
+${area.knowledge}
+
 QUIZ TOPICS the consultant chose to be tested on:
-${c.topics || "(none specified — ask general HubSpot product questions)"}
+${c.topics || "(none specified — ask general questions across the domain above)"}
 
 YOUR JOB:
 - Probe the consultant's knowledge of those exact topics through realistic prospect questions and objections.
-- Use up-to-date 2026 HubSpot product knowledge from your training (AEO Brand Visibility, Breeze AI agents, Smart CRM, Service Hub, etc.) so your questions are technically grounded.
 - Speak like a human on a call: 1–3 short sentences per turn. Conversational. No lists, no markdown, no stage directions.
 - Open the call yourself with a brief greeting and a first question or concern tied to one of the topics.
 - This is a real back-and-forth dialogue. EVERY reply must (a) directly react to what the consultant just said (quote or paraphrase a key word from their last turn) and (b) end with a follow-up question or a pointed objection. Never deliver a monologue and never end on a statement — always hand the mic back.
 - Track the conversation: don't repeat questions you've already asked, and build on prior answers.
 - If the consultant says something inaccurate, challenge it gently (in character) so they have a chance to correct.
-- Never coach them, never explain HubSpot features for them, never break character to give feedback.`;
+- Never coach them, never explain features for them, never break character to give feedback.`;
 }
 
 serve(async (req) => {
@@ -52,10 +78,7 @@ serve(async (req) => {
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [{ role: "system", content: systemPrompt }, ...messages],
@@ -65,33 +88,24 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit reached. Take a breath and try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "Rate limit reached. Try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Add credits in Settings → Workspace → Usage." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Add credits in Settings → Workspace → Usage." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
+    return new Response(response.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (e) {
     console.error("chat error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
