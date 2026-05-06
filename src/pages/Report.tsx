@@ -191,6 +191,38 @@ const Report = () => {
               />
             </div>
 
+            {(evaluation.agenda_setting || evaluation.active_listening) && (
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                {evaluation.agenda_setting && (
+                  <ScoreCard
+                    title="Agenda Setting"
+                    score={evaluation.agenda_setting.score}
+                    notes={evaluation.agenda_setting.notes}
+                  />
+                )}
+                {evaluation.active_listening && (
+                  <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Active Listening</div>
+                    <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                      {evaluation.active_listening.score}
+                      <span className="text-xl text-muted-foreground">/100</span>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{evaluation.active_listening.notes}</p>
+                    {evaluation.active_listening.examples?.length > 0 && (
+                      <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+                        {evaluation.active_listening.examples.map((ex, i) => (
+                          <li key={i} className="flex gap-2">
+                            <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-primary" />
+                            <span className="italic">"{ex}"</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Card>
+                )}
+              </div>
+            )}
+
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               <Card className="border-border/60 bg-card/60 p-5">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
