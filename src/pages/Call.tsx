@@ -18,19 +18,10 @@ const SpeechRecognitionImpl: any =
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     : null;
 
-// ElevenLabs voice IDs — picked per persona for variety
-const VOICE_POOL = [
-  "EXAVITQu4vr4xnSDxMaL", // Sarah
-  "JBFqnCBsd6RMkjVDRZzb", // George
-  "cgSgspJ2msm6clMCkdW9", // Jessica
-  "onwK4e9ZLuTAKqWW03F9", // Daniel
-  "Xb7hH8MSUJpSbSDYk0k2", // Alice
-  "nPczCjzI2devNBz1zQrb", // Brian
-];
-function voiceForPersona(persona: string): string {
-  let h = 0;
-  for (let i = 0; i < persona.length; i++) h = (h * 31 + persona.charCodeAt(i)) >>> 0;
-  return VOICE_POOL[h % VOICE_POOL.length];
+// ElevenLabs voice ID used for all prospects
+const ELEVEN_VOICE_ID = "ZthjuvLPty3kTMaNKVKb";
+function voiceForPersona(_persona: string): string {
+  return ELEVEN_VOICE_ID;
 }
 
 const Call = () => {
