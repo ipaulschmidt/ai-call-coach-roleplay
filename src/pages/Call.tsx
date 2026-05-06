@@ -425,6 +425,13 @@ const Call = () => {
   const endCall = () => {
     // Hard-stop everything: TTS voice, STT recognition, mic stream, and any pending AI work
     endedRef.current = true;
+    // SpeechSynthesis is a global window singleton — it survives navigation, so we must
+    // explicitly and aggressively cancel it. Chrome occasionally needs cancel() to be
+    // called twice (once to stop the current utterance, once to flush the queue).
+    try {
+      window.speechSynthesis?.cancel();
+      window.speechSynthesis?.cancel();
+    } catch {}
     stopAllPlayback();
     cleanupSTT();
     cleanupAudio();
