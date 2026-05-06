@@ -10,6 +10,8 @@ export interface SimConfig {
   persona: string;
   callType: CallType;
   practiceArea: PracticeArea;
+  durationMin: number;
+  goal: string;
 }
 
 export interface Turn {
@@ -107,3 +109,29 @@ export const PERSONAS_BY_AREA: Record<PracticeArea, ReadonlyArray<{
     { id: "wp-marketer", name: "Jon Becker", role: "Marketing Lead", blurb: "Owns a WordPress site that's slow and outdated. Cares about SEO + uptime." },
   ],
 };
+
+export const DURATION_OPTIONS: { value: number; label: string; desc: string }[] = [
+  { value: 5, label: "5 min", desc: "Quick rep — single objection drill" },
+  { value: 10, label: "10 min", desc: "Recommended — full mini-roleplay" },
+  { value: 20, label: "20 min", desc: "Extended — multi-topic deep dive" },
+  { value: 30, label: "30 min", desc: "Max — full mock call" },
+];
+
+const FIRM_BY_AREA: Record<PracticeArea, string> = {
+  hubspot: "SmartBug",
+  paid_media: "Point Success Media",
+  globalia: "Globalia Digital",
+};
+
+export function buildGoal(
+  area: PracticeArea,
+  callType: CallType,
+  topics: string,
+): string {
+  const firm = FIRM_BY_AREA[area];
+  const topicsTrimmed = topics.trim();
+  if (callType === "discovery") {
+    return `Run a discovery call: uncover the prospect's business pain, qualify fit (budget, timeline, decision process), and earn a clear next step (proposal or follow-up meeting). Demonstrate how ${firm} can solve their problem${topicsTrimmed ? ` — especially around ${topicsTrimmed}` : ""}. End the call with mutual agreement on what happens next.`;
+  }
+  return `Run a service / onboarding kickoff: align on goals, confirm scope, map stakeholders, set timeline expectations, and gather what you need to begin work${topicsTrimmed ? ` (focus areas: ${topicsTrimmed})` : ""}. End the call with the client feeling confident in the roadmap and clear on the next 2 weeks.`;
+}
