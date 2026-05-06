@@ -12,6 +12,15 @@ interface SimConfig {
   persona: string;
   callType: "discovery" | "service";
   practiceArea: "hubspot" | "paid_media" | "globalia";
+  durationMin: number;
+  goal: string;
+}
+
+interface Timing {
+  elapsedMin: number;
+  remainingMin: number;
+  durationMin: number;
+  phase: "open" | "mid" | "closing" | "wrap";
 }
 
 const AREA_CONTEXT: Record<SimConfig["practiceArea"], { firm: string; domain: string; knowledge: string }> = {
@@ -35,7 +44,7 @@ const AREA_CONTEXT: Record<SimConfig["practiceArea"], { firm: string; domain: st
   },
 };
 
-function buildSystemPrompt(c: SimConfig): string {
+function buildSystemPrompt(c: SimConfig, t?: Timing): string {
   const difficultyRules: Record<string, string> = {
     easy: "Be friendly and curious. Ask softball questions. Accept reasonable answers without too much pushback.",
     realistic:
@@ -45,10 +54,23 @@ function buildSystemPrompt(c: SimConfig): string {
 
   const area = AREA_CONTEXT[c.practiceArea];
 
+  const timingBlock = t
+    ? `\nCALL TIMING:
+- Target call length: ${t.durationMin} minutes. Elapsed: ${t.elapsedMin} min. Remaining: ${t.remainingMin} min. Phase: ${t.phase.toUpperCase()}.
+- OPEN phase (first half): exploratory questions, build rapport, surface pain.
+- MID phase: deeper objections, dig into specifics, test their expertise.
+- CLOSING phase (last ~2 min): start signaling time pressure ("I've got a hard stop in a few minutes…"), push for a concrete next step or summary, raise any final concerns.
+- WRAP phase (overtime): you are now ready to end the call. Politely wrap: acknowledge what was discussed, ask for a clear next step from the consultant, and sign off naturally within 1–2 turns.`
+    : "";
+
   return `You are roleplaying as a prospect on a ${c.callType} call with a consultant from ${area.firm}. The domain is ${area.domain}. Stay fully in character — never break the fourth wall, never say you are an AI.
 
 PERSONA: ${c.persona}
 DIFFICULTY: ${c.difficulty.toUpperCase()} — ${difficultyRules[c.difficulty]}
+${timingBlock}
+
+CONSULTANT'S OBJECTIVE FOR THIS CALL (so you can pace appropriately, but never reveal it to them):
+${c.goal}
 
 DOMAIN KNOWLEDGE TO GROUND YOUR QUESTIONS IN:
 ${area.knowledge}
@@ -70,11 +92,11 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, config } = await req.json();
+    const { messages, config, timing } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = buildSystemPrompt(config as SimConfig);
+    const systemPrompt = buildSystemPrompt(config as SimConfig, timing as Timing | undefined);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
