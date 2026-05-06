@@ -36,6 +36,7 @@ const Call = () => {
   const [audioLevel, setAudioLevel] = useState(0);
   const [startedAt] = useState<number>(() => Date.now());
   const [now, setNow] = useState<number>(Date.now());
+  const [callStarted, setCallStarted] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -85,13 +86,19 @@ const Call = () => {
   const overtime = elapsedMs > durationMs;
   const lastTwoMin = !overtime && remainingMs <= 2 * 60_000;
 
-  // Auto-greet when call opens
-  useEffect(() => {
-    if (!config || greetedRef.current) return;
+  // Greeting is triggered by the user clicking "Start call" (required for browser audio autoplay)
+  const handleStartCall = () => {
+    if (greetedRef.current) return;
     greetedRef.current = true;
+    setCallStarted(true);
+    // Unlock audio playback inside the same gesture
+    try {
+      const a = new Audio();
+      a.muted = true;
+      void a.play().catch(() => {});
+    } catch {}
     void sendToAI([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
+  };
 
   const cleanupSTT = () => {
     try {
