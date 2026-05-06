@@ -34,8 +34,9 @@ const Call = () => {
   const [textInput, setTextInput] = useState("");
   const [supportsSTT, setSupportsSTT] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [startedAt] = useState<number>(() => Date.now());
+  const [startedAt, setStartedAt] = useState<number>(() => Date.now());
   const [now, setNow] = useState<number>(Date.now());
+  const [callStarted, setCallStarted] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -85,13 +86,20 @@ const Call = () => {
   const overtime = elapsedMs > durationMs;
   const lastTwoMin = !overtime && remainingMs <= 2 * 60_000;
 
-  // Auto-greet when call opens
-  useEffect(() => {
-    if (!config || greetedRef.current) return;
+  // Greeting is triggered by the user clicking "Start call" (required for browser audio autoplay)
+  const handleStartCall = () => {
+    if (greetedRef.current) return;
     greetedRef.current = true;
+    setCallStarted(true);
+    setStartedAt(Date.now());
+    // Unlock audio playback inside the same gesture
+    try {
+      const a = new Audio();
+      a.muted = true;
+      void a.play().catch(() => {});
+    } catch {}
     void sendToAI([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
+  };
 
   const cleanupSTT = () => {
     try {
@@ -461,6 +469,11 @@ const Call = () => {
               </div>
               <p className="text-sm leading-relaxed text-foreground/90">{config.goal}</p>
             </div>
+            {!callStarted && (
+              <Button onClick={handleStartCall} size="lg" className="gap-2 shrink-0">
+                <Mic className="h-4 w-4" /> Start call
+              </Button>
+            )}
           </div>
         </Card>
 
