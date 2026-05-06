@@ -468,6 +468,11 @@ const Call = () => {
               </div>
               <p className="text-sm leading-relaxed text-foreground/90">{config.goal}</p>
             </div>
+            {!callStarted && (
+              <Button onClick={handleStartCall} size="lg" className="gap-2 shrink-0">
+                <Mic className="h-4 w-4" /> Start call
+              </Button>
+            )}
           </div>
         </Card>
 
