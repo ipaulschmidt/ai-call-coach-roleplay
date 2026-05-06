@@ -97,11 +97,17 @@ const Call = () => {
     // Unlock audio playback inside the same user gesture by playing a tiny silent MP3.
     // An empty Audio() element does NOT unlock autoplay — it must have a real src.
     try {
-      const silentMp3 =
-        "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//WreyTRUoAWgBgkOAGbZHBgG1OF6zM82DWbZaUmMBptgQhGjsyYqc9ae9XFz8k+9aBaXXfh3v1G2Llch4dyrV4n4DICAAACgAAFmCwBxgsCABh4MEMDk5JCgFBQH9TIBhRSURGEYEY/MAEDAUQB4ZIQGGZmGgABgYBuUgwBQVKYGGgGGgIAYM7//gOOmHmkABBQwAAACI8IAAAAEAOgIAEAAEgIAAA0gAAAJoAAAGoAAAEAA==";
-      const a = new Audio(silentMp3);
-      a.volume = 0;
-      void a.play().catch(() => {});
+      // WebAudio is the most reliable autoplay-unlock trick across Chrome/Safari/Firefox.
+      const Ctx: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (Ctx) {
+        const ctx = new Ctx();
+        if (ctx.state === "suspended") void ctx.resume();
+        const buf = ctx.createBuffer(1, 1, 22050);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+      }
     } catch {}
     void sendToAI([]);
   };
@@ -155,31 +161,47 @@ const Call = () => {
 
   const speakViaEleven = async (text: string, voiceId: string) => {
     if (!text.trim() || endedRef.current) return;
-    try {
-      const resp = await fetch(TTS_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ text, voiceId }),
-      });
-      if (!resp.ok) {
-        const errText = await resp.text();
-        console.error("TTS failed", resp.status, errText);
-        toast.error("Voice unavailable. The prospect's reply is shown in the transcript.");
-        return;
-      }
-      const blob = await resp.blob();
+    // Retry up to 3 times — ElevenLabs free tier occasionally returns transient errors
+    let lastErr = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
       if (endedRef.current) return;
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioQueueRef.current.push(audio);
-      playNext();
-    } catch (e) {
-      console.error(e);
-      toast.error("Voice playback failed.");
+      try {
+        const resp = await fetch(TTS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text, voiceId }),
+        });
+        if (!resp.ok) {
+          lastErr = await resp.text().catch(() => `${resp.status}`);
+          console.error(`TTS attempt ${attempt + 1} failed`, resp.status, lastErr);
+          // 4xx (except 429) won't get better with retry — give up early
+          if (resp.status >= 400 && resp.status < 500 && resp.status !== 429) break;
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        const blob = await resp.blob();
+        if (!blob.size) {
+          lastErr = "empty audio";
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        if (endedRef.current) return;
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioQueueRef.current.push(audio);
+        playNext();
+        return;
+      } catch (e) {
+        lastErr = (e as Error).message;
+        console.error(`TTS attempt ${attempt + 1} threw`, e);
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      }
     }
+    toast.error("Voice unavailable — see transcript on the right.");
+    console.error("TTS gave up after 3 attempts:", lastErr);
   };
 
   const startMeter = async () => {
