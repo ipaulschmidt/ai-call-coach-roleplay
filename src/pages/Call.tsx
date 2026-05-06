@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useSession, type Turn } from "@/lib/session";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
 
 type Status = "idle" | "listening" | "thinking" | "speaking";
 
@@ -17,21 +18,19 @@ const SpeechRecognitionImpl: any =
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     : null;
 
-function pickVoice(): SpeechSynthesisVoice | null {
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices.length) return null;
-  // Prefer en-US natural voices
-  const preferred = [
-    "Google US English",
-    "Samantha",
-    "Microsoft Aria Online (Natural) - English (United States)",
-    "Microsoft Jenny Online (Natural) - English (United States)",
-  ];
-  for (const name of preferred) {
-    const v = voices.find((x) => x.name === name);
-    if (v) return v;
-  }
-  return voices.find((v) => v.lang?.startsWith("en")) ?? voices[0];
+// ElevenLabs voice IDs — picked per persona for variety
+const VOICE_POOL = [
+  "EXAVITQu4vr4xnSDxMaL", // Sarah
+  "JBFqnCBsd6RMkjVDRZzb", // George
+  "cgSgspJ2msm6clMCkdW9", // Jessica
+  "onwK4e9ZLuTAKqWW03F9", // Daniel
+  "Xb7hH8MSUJpSbSDYk0k2", // Alice
+  "nPczCjzI2devNBz1zQrb", // Brian
+];
+function voiceForPersona(persona: string): string {
+  let h = 0;
+  for (let i = 0; i < persona.length; i++) h = (h * 31 + persona.charCodeAt(i)) >>> 0;
+  return VOICE_POOL[h % VOICE_POOL.length];
 }
 
 const Call = () => {
@@ -53,6 +52,9 @@ const Call = () => {
   const transcriptRef = useRef<Turn[]>(transcript);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
   const greetedRef = useRef(false);
+  const audioQueueRef = useRef<HTMLAudioElement[]>([]);
+  const playingRef = useRef(false);
+  const endedRef = useRef(false);
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -64,15 +66,10 @@ const Call = () => {
       return;
     }
     setSupportsSTT(!!SpeechRecognitionImpl);
-    // warm voices
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-    }
     return () => {
       cleanupAudio();
       cleanupSTT();
-      window.speechSynthesis?.cancel();
+      stopAllPlayback();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -103,6 +100,62 @@ const Call = () => {
     audioCtxRef.current?.close().catch(() => {});
     audioCtxRef.current = null;
     analyserRef.current = null;
+  };
+
+  const stopAllPlayback = () => {
+    audioQueueRef.current.forEach((a) => {
+      try {
+        a.pause();
+        a.src = "";
+      } catch {}
+    });
+    audioQueueRef.current = [];
+    playingRef.current = false;
+  };
+
+  const playNext = () => {
+    if (playingRef.current) return;
+    const next = audioQueueRef.current.shift();
+    if (!next) return;
+    playingRef.current = true;
+    next.onended = () => {
+      playingRef.current = false;
+      playNext();
+    };
+    next.onerror = () => {
+      playingRef.current = false;
+      playNext();
+    };
+    next.play().catch(() => {
+      playingRef.current = false;
+      playNext();
+    });
+  };
+
+  const speakViaEleven = async (text: string, voiceId: string) => {
+    if (!text.trim() || endedRef.current) return;
+    try {
+      const resp = await fetch(TTS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text, voiceId }),
+      });
+      if (!resp.ok) {
+        console.error("TTS failed", await resp.text());
+        return;
+      }
+      const blob = await resp.blob();
+      if (endedRef.current) return;
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioQueueRef.current.push(audio);
+      playNext();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const startMeter = async () => {
@@ -209,6 +262,7 @@ const Call = () => {
 
   const sendToAI = async (history: Turn[]) => {
     if (!config) return;
+    endedRef.current = false;
     setStatus("thinking");
     stopListening();
 
@@ -219,14 +273,9 @@ const Call = () => {
     let assistantText = "";
     let spokenUpTo = 0;
     let firstChunk = true;
+    const voiceId = voiceForPersona(config.persona);
     const speak = (text: string) => {
-      if (!text.trim()) return;
-      const u = new SpeechSynthesisUtterance(text);
-      const v = pickVoice();
-      if (v) u.voice = v;
-      u.rate = 1.0;
-      u.pitch = 1.0;
-      window.speechSynthesis.speak(u);
+      void speakViaEleven(text, voiceId);
     };
 
     try {
@@ -302,7 +351,7 @@ const Call = () => {
       const waitForSpeech = () =>
         new Promise<void>((resolve) => {
           const check = () => {
-            if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+            if (!playingRef.current && audioQueueRef.current.length === 0) {
               resolve();
             } else {
               setTimeout(check, 200);
@@ -341,7 +390,8 @@ const Call = () => {
 
   const endCall = () => {
     // Hard-stop everything: TTS voice, STT recognition, mic stream, and any pending AI work
-    try { window.speechSynthesis.cancel(); } catch {}
+    endedRef.current = true;
+    stopAllPlayback();
     cleanupSTT();
     cleanupAudio();
     setStatus("idle");
