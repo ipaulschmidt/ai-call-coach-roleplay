@@ -94,10 +94,13 @@ const Call = () => {
     greetedRef.current = true;
     setCallStarted(true);
     setStartedAt(Date.now());
-    // Unlock audio playback inside the same gesture
+    // Unlock audio playback inside the same user gesture by playing a tiny silent MP3.
+    // An empty Audio() element does NOT unlock autoplay — it must have a real src.
     try {
-      const a = new Audio();
-      a.muted = true;
+      const silentMp3 =
+        "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//WreyTRUoAWgBgkOAGbZHBgG1OF6zM82DWbZaUmMBptgQhGjsyYqc9ae9XFz8k+9aBaXXfh3v1G2Llch4dyrV4n4DICAAACgAAFmCwBxgsCABh4MEMDk5JCgFBQH9TIBhRSURGEYEY/MAEDAUQB4ZIQGGZmGgABgYBuUgwBQVKYGGgGGgIAYM7//gOOmHmkABBQwAAACI8IAAAAEAOgIAEAAEgIAAA0gAAAJoAAAGoAAAEAA==";
+      const a = new Audio(silentMp3);
+      a.volume = 0;
       void a.play().catch(() => {});
     } catch {}
     void sendToAI([]);
