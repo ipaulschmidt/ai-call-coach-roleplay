@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, MicOff, PhoneOff, Send, Target, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
