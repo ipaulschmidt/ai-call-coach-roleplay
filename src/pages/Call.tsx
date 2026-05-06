@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useSession, type Turn } from "@/lib/session";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
-const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
 
 type Status = "idle" | "listening" | "thinking" | "speaking";
 
@@ -18,11 +17,35 @@ const SpeechRecognitionImpl: any =
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     : null;
 
-// ElevenLabs voice ID used for all prospects
-// Sarah — free-tier compatible. (Custom library voices require a paid ElevenLabs plan.)
-const ELEVEN_VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
-function voiceForPersona(_persona: string): string {
-  return ELEVEN_VOICE_ID;
+// Pick the best available female en-US browser voice.
+// Web Speech voices load asynchronously, so we re-pick lazily on each utterance.
+function pickBrowserVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const en = voices.filter((v) => v.lang?.toLowerCase().startsWith("en"));
+  const preferred = [
+    "Google US English",
+    "Microsoft Aria",
+    "Microsoft Jenny",
+    "Microsoft Zira",
+    "Samantha",
+    "Karen",
+    "Moira",
+    "Tessa",
+    "Victoria",
+    "Allison",
+    "Ava",
+  ];
+  for (const name of preferred) {
+    const match = en.find((v) => v.name.includes(name));
+    if (match) return match;
+  }
+  // Fall back to anything that looks female by name
+  const female = en.find((v) =>
+    /female|woman|aria|jenny|zira|samantha|karen|moira|tessa|victoria|allison|ava|sarah|emily|joanna/i.test(v.name)
+  );
+  return female || en[0] || voices[0];
 }
 
 const Call = () => {
@@ -47,8 +70,7 @@ const Call = () => {
   const transcriptRef = useRef<Turn[]>(transcript);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
   const greetedRef = useRef(false);
-  const audioQueueRef = useRef<HTMLAudioElement[]>([]);
-  const playingRef = useRef(false);
+  const speakingRef = useRef(false);
   const endedRef = useRef(false);
   const shouldListenRef = useRef(false);
 
@@ -62,6 +84,13 @@ const Call = () => {
       return;
     }
     setSupportsSTT(!!SpeechRecognitionImpl);
+    // Warm up the voice list (some browsers populate it asynchronously)
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
     return () => {
       cleanupAudio();
       cleanupSTT();
@@ -94,19 +123,12 @@ const Call = () => {
     greetedRef.current = true;
     setCallStarted(true);
     setStartedAt(Date.now());
-    // Unlock audio playback inside the same user gesture by playing a tiny silent MP3.
-    // An empty Audio() element does NOT unlock autoplay — it must have a real src.
+    // Unlock SpeechSynthesis inside the user gesture by speaking an empty utterance.
     try {
-      // WebAudio is the most reliable autoplay-unlock trick across Chrome/Safari/Firefox.
-      const Ctx: any = (window as any).AudioContext || (window as any).webkitAudioContext;
-      if (Ctx) {
-        const ctx = new Ctx();
-        if (ctx.state === "suspended") void ctx.resume();
-        const buf = ctx.createBuffer(1, 1, 22050);
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        src.connect(ctx.destination);
-        src.start(0);
+      if (window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(" ");
+        u.volume = 0;
+        window.speechSynthesis.speak(u);
       }
     } catch {}
     void sendToAI([]);
@@ -130,78 +152,45 @@ const Call = () => {
   };
 
   const stopAllPlayback = () => {
-    audioQueueRef.current.forEach((a) => {
-      try {
-        a.pause();
-        a.src = "";
-      } catch {}
-    });
-    audioQueueRef.current = [];
-    playingRef.current = false;
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {}
+    speakingRef.current = false;
   };
 
-  const playNext = () => {
-    if (playingRef.current) return;
-    const next = audioQueueRef.current.shift();
-    if (!next) return;
-    playingRef.current = true;
-    next.onended = () => {
-      playingRef.current = false;
-      playNext();
-    };
-    next.onerror = () => {
-      playingRef.current = false;
-      playNext();
-    };
-    next.play().catch(() => {
-      playingRef.current = false;
-      playNext();
-    });
-  };
-
-  const speakViaEleven = async (text: string, voiceId: string) => {
-    if (!text.trim() || endedRef.current) return;
-    // Retry up to 3 times — ElevenLabs free tier occasionally returns transient errors
-    let lastErr = "";
-    for (let attempt = 0; attempt < 3; attempt++) {
-      if (endedRef.current) return;
-      try {
-        const resp = await fetch(TTS_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ text, voiceId }),
-        });
-        if (!resp.ok) {
-          lastErr = await resp.text().catch(() => `${resp.status}`);
-          console.error(`TTS attempt ${attempt + 1} failed`, resp.status, lastErr);
-          // 4xx (except 429) won't get better with retry — give up early
-          if (resp.status >= 400 && resp.status < 500 && resp.status !== 429) break;
-          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
-          continue;
-        }
-        const blob = await resp.blob();
-        if (!blob.size) {
-          lastErr = "empty audio";
-          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
-          continue;
-        }
-        if (endedRef.current) return;
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audioQueueRef.current.push(audio);
-        playNext();
+  const speakViaBrowser = (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!text.trim() || endedRef.current || !window.speechSynthesis) {
+        resolve();
         return;
-      } catch (e) {
-        lastErr = (e as Error).message;
-        console.error(`TTS attempt ${attempt + 1} threw`, e);
-        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
       }
-    }
-    toast.error("Voice unavailable — see transcript on the right.");
-    console.error("TTS gave up after 3 attempts:", lastErr);
+      try {
+        // Cancel anything pending so we don't queue duplicates
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        const v = pickBrowserVoice();
+        if (v) utter.voice = v;
+        utter.lang = v?.lang || "en-US";
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        utter.volume = 1.0;
+        speakingRef.current = true;
+        utter.onend = () => {
+          speakingRef.current = false;
+          resolve();
+        };
+        utter.onerror = (e) => {
+          console.error("SpeechSynthesis error", e);
+          speakingRef.current = false;
+          resolve();
+        };
+        window.speechSynthesis.speak(utter);
+      } catch (e) {
+        console.error(e);
+        speakingRef.current = false;
+        resolve();
+      }
+    });
   };
 
   const startMeter = async () => {
@@ -327,7 +316,6 @@ const Call = () => {
 
     let assistantText = "";
     let firstChunk = true;
-    const voiceId = voiceForPersona(config.persona);
 
     try {
       const resp = await fetch(CHAT_URL, {
@@ -399,25 +387,11 @@ const Call = () => {
         }
       }
 
-      // Speak the full reply once, as a single audio stream (no overlap)
+      // Speak the full reply via the browser's built-in voice (free, no infra)
       if (assistantText.trim()) {
         setStatus("speaking");
-        await speakViaEleven(assistantText, voiceId);
+        await speakViaBrowser(assistantText);
       }
-
-      // Wait for TTS to finish, then resume listening
-      const waitForSpeech = () =>
-        new Promise<void>((resolve) => {
-          const check = () => {
-            if (!playingRef.current && audioQueueRef.current.length === 0) {
-              resolve();
-            } else {
-              setTimeout(check, 200);
-            }
-          };
-          check();
-        });
-      await waitForSpeech();
       // Small buffer so the speaker's tail doesn't bleed back into the mic
       await new Promise((r) => setTimeout(r, 350));
       setStatus("idle");
