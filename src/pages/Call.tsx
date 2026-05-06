@@ -34,7 +34,7 @@ const Call = () => {
   const [textInput, setTextInput] = useState("");
   const [supportsSTT, setSupportsSTT] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [startedAt] = useState<number>(() => Date.now());
+  const [startedAt, setStartedAt] = useState<number>(() => Date.now());
   const [now, setNow] = useState<number>(Date.now());
   const [callStarted, setCallStarted] = useState(false);
 
@@ -91,6 +91,7 @@ const Call = () => {
     if (greetedRef.current) return;
     greetedRef.current = true;
     setCallStarted(true);
+    setStartedAt(Date.now());
     // Unlock audio playback inside the same gesture
     try {
       const a = new Audio();
