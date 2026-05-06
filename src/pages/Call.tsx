@@ -18,7 +18,6 @@ const SpeechRecognitionImpl: any =
     : null;
 
 // Pick the best available female en-US browser voice.
-// Web Speech voices load asynchronously, so we re-pick lazily on each utterance.
 function pickBrowserVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
@@ -41,11 +40,26 @@ function pickBrowserVoice(): SpeechSynthesisVoice | null {
     const match = en.find((v) => v.name.includes(name));
     if (match) return match;
   }
-  // Fall back to anything that looks female by name
   const female = en.find((v) =>
     /female|woman|aria|jenny|zira|samantha|karen|moira|tessa|victoria|allison|ava|sarah|emily|joanna/i.test(v.name)
   );
   return female || en[0] || voices[0];
+}
+
+// Wait for the voice list to populate (some browsers load it async after page load).
+function waitForVoices(timeoutMs = 2500): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return resolve();
+    if (window.speechSynthesis.getVoices().length > 0) return resolve();
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    window.speechSynthesis.onvoiceschanged = () => finish();
+    setTimeout(finish, timeoutMs);
+  });
 }
 
 const Call = () => {
@@ -73,6 +87,8 @@ const Call = () => {
   const speakingRef = useRef(false);
   const endedRef = useRef(false);
   const shouldListenRef = useRef(false);
+  // Lock in one voice for the entire call so it doesn't switch between utterances
+  const lockedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -118,7 +134,7 @@ const Call = () => {
   const lastTwoMin = !overtime && remainingMs <= 2 * 60_000;
 
   // Greeting is triggered by the user clicking "Start call" (required for browser audio autoplay)
-  const handleStartCall = () => {
+  const handleStartCall = async () => {
     if (greetedRef.current) return;
     greetedRef.current = true;
     setCallStarted(true);
@@ -131,6 +147,10 @@ const Call = () => {
         window.speechSynthesis.speak(u);
       }
     } catch {}
+    // Wait for voices to load and lock one in BEFORE the first AI reply, so the
+    // greeting and the rest of the call use the same voice.
+    await waitForVoices();
+    lockedVoiceRef.current = pickBrowserVoice();
     void sendToAI([]);
   };
 
@@ -165,10 +185,11 @@ const Call = () => {
         return;
       }
       try {
-        // Cancel anything pending so we don't queue duplicates
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
-        const v = pickBrowserVoice();
+        // Always reuse the voice we locked in at call start
+        if (!lockedVoiceRef.current) lockedVoiceRef.current = pickBrowserVoice();
+        const v = lockedVoiceRef.current;
         if (v) utter.voice = v;
         utter.lang = v?.lang || "en-US";
         utter.rate = 1.0;
@@ -262,7 +283,7 @@ const Call = () => {
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
         if (finalBuffer.trim()) flush();
-      }, 1200);
+      }, 2000);
     };
     rec.onerror = (e: any) => {
       if (e.error === "no-speech" || e.error === "aborted" || e.error === "network") return;

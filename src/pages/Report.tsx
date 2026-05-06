@@ -191,8 +191,8 @@ const Report = () => {
               />
             </div>
 
-            {(evaluation.agenda_setting || evaluation.active_listening) && (
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {(evaluation.agenda_setting || evaluation.active_listening || evaluation.next_steps) && (
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {evaluation.agenda_setting && (
                   <ScoreCard
                     title="Agenda Setting"
@@ -218,6 +218,24 @@ const Report = () => {
                         ))}
                       </ul>
                     )}
+                  </Card>
+                )}
+                {evaluation.next_steps && (
+                  <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Next Steps</div>
+                    <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.next_steps.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                      {evaluation.next_steps.score}
+                      <span className="text-xl text-muted-foreground">/100</span>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{evaluation.next_steps.notes}</p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.offered_times ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
+                        {evaluation.next_steps.offered_times ? "Offered specific times" : "No times offered"}
+                      </span>
+                      <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.secured_meeting ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                        {evaluation.next_steps.secured_meeting ? "Meeting booked" : "Not booked"}
+                      </span>
+                    </div>
                   </Card>
                 )}
               </div>

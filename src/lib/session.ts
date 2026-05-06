@@ -35,6 +35,7 @@ export interface Evaluation {
   };
   agenda_setting?: { score: number; notes: string };
   active_listening?: { score: number; notes: string; examples: string[] };
+  next_steps?: { score: number; notes: string; offered_times: boolean; secured_meeting: boolean };
   corrective_feedback: string[];
   wins: string[];
   summary: string;
