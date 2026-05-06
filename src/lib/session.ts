@@ -129,11 +129,34 @@ export function buildGoal(
   area: PracticeArea,
   callType: CallType,
   topics: string,
+  durationMin: number = 10,
 ): string {
   const firm = FIRM_BY_AREA[area];
   const topicsTrimmed = topics.trim();
+  const focus = topicsTrimmed ? ` Focus on ${topicsTrimmed}.` : "";
+
   if (callType === "discovery") {
-    return `Run a discovery call: uncover the prospect's business pain, qualify fit (budget, timeline, decision process), and earn a clear next step (proposal or follow-up meeting). Demonstrate how ${firm} can solve their problem${topicsTrimmed ? ` — especially around ${topicsTrimmed}` : ""}. End the call with mutual agreement on what happens next.`;
+    if (durationMin <= 5) {
+      return `Quick discovery rep (${durationMin} min): open with a clear agenda, surface ONE core pain point, and lock in a concrete next step.${focus} Don't try to qualify everything — pick the highest-value thread and go deep.`;
+    }
+    if (durationMin <= 10) {
+      return `Discovery mini-roleplay (${durationMin} min): set a brief agenda, uncover the prospect's top 1–2 pains, do a light qualification (budget OR timeline OR decision process — pick what matters most), and earn a clear next step.${focus}`;
+    }
+    if (durationMin <= 20) {
+      return `Extended discovery (${durationMin} min): set the agenda, uncover business pain, qualify fit (budget, timeline, decision process), demonstrate how ${firm} solves it, and lock a next step.${focus}`;
+    }
+    return `Full discovery call (${durationMin} min): set the agenda, deeply uncover business pain, fully qualify fit (budget, timeline, decision process, success criteria), demonstrate how ${firm} can solve their problem, handle objections, and earn mutual agreement on next steps.${focus}`;
   }
-  return `Run a service / onboarding kickoff: align on goals, confirm scope, map stakeholders, set timeline expectations, and gather what you need to begin work${topicsTrimmed ? ` (focus areas: ${topicsTrimmed})` : ""}. End the call with the client feeling confident in the roadmap and clear on the next 2 weeks.`;
+
+  // service / onboarding kickoff
+  if (durationMin <= 5) {
+    return `Quick kickoff rep (${durationMin} min): confirm the #1 goal, set one clear expectation, and agree on the immediate next step.${focus}`;
+  }
+  if (durationMin <= 10) {
+    return `Kickoff mini-roleplay (${durationMin} min): align on top goals, confirm scope at a high level, and set the next 1–2 weeks.${focus}`;
+  }
+  if (durationMin <= 20) {
+    return `Extended kickoff (${durationMin} min): align on goals, confirm scope, map key stakeholders, set timeline expectations, and gather what you need to begin.${focus}`;
+  }
+  return `Full onboarding kickoff (${durationMin} min): align on goals, confirm scope in detail, map all stakeholders, set timeline and communication expectations, gather requirements, and leave the client confident in the roadmap and the next 2 weeks.${focus}`;
 }
