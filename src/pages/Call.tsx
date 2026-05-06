@@ -155,31 +155,47 @@ const Call = () => {
 
   const speakViaEleven = async (text: string, voiceId: string) => {
     if (!text.trim() || endedRef.current) return;
-    try {
-      const resp = await fetch(TTS_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ text, voiceId }),
-      });
-      if (!resp.ok) {
-        const errText = await resp.text();
-        console.error("TTS failed", resp.status, errText);
-        toast.error("Voice unavailable. The prospect's reply is shown in the transcript.");
-        return;
-      }
-      const blob = await resp.blob();
+    // Retry up to 3 times — ElevenLabs free tier occasionally returns transient errors
+    let lastErr = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
       if (endedRef.current) return;
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioQueueRef.current.push(audio);
-      playNext();
-    } catch (e) {
-      console.error(e);
-      toast.error("Voice playback failed.");
+      try {
+        const resp = await fetch(TTS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text, voiceId }),
+        });
+        if (!resp.ok) {
+          lastErr = await resp.text().catch(() => `${resp.status}`);
+          console.error(`TTS attempt ${attempt + 1} failed`, resp.status, lastErr);
+          // 4xx (except 429) won't get better with retry — give up early
+          if (resp.status >= 400 && resp.status < 500 && resp.status !== 429) break;
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        const blob = await resp.blob();
+        if (!blob.size) {
+          lastErr = "empty audio";
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        if (endedRef.current) return;
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioQueueRef.current.push(audio);
+        playNext();
+        return;
+      } catch (e) {
+        lastErr = (e as Error).message;
+        console.error(`TTS attempt ${attempt + 1} threw`, e);
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      }
     }
+    toast.error("Voice unavailable — see transcript on the right.");
+    console.error("TTS gave up after 3 attempts:", lastErr);
   };
 
   const startMeter = async () => {
