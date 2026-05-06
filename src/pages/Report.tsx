@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, RefreshCw, Target, XCircle } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Link2, RefreshCw, Target, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useSession, type Evaluation } from "@/lib/session";
+import { useSession, type Evaluation, type Turn, type SimConfig } from "@/lib/session";
 
 const scoreColor = (s: number) =>
   s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
@@ -31,11 +31,21 @@ const ScoreCard = ({
 
 const Report = () => {
   const navigate = useNavigate();
-  const { config, transcript, evaluation, setEvaluation, reset } = useSession();
+  const { id } = useParams<{ id: string }>();
+  const { config, transcript, evaluation, setEvaluation, setConfig, setTranscript, reset } = useSession();
   const [loading, setLoading] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [sharedConfig, setSharedConfig] = useState<SimConfig | null>(null);
+  const [sharedTranscript, setSharedTranscript] = useState<Turn[] | null>(null);
+
+  const viewConfig = id ? sharedConfig : config;
+  const viewTranscript = id ? (sharedTranscript ?? []) : transcript;
 
   useEffect(() => {
+    if (id) {
+      void loadShared(id);
+      return;
+    }
     if (!config || transcript.length === 0) {
       navigate("/");
       return;
@@ -43,7 +53,40 @@ const Report = () => {
     if (evaluation) return;
     void run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [id]);
+
+  const loadShared = async (sessionId: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("coaching_sessions")
+        .select("*")
+        .eq("id", sessionId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        toast.error("Report not found");
+        navigate("/");
+        return;
+      }
+      setSharedConfig({
+        practiceArea: data.practice_area as SimConfig["practiceArea"],
+        persona: data.persona,
+        difficulty: data.difficulty as SimConfig["difficulty"],
+        callType: data.call_type as SimConfig["callType"],
+        topics: data.topics ?? "",
+        durationMin: 10,
+        goal: "",
+      });
+      setSharedTranscript((data.transcript as unknown as Turn[]) ?? []);
+      setEvaluation((data.evaluation as unknown as Evaluation) ?? null);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Could not load report");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const run = async () => {
     setLoading(true);
@@ -58,9 +101,9 @@ const Report = () => {
       if (data?.error) throw new Error(data.error);
       const ev = data.evaluation as Evaluation;
       setEvaluation(ev);
-      // Persist this coaching session for the admin area (best-effort, fire-and-forget)
+      // Persist this coaching session and route to its unique URL
       try {
-        await supabase.from("coaching_sessions").insert([
+        const { data: inserted, error: insertErr } = await supabase.from("coaching_sessions").insert([
           {
             practice_area: config.practiceArea,
             persona: config.persona,
@@ -71,7 +114,11 @@ const Report = () => {
             transcript: transcript as any,
             evaluation: ev as any,
           },
-        ]);
+        ]).select("id").single();
+        if (insertErr) throw insertErr;
+        if (inserted?.id) {
+          navigate(`/report/${inserted.id}`, { replace: true });
+        }
       } catch (saveErr) {
         console.error("Failed to save session:", saveErr);
       }
@@ -83,16 +130,33 @@ const Report = () => {
     }
   };
 
-  if (!config) return null;
+  const copyShareLink = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Share link copied");
+    } catch {
+      toast.error("Could not copy link");
+    }
+  };
+
+  if (!viewConfig && !loading) return null;
 
   return (
     <main className="min-h-screen px-4 py-10">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8">
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Post-game report</div>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            How you did
-          </h1>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              How you did
+            </h1>
+            {id && (
+              <Button onClick={copyShareLink} variant="outline" size="sm" className="gap-2">
+                <Link2 className="h-4 w-4" /> Copy share link
+              </Button>
+            )}
+          </div>
           {evaluation && (
             <p className="mt-3 max-w-3xl text-balance text-base text-muted-foreground">
               {evaluation.summary}
@@ -220,7 +284,7 @@ const Report = () => {
               </button>
               {showTranscript && (
                 <Card className="mt-3 space-y-2 border-border/60 bg-card/60 p-5 text-sm">
-                  {transcript.map((t, i) => (
+              {viewTranscript.map((t, i) => (
                     <div key={i}>
                       <span className="text-xs uppercase tracking-wider text-muted-foreground">
                         {t.role === "user" ? "You" : "Prospect"}
@@ -232,6 +296,7 @@ const Report = () => {
               )}
             </div>
 
+            {!id && (
             <div className="mt-10 flex flex-wrap gap-3">
               <Button
                 onClick={() => {
@@ -253,6 +318,20 @@ const Report = () => {
                 New simulation <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
+            )}
+            {id && (
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Button
+                  onClick={() => {
+                    reset();
+                    navigate("/");
+                  }}
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Start a new simulation <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
