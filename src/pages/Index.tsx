@@ -3,6 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { Mic, Sparkles, Target, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -296,6 +302,47 @@ const Index = () => {
         </Card>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">Voice powered by your browser. Best in Chrome or Edge. Mic permission required.</p>
+
+        <section className="mt-16">
+          <h2 className="mb-6 text-center text-2xl font-bold tracking-tight md:text-3xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
+            Frequently asked questions
+          </h2>
+          <Card className="border-border/60 bg-card/70 p-2 backdrop-blur md:p-4">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="discovery-vs-service">
+                <AccordionTrigger className="text-left">
+                  What's the difference between a Discovery call and a Service / Onboarding call?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  <p className="mb-3">
+                    <span className="font-semibold text-foreground">Discovery</span> is a pre-sale conversation with a prospect who hasn't bought yet. Your job is to diagnose their business problem, qualify fit, uncover budget / timeline / decision process, and earn the right to propose a solution. The prospect is skeptical, comparing options, and pushing back on value. Success looks like: clear pain identified, mutual next step booked, and you've avoided pitching features too early.
+                  </p>
+                  <p>
+                    <span className="font-semibold text-foreground">Service / Onboarding</span> happens after the deal is signed. The client has already bought — now you're kicking off the engagement, aligning on goals, setting expectations, gathering access, and building the project plan. The tone is collaborative, not persuasive. Success looks like: scope confirmed, stakeholders mapped, timeline agreed, and the client feels confident in the roadmap. You're managing a relationship, not winning one.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="how-scoring-works">
+                <AccordionTrigger className="text-left">How does scoring work?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  After you end the call, the AI evaluates your transcript on strategy, technical accuracy, and confidence — and gives you specific feedback on what to improve.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="practice-areas">
+                <AccordionTrigger className="text-left">Which practice areas are supported?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  HubSpot (CRM, Marketing Hub, Sales Hub, Service Hub, Breeze AI), Paid Media (Point Success Media's PPC, paid social, programmatic), and Globalia (e-commerce, custom AI, app development, WordPress).
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="mic-tips">
+                <AccordionTrigger className="text-left">Mic isn't working in the preview?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Chrome blocks mic access in embedded iframes. Open the preview in a new tab (↗ top-right) or just type your replies in the transcript box. Use headphones to avoid the prospect's voice being picked up by your mic.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Card>
+        </section>
       </div>
     </main>
   );
