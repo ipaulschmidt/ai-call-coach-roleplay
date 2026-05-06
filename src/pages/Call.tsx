@@ -283,7 +283,7 @@ const Call = () => {
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
         if (finalBuffer.trim()) flush();
-      }, 1200);
+      }, 2000);
     };
     rec.onerror = (e: any) => {
       if (e.error === "no-speech" || e.error === "aborted" || e.error === "network") return;
