@@ -32,7 +32,7 @@ const ScoreCard = ({
 const Report = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { config, transcript, evaluation, setEvaluation, setConfig, setTranscript, reset } = useSession();
+  const { config, transcript, evaluation, setEvaluation, reset } = useSession();
   const [loading, setLoading] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [sharedConfig, setSharedConfig] = useState<SimConfig | null>(null);
