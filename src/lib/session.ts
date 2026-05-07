@@ -12,6 +12,7 @@ export interface SimConfig {
   practiceArea: PracticeArea;
   durationMin: number;
   goal: string;
+  scenario: string;
 }
 
 export interface Turn {
@@ -119,6 +120,32 @@ export const DURATION_OPTIONS: { value: number; label: string; desc: string }[] 
   { value: 20, label: "20 min", desc: "Extended — multi-topic deep dive" },
   { value: 30, label: "30 min", desc: "Max — full mock call" },
 ];
+
+const SCENARIOS_BY_AREA: Record<PracticeArea, string[]> = {
+  hubspot: [
+    "We met this prospect at INBOUND last month — they swung by the SmartBug booth and gave us their card.",
+    "They filled out the 'Talk to a HubSpot expert' form on the SmartBug website earlier this week.",
+    "A HubSpot sales rep introduced us — the prospect is evaluating HubSpot and the rep flagged them as a great fit for partner help.",
+    "They were referred by an existing SmartBug client who's seen real ROI from their HubSpot implementation.",
+  ],
+  paid_media: [
+    "We met this prospect at a digital marketing conference — they stopped by the Point Success Media booth.",
+    "They filled out the 'Get a paid media audit' form on the Point Success Media website.",
+    "A HubSpot rep introduced us — the prospect uses HubSpot and asked for a paid media partner recommendation.",
+    "They were referred by an existing Point Success Media client who's seen strong ROAS lift.",
+  ],
+  globalia: [
+    "We met this prospect at a Shopify / e-commerce meetup — they asked about a re-platform.",
+    "They filled out the contact form on the Globalia Digital website.",
+    "A partner agency referred them after hitting the limits of their current setup.",
+    "They were referred by an existing Globalia client who recommended us for their next build.",
+  ],
+};
+
+export function pickScenario(area: PracticeArea): string {
+  const list = SCENARIOS_BY_AREA[area];
+  return list[Math.floor(Math.random() * list.length)];
+}
 
 const FIRM_BY_AREA: Record<PracticeArea, string> = {
   hubspot: "SmartBug",
