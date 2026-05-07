@@ -302,6 +302,7 @@ const Call = () => {
 
   const startListening = useCallback(async () => {
     if (!SpeechRecognitionImpl) return;
+    if (endedRef.current) return;
     await startMeter();
     if (recognitionRef.current) return;
     const rec = new SpeechRecognitionImpl();
@@ -376,7 +377,7 @@ const Call = () => {
 
   const sendToAI = async (history: Turn[]) => {
     if (!config) return;
-    endedRef.current = false;
+    if (endedRef.current) return;
     setStatus("thinking");
     // Don't tear down the mic / STT between turns — iOS Safari can't re-acquire them
     // outside of the original user gesture. Just gate STT input while the AI talks.
@@ -413,7 +414,7 @@ const Call = () => {
 
       if (!resp.ok || !resp.body) {
         const data = await resp.json().catch(() => ({}));
-        toast.error(data.error || `AI error (${resp.status})`);
+        if (!endedRef.current) toast.error(data.error || `AI error (${resp.status})`);
         setTranscript(history);
         setStatus("idle");
         return;
@@ -426,7 +427,7 @@ const Call = () => {
 
       while (!done) {
         const { done: d, value } = await reader.read();
-        if (d) break;
+        if (d || endedRef.current) break;
         buffer += decoder.decode(value, { stream: true });
         let nl: number;
         while ((nl = buffer.indexOf("\n")) !== -1) {
@@ -459,20 +460,23 @@ const Call = () => {
         }
       }
 
+      if (endedRef.current) return;
       // Speak the full reply via the browser's built-in voice (free, no infra)
       if (assistantText.trim()) {
         setStatus("speaking");
         await speakViaElevenLabs(assistantText);
       }
+      if (endedRef.current) return;
       // Small buffer so the speaker's tail doesn't bleed back into the mic
       await new Promise((r) => setTimeout(r, 350));
+      if (endedRef.current) return;
       setStatus("idle");
       muteSTTRef.current = false;
       // Make sure STT is running (no-op if already alive)
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
       console.error(e);
-      toast.error("Connection lost. Try again.");
+      if (!endedRef.current) toast.error("Connection lost. Try again.");
       setStatus("idle");
       muteSTTRef.current = false;
     }
@@ -500,6 +504,8 @@ const Call = () => {
   const endCall = () => {
     // Hard-stop everything: TTS voice, STT recognition, mic stream, and any pending AI work
     endedRef.current = true;
+    shouldListenRef.current = false;
+    muteSTTRef.current = true;
     // SpeechSynthesis is a global window singleton — it survives navigation, so we must
     // explicitly and aggressively cancel it. Chrome occasionally needs cancel() to be
     // called twice (once to stop the current utterance, once to flush the queue).
@@ -510,6 +516,10 @@ const Call = () => {
     stopAllPlayback();
     cleanupSTT();
     cleanupAudio();
+    try {
+      audioElRef.current?.pause();
+      audioElRef.current = null;
+    } catch {}
     setStatus("idle");
     setInterim("");
     navigate("/report");
