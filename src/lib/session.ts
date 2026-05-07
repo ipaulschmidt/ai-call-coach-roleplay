@@ -123,51 +123,57 @@ export const DURATION_OPTIONS: { value: number; label: string; desc: string }[] 
   { value: 30, label: "30 min", desc: "Max — full mock call" },
 ];
 
-const DISCOVERY_SCENARIOS_BY_AREA: Record<PracticeArea, string[]> = {
+type ScenarioTemplate = (topic: string) => string;
+
+const DISCOVERY_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
   hubspot: [
-    "We met this prospect at INBOUND last month — they swung by the SmartBug booth and gave us their card.",
-    "They filled out the 'Talk to a HubSpot expert' form on the SmartBug website earlier this week.",
-    "A HubSpot sales rep introduced us — the prospect is evaluating HubSpot and the rep flagged them as a great fit for partner help.",
-    "They were referred by an existing SmartBug client who's seen real ROI from their HubSpot implementation.",
+    (t) => `We met this prospect at INBOUND last month — they swung by the SmartBug booth and mentioned they're trying to figure out ${t}.`,
+    (t) => `They filled out the 'Talk to a HubSpot expert' form on the SmartBug website this week, specifically asking about ${t}.`,
+    (t) => `A HubSpot sales rep introduced us — the prospect is evaluating HubSpot and the rep flagged ${t} as the area they need partner help on.`,
+    (t) => `They were referred by an existing SmartBug client and want to talk through ${t} on this first call.`,
   ],
   paid_media: [
-    "We met this prospect at a digital marketing conference — they stopped by the Point Success Media booth.",
-    "They filled out the 'Get a paid media audit' form on the Point Success Media website.",
-    "A HubSpot rep introduced us — the prospect uses HubSpot and asked for a paid media partner recommendation.",
-    "They were referred by an existing Point Success Media client who's seen strong ROAS lift.",
+    (t) => `We met this prospect at a digital marketing conference — they stopped by the Point Success Media booth and asked about ${t}.`,
+    (t) => `They filled out the 'Get a paid media audit' form on the Point Success Media website, calling out ${t} as their main concern.`,
+    (t) => `A HubSpot rep introduced us — the prospect uses HubSpot and wants a paid media partner who can help with ${t}.`,
+    (t) => `They were referred by an existing Point Success Media client and the conversation is centered on ${t}.`,
   ],
   globalia: [
-    "We met this prospect at a Shopify / e-commerce meetup — they asked about a re-platform.",
-    "They filled out the contact form on the Globalia Digital website.",
-    "A partner agency referred them after hitting the limits of their current setup.",
-    "They were referred by an existing Globalia client who recommended us for their next build.",
+    (t) => `We met this prospect at a Shopify / e-commerce meetup — they're exploring ${t} and want to see if we're a fit.`,
+    (t) => `They filled out the contact form on the Globalia Digital website asking specifically about ${t}.`,
+    (t) => `A partner agency referred them after they hit the limits of their current setup around ${t}.`,
+    (t) => `They were referred by an existing Globalia client and want to scope ${t} on this first call.`,
   ],
 };
 
-const SERVICE_SCENARIOS_BY_AREA: Record<PracticeArea, string[]> = {
+const SERVICE_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
   hubspot: [
-    "Existing client — they just bought a 40-hour block of HubSpot consulting hours and want help scoping where to spend them first.",
-    "Retainer client of 6 months — monthly check-in to review HubSpot adoption, open tickets, and what to prioritize next sprint.",
-    "New onboarding kickoff — they signed a HubSpot implementation SOW last week and this is the formal kickoff call.",
-    "Existing retainer client — they want to expand from Marketing Hub into Service Hub and Breeze AI agents and need a plan.",
+    (t) => `Existing client — they just bought a 40-hour block of HubSpot consulting hours and want to spend them on ${t}.`,
+    (t) => `Retainer client of 6 months — this month's check-in is focused on ${t}: progress, blockers, and what to prioritize next sprint.`,
+    (t) => `New onboarding kickoff — they signed a HubSpot implementation SOW last week and ${t} is the first workstream.`,
+    (t) => `Existing retainer client — they want to expand the engagement to cover ${t} and need a plan.`,
   ],
   paid_media: [
-    "Existing client — they just renewed for another quarter on retainer and want to revisit channel mix and creative testing plan.",
-    "New client kickoff — SOW signed for paid search + paid social management, this is the official onboarding call.",
-    "Retainer client of 6 months — monthly performance review: ROAS trend, what's working, and where to reallocate budget.",
-    "Existing client — they bought a block of strategy hours for a Q4 holiday push and want to plan the campaign together.",
+    (t) => `Existing client — they just renewed their quarterly retainer and want to revisit ${t} for the next 90 days.`,
+    (t) => `New client kickoff — SOW signed for paid media management, and ${t} is the headline focus for onboarding.`,
+    (t) => `Retainer client of 6 months — this month's performance review zooms in on ${t}: what's working, what to change.`,
+    (t) => `Existing client — they bought a block of strategy hours specifically to plan ${t} together.`,
   ],
   globalia: [
-    "Existing client — they just purchased a block of dev hours and want help prioritizing the backlog for their Shopify store.",
-    "New build kickoff — they signed a SOW for a custom WordPress rebuild and this is the project kickoff call.",
-    "Retainer client of 6 months — monthly check-in on site performance, open tickets, and what to ship next sprint.",
-    "Existing client — they want to scope a custom AI agent project on top of their current site and need a plan.",
+    (t) => `Existing client — they just purchased a block of dev hours and want to spend them on ${t}.`,
+    (t) => `New build kickoff — they signed a SOW and ${t} is the first deliverable on the roadmap.`,
+    (t) => `Retainer client of 6 months — this month's check-in is focused on ${t}: open tickets and what to ship next sprint.`,
+    (t) => `Existing client — they want to scope ${t} as an add-on to their current engagement and need a plan.`,
   ],
 };
 
-export function pickScenario(area: PracticeArea, callType: CallType = "discovery"): string {
+export function pickScenario(area: PracticeArea, callType: CallType = "discovery", topics: string = ""): string {
   const list = (callType === "service" ? SERVICE_SCENARIOS_BY_AREA : DISCOVERY_SCENARIOS_BY_AREA)[area];
-  return list[Math.floor(Math.random() * list.length)];
+  const tpl = list[Math.floor(Math.random() * list.length)];
+  const trimmed = topics.trim();
+  // Use the first comma-separated topic if multiple are listed, otherwise the whole string.
+  const topic = trimmed ? trimmed.split(",")[0].trim() : "their top priorities";
+  return tpl(topic);
 }
 
 const FIRM_BY_AREA: Record<PracticeArea, string> = {
