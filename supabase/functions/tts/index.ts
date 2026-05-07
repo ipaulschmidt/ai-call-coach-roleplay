@@ -24,8 +24,10 @@ Deno.serve(async (req) => {
     }
 
     const vid = voiceId || "EXAVITQu4vr4xnSDxMaL"; // Sarah default
+    // Non-streaming endpoint: ElevenLabs returns the full MP3 with a proper
+    // Content-Length so the client's blob() never truncates the tail.
     const resp = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${vid}/stream?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${vid}?output_format=mp3_44100_128`,
       {
         method: "POST",
         headers: {
@@ -46,7 +48,7 @@ Deno.serve(async (req) => {
       },
     );
 
-    if (!resp.ok || !resp.body) {
+    if (!resp.ok) {
       const err = await resp.text();
       return new Response(JSON.stringify({ error: err || `TTS failed: ${resp.status}` }), {
         status: 502,
@@ -54,9 +56,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(resp.body, {
+    const audio = await resp.arrayBuffer();
+    return new Response(audio, {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "audio/mpeg" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "audio/mpeg",
+        "Content-Length": String(audio.byteLength),
+        "Cache-Control": "no-store",
+      },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: (e as Error).message }), {
