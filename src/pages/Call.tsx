@@ -97,14 +97,13 @@ const Call = () => {
   // While true, ignore STT results (the AI is speaking — don't capture its own voice)
   const muteSTTRef = useRef(false);
 
-  // Toggle the mic input track itself when the AI is speaking. This is a stronger
-  // guard than just dropping STT results: it ensures the browser's recognizer
-  // isn't fed the AI's own voice through the device speakers.
-  const setMicTrackEnabled = (enabled: boolean) => {
-    try {
-      streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = enabled));
-    } catch {}
-  };
+  // NOTE: We intentionally do NOT toggle `track.enabled` while the AI speaks.
+  // On iOS Safari (and some Chromium builds) flipping the mic track off/on
+  // causes SpeechRecognition to fire `onend` and the auto-restart often fails
+  // silently outside of a user gesture — which leaves the mic dead until the
+  // user taps something. Instead we keep the mic hot the whole call and rely on:
+  //   1. `echoCancellation: true` on getUserMedia (handles speaker bleed)
+  //   2. `muteSTTRef` to drop STT results that arrive while the AI talks
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -408,7 +407,6 @@ const Call = () => {
     // Don't tear down the mic / STT between turns — iOS Safari can't re-acquire them
     // outside of the original user gesture. Just gate STT input while the AI talks.
     muteSTTRef.current = true;
-    setMicTrackEnabled(false);
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
@@ -499,7 +497,6 @@ const Call = () => {
       if (endedRef.current) return;
       setStatus("idle");
       muteSTTRef.current = false;
-      setMicTrackEnabled(true);
       // Make sure STT is running (no-op if already alive)
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
@@ -507,7 +504,6 @@ const Call = () => {
       if (!endedRef.current) toast.error("Connection lost. Try again.");
       setStatus("idle");
       muteSTTRef.current = false;
-      setMicTrackEnabled(true);
     }
   };
 
