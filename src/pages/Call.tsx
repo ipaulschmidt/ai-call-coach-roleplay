@@ -348,19 +348,22 @@ const Call = () => {
     };
 
     rec.onresult = (event: any) => {
-      // Ignore everything while the AI is speaking so we don't transcribe its own voice
-      if (muteSTTRef.current) return;
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const res = event.results[i];
         if (res.isFinal) finalBuffer += res[0].transcript + " ";
         else interimText += res[0].transcript;
       }
+      // While the AI is talking we still SHOW interim text (so the user sees the
+      // mic is hot) but we don't auto-flush — we wait until the AI finishes
+      // before sending. This prevents echo-bleed from triggering a turn while
+      // still capturing the human's barge-in.
       setInterim(interimText);
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
+        if (muteSTTRef.current) return; // AI still speaking — wait
         if (finalBuffer.trim()) flush();
-      }, 2000);
+      }, 1500);
     };
     rec.onerror = (e: any) => {
       if (e.error === "no-speech" || e.error === "aborted" || e.error === "network") return;
