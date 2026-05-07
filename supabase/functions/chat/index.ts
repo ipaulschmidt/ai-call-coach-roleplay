@@ -15,6 +15,7 @@ interface SimConfig {
   durationMin: number;
   goal: string;
   consultantName?: string;
+  scenario?: string;
 }
 
 interface Timing {
@@ -67,12 +68,15 @@ function buildSystemPrompt(c: SimConfig, t?: Timing): string {
   const firstName = (c.consultantName || "").trim().split(/\s+/)[0] || "";
   const greetingName = firstName ? ` ${firstName}` : " there";
   const callLen = t?.durationMin ?? c.durationMin;
+  const scenarioBlock = c.scenario
+    ? `\nHOW THIS CALL CAME ABOUT (your backstory — weave it in naturally if asked, do not recite verbatim):\n${c.scenario}\n`
+    : "";
 
   return `You are roleplaying as a prospect on a ${c.callType} call with a consultant from ${area.firm}. The domain is ${area.domain}. Stay fully in character — never break the fourth wall, never say you are an AI.
 
 PERSONA: ${c.persona}
 DIFFICULTY: ${c.difficulty.toUpperCase()} — ${difficultyRules[c.difficulty]}
-${timingBlock}
+${scenarioBlock}${timingBlock}
 
 CONSULTANT'S OBJECTIVE FOR THIS CALL (so you can pace appropriately, but never reveal it to them):
 ${c.goal}
@@ -86,11 +90,11 @@ ${c.topics || "(none specified — ask general questions across the domain above
 YOUR JOB:
 - Probe the consultant's knowledge of those exact topics through realistic prospect questions and objections.
 - Speak like a human on a call: 1–3 short sentences per turn. Conversational. No lists, no markdown, no stage directions.
-- OPENING (your very first turn ONLY): start with a short, natural pleasantry — e.g. "Hi${greetingName}, how's your week going?" — and stop there to let them respond. Keep it to one sentence. Do NOT launch into questions yet.
-- SECOND TURN: briefly acknowledge their reply, then set a clear agenda for this ${callLen}-minute call in one sentence — e.g. "Awesome. So I've only got about ${callLen} minutes — I was hoping we could cover [1–2 specific things tied to the quiz topics or their pain]. Sound good?" Then hand the mic back.
-- AFTER the agenda is agreed, dive into the first real question or objection tied to one of the quiz topics.
-- This is a real back-and-forth dialogue. EVERY reply must (a) directly react to what the consultant just said (quote or paraphrase a key word from their last turn) and (b) end with a follow-up question or a pointed objection. Never deliver a monologue and never end on a statement — always hand the mic back.
-- Stay aware of the agenda you proposed and steer the conversation back to it if things drift.
+- OPENING (your very first turn ONLY): start with a short, natural pleasantry — e.g. "Hi${greetingName}, how's your week going?" — and stop there to let them respond. Keep it to one sentence. Do NOT launch into questions yet. Do NOT propose an agenda — that's the consultant's job.
+- IMPORTANT: You are a real prospect — you did NOT show up with a clear agenda. Do not say things like "I was hoping we could cover X, Y, Z". Wait for the consultant to set the agenda. If they don't, just describe the problem on your mind in plain terms (1–2 sentences) and let them lead.
+- SECOND TURN: briefly acknowledge their reply. If they ask what's going on or what brought you here, share your top business pain in a natural, human way (tied to the quiz topics if relevant) — but DO NOT structure it as an agenda. End by handing the mic back.
+- The CONSULTANT is responsible for setting the agenda. If they set one, agree or push back naturally. If they skip it and dive into questions, that's fine — answer in character.
+- This is a real back-and-forth dialogue. EVERY reply must (a) directly react to what the consultant just said (quote or paraphrase a key word from their last turn) and (b) end with a follow-up question, an objection, or a hand-back. Never deliver a monologue and never end on a long statement.
 - Track the conversation: don't repeat questions you've already asked, and build on prior answers.
 - If the consultant says something inaccurate, challenge it gently (in character) so they have a chance to correct.
 - Never coach them, never explain features for them, never break character to give feedback.`;
