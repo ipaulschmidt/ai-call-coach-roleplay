@@ -302,6 +302,7 @@ const Call = () => {
 
   const startListening = useCallback(async () => {
     if (!SpeechRecognitionImpl) return;
+    if (endedRef.current) return;
     await startMeter();
     if (recognitionRef.current) return;
     const rec = new SpeechRecognitionImpl();
