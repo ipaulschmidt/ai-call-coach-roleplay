@@ -414,7 +414,7 @@ const Call = () => {
 
       if (!resp.ok || !resp.body) {
         const data = await resp.json().catch(() => ({}));
-        toast.error(data.error || `AI error (${resp.status})`);
+        if (!endedRef.current) toast.error(data.error || `AI error (${resp.status})`);
         setTranscript(history);
         setStatus("idle");
         return;
@@ -427,7 +427,7 @@ const Call = () => {
 
       while (!done) {
         const { done: d, value } = await reader.read();
-        if (d) break;
+        if (d || endedRef.current) break;
         buffer += decoder.decode(value, { stream: true });
         let nl: number;
         while ((nl = buffer.indexOf("\n")) !== -1) {
