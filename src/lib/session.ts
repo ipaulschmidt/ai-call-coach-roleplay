@@ -95,26 +95,38 @@ export const PERSONAS_BY_AREA: Record<PracticeArea, ReadonlyArray<{
   name: string;
   role: string;
   blurb: string;
+  gender?: "female" | "male";
 }>> = {
   hubspot: [
-    { id: "skeptical-cfo", name: "Margaret Vale", role: "Skeptical CFO", blurb: "Wants ROI numbers. Allergic to buzzwords." },
-    { id: "busy-marketing", name: "Priya Shah", role: "Busy Marketing Manager", blurb: "Time-poor, juggling 3 campaigns. Cares about speed." },
-    { id: "revops", name: "Jordan Kim", role: "Curious RevOps Lead", blurb: "Loves architecture. Asks about workflows and data." },
-    { id: "tech-admin", name: "Sam Reyes", role: "Technical HubSpot Admin", blurb: "Knows the product. Will catch any inaccuracy." },
+    { id: "skeptical-cfo", name: "Margaret Vale", role: "Skeptical CFO", blurb: "Wants ROI numbers. Allergic to buzzwords.", gender: "female" },
+    { id: "busy-marketing", name: "Priya Shah", role: "Busy Marketing Manager", blurb: "Time-poor, juggling 3 campaigns. Cares about speed.", gender: "female" },
+    { id: "revops", name: "Jordan Kim", role: "Curious RevOps Lead", blurb: "Loves architecture. Asks about workflows and data.", gender: "female" },
+    { id: "tech-admin", name: "Sam Reyes", role: "Technical HubSpot Admin", blurb: "Knows the product. Will catch any inaccuracy.", gender: "male" },
   ],
   paid_media: [
-    { id: "ecom-cmo", name: "Dana Wright", role: "DTC E-com CMO", blurb: "Cares about ROAS, CAC, and creative velocity. Hates vanity metrics." },
-    { id: "b2b-demand", name: "Elena Park", role: "B2B Demand-Gen Director", blurb: "LinkedIn-heavy, pipeline-obsessed, wants attribution clarity." },
-    { id: "growth-founder", name: "Tessa Rivera", role: "Series-B Growth Founder", blurb: "Scaling fast, skeptical of agencies, wants proof of channel mix." },
-    { id: "performance-analyst", name: "Riya Mehta", role: "Performance Analyst", blurb: "Will pressure-test MMM, MTA, GA4 setup, and incrementality testing." },
+    { id: "ecom-cmo", name: "Dana Wright", role: "DTC E-com CMO", blurb: "Cares about ROAS, CAC, and creative velocity. Hates vanity metrics.", gender: "female" },
+    { id: "b2b-demand", name: "Elena Park", role: "B2B Demand-Gen Director", blurb: "LinkedIn-heavy, pipeline-obsessed, wants attribution clarity.", gender: "female" },
+    { id: "growth-founder", name: "Tessa Rivera", role: "Series-B Growth Founder", blurb: "Scaling fast, skeptical of agencies, wants proof of channel mix.", gender: "female" },
+    { id: "performance-analyst", name: "Riya Mehta", role: "Performance Analyst", blurb: "Will pressure-test MMM, MTA, GA4 setup, and incrementality testing.", gender: "female" },
   ],
   globalia: [
-    { id: "ecom-owner", name: "Carla Núñez", role: "Shopify Store Owner", blurb: "$3M GMV, conversion-obsessed, weighing headless re-platform." },
-    { id: "ai-curious-coo", name: "Mira Liu", role: "Mid-market COO", blurb: "Wants a custom AI agent for ops. Worried about hallucinations and ROI." },
-    { id: "product-pm", name: "Aisha Brown", role: "Product Manager", blurb: "Scoping a custom web/mobile app build. Asks about stack, timeline, QA." },
-    { id: "wp-marketer", name: "Jen Becker", role: "Marketing Lead", blurb: "Owns a WordPress site that's slow and outdated. Cares about SEO + uptime." },
+    { id: "ecom-owner", name: "Carla Núñez", role: "Shopify Store Owner", blurb: "$3M GMV, conversion-obsessed, weighing headless re-platform.", gender: "female" },
+    { id: "ai-curious-coo", name: "Mira Liu", role: "Mid-market COO", blurb: "Wants a custom AI agent for ops. Worried about hallucinations and ROI.", gender: "female" },
+    { id: "product-pm", name: "Aisha Brown", role: "Product Manager", blurb: "Scoping a custom web/mobile app build. Asks about stack, timeline, QA.", gender: "female" },
+    { id: "wp-marketer", name: "Jen Becker", role: "Marketing Lead", blurb: "Owns a WordPress site that's slow and outdated. Cares about SEO + uptime.", gender: "female" },
   ],
 };
+
+// ElevenLabs voice IDs — one stable voice per gender so the prospect's
+// voice never changes mid-call.
+export const VOICE_FEMALE = "EXAVITQu4vr4xnSDxMaL"; // Sarah
+export const VOICE_MALE = "JBFqnCBsd6RMkjVDRZzb"; // George
+
+export function voiceForPersona(area: PracticeArea, personaId: string | undefined): string {
+  if (!personaId) return VOICE_FEMALE;
+  const p = PERSONAS_BY_AREA[area]?.find((x) => x.id === personaId);
+  return p?.gender === "male" ? VOICE_MALE : VOICE_FEMALE;
+}
 
 export const DURATION_OPTIONS: { value: number; label: string; desc: string }[] = [
   { value: 5, label: "5 min", desc: "Quick rep — single objection drill" },
