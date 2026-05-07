@@ -34,7 +34,7 @@ const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
 ];
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
-  { id: "discovery", label: "Discovery" },
+  { id: "discovery", label: "Sales Discovery" },
   { id: "service", label: "Service / Onboarding" },
 ];
 
