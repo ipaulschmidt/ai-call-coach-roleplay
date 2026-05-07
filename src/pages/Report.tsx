@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Link2, RefreshCw, Target, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Copy, Link2, RefreshCw, Target, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -326,12 +326,33 @@ const Report = () => {
             </div>
 
             <div className="mt-8">
-              <button
-                onClick={() => setShowTranscript((v) => !v)}
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                {showTranscript ? "Hide" : "Show"} full transcript
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setShowTranscript((v) => !v)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  {showTranscript ? "Hide" : "Show"} full transcript
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1.5 px-2 text-xs"
+                  onClick={async () => {
+                    const text = viewTranscript
+                      .map((t) => `${t.role === "user" ? "Consultant" : "Prospect"}: ${t.content}`)
+                      .join("\n\n");
+                    try {
+                      await navigator.clipboard.writeText(text);
+                      toast.success("Transcript copied");
+                    } catch {
+                      toast.error("Couldn't copy — select and copy manually");
+                    }
+                  }}
+                  disabled={viewTranscript.length === 0}
+                >
+                  <Copy className="h-3.5 w-3.5" /> Copy transcript
+                </Button>
+              </div>
               {showTranscript && (
                 <Card className="mt-3 space-y-2 border-border/60 bg-card/60 p-5 text-sm">
               {viewTranscript.map((t, i) => (
