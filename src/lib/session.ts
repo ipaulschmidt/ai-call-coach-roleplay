@@ -13,6 +13,8 @@ export interface SimConfig {
   durationMin: number;
   goal: string;
   scenario?: string;
+  personaId?: string;
+  personaAvatar?: string;
 }
 
 export interface Turn {
@@ -72,7 +74,7 @@ export const PRACTICE_AREAS: {
     id: "hubspot",
     label: "HubSpot",
     tagline: "Discovery & service calls for HubSpot consulting (2026 product set: AEO Brand Visibility, Breeze AI agents, Smart CRM, Service Hub, etc.).",
-    defaultTopics: "AEO Brand Visibility Dashboard, Breeze Prospecting Agents, CRM-powered prompt suggestions, Service Hub workflows",
+    defaultTopics: "AEO Brand Visibility Dashboard, Breeze Prospecting Agents, Smart CRM, Service Hub workflows, Marketing Hub campaigns",
   },
   {
     id: "paid_media",
