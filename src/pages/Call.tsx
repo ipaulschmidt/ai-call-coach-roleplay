@@ -229,7 +229,6 @@ const Call = () => {
       (audio as any).playsInline = true;
       audioElRef.current = audio;
       speakingRef.current = true;
-      let didFallback = false;
       const playbackOk = await new Promise<boolean>((resolve) => {
         let settled = false;
         const finish = (ok: boolean) => {
@@ -250,7 +249,6 @@ const Call = () => {
         });
       });
       if (!playbackOk && !endedRef.current) {
-        didFallback = true;
         await speakViaBrowserFallback(text);
       }
       return;
