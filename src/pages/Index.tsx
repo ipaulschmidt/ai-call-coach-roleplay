@@ -18,6 +18,7 @@ import {
   PRACTICE_AREAS,
   DURATION_OPTIONS,
   buildGoal,
+  pickScenario,
   useSession,
   type CallType,
   type Difficulty,
@@ -131,6 +132,7 @@ const Index = () => {
       practiceArea,
       durationMin,
       goal: buildGoal(practiceArea, callType, finalTopics, durationMin),
+      scenario: pickScenario(practiceArea),
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
@@ -303,7 +305,7 @@ const Index = () => {
             className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 glow"
           >
             <Mic className="h-5 w-5" />
-            Start the call
+            Continue
           </Button>
 
           <div className="rounded-lg border border-border/60 bg-background/40 p-4">
