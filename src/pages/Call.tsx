@@ -92,6 +92,8 @@ const Call = () => {
   const shouldListenRef = useRef(false);
   // Currently-playing TTS audio element so we can stop it on end-call / interrupt
   const audioElRef = useRef<HTMLAudioElement | null>(null);
+  // While true, ignore STT results (the AI is speaking — don't capture its own voice)
+  const muteSTTRef = useRef(false);
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -142,6 +144,24 @@ const Call = () => {
     greetedRef.current = true;
     setCallStarted(true);
     setStartedAt(Date.now());
+    // iOS Safari: kick off mic + audio playback synchronously inside the user gesture
+    // so subsequent restarts work without needing another tap.
+    try {
+      // Pre-warm a single <audio> element that we'll reuse for every TTS playback.
+      // Calling .play() inside the gesture unlocks it for the rest of the session.
+      if (!audioElRef.current) {
+        const a = new Audio();
+        a.preload = "auto";
+        (a as any).playsInline = true;
+        audioElRef.current = a;
+        // Fire & forget: empty src play will reject, that's fine — it still unlocks audio.
+        try { a.play().catch(() => {}); } catch {}
+      }
+    } catch {}
+    // Start mic + STT in the gesture too. Don't await before this.
+    if (!muted && supportsSTT) {
+      void startListening();
+    }
     void sendToAI([]);
   };
 
@@ -169,8 +189,9 @@ const Call = () => {
     try {
       if (audioElRef.current) {
         audioElRef.current.pause();
-        audioElRef.current.src = "";
-        audioElRef.current = null;
+        // Keep the element so iOS stays "unlocked" — just clear the source.
+        audioElRef.current.removeAttribute("src");
+        audioElRef.current.load();
       }
     } catch {}
     speakingRef.current = false;
@@ -197,14 +218,16 @@ const Call = () => {
       const blob = await resp.blob();
       if (endedRef.current) return;
       const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
+      // Reuse the unlocked element if we have one (critical for iOS Safari).
+      const audio = audioElRef.current ?? new Audio();
+      audio.src = url;
+      (audio as any).playsInline = true;
       audioElRef.current = audio;
       speakingRef.current = true;
       await new Promise<void>((resolve) => {
         const cleanup = () => {
           speakingRef.current = false;
           URL.revokeObjectURL(url);
-          if (audioElRef.current === audio) audioElRef.current = null;
           resolve();
         };
         audio.onended = cleanup;
@@ -299,6 +322,8 @@ const Call = () => {
     };
 
     rec.onresult = (event: any) => {
+      // Ignore everything while the AI is speaking so we don't transcribe its own voice
+      if (muteSTTRef.current) return;
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const res = event.results[i];
@@ -353,9 +378,9 @@ const Call = () => {
     if (!config) return;
     endedRef.current = false;
     setStatus("thinking");
-    // Fully stop mic + audio capture so the prospect's voice isn't fed back into STT
-    stopListening();
-    cleanupAudio();
+    // Don't tear down the mic / STT between turns — iOS Safari can't re-acquire them
+    // outside of the original user gesture. Just gate STT input while the AI talks.
+    muteSTTRef.current = true;
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
@@ -442,11 +467,14 @@ const Call = () => {
       // Small buffer so the speaker's tail doesn't bleed back into the mic
       await new Promise((r) => setTimeout(r, 350));
       setStatus("idle");
+      muteSTTRef.current = false;
+      // Make sure STT is running (no-op if already alive)
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
       console.error(e);
       toast.error("Connection lost. Try again.");
       setStatus("idle");
+      muteSTTRef.current = false;
     }
   };
 
