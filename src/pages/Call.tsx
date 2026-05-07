@@ -377,7 +377,7 @@ const Call = () => {
 
   const sendToAI = async (history: Turn[]) => {
     if (!config) return;
-    endedRef.current = false;
+    if (endedRef.current) return;
     setStatus("thinking");
     // Don't tear down the mic / STT between turns — iOS Safari can't re-acquire them
     // outside of the original user gesture. Just gate STT input while the AI talks.
