@@ -12,7 +12,7 @@ export interface SimConfig {
   practiceArea: PracticeArea;
   durationMin: number;
   goal: string;
-  scenario: string;
+  scenario?: string;
 }
 
 export interface Turn {
