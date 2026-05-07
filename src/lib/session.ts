@@ -100,7 +100,7 @@ export const PERSONAS_BY_AREA: Record<PracticeArea, ReadonlyArray<{
   hubspot: [
     { id: "skeptical-cfo", name: "Margaret Vale", role: "Skeptical CFO", blurb: "Wants ROI numbers. Allergic to buzzwords.", gender: "female" },
     { id: "busy-marketing", name: "Priya Shah", role: "Busy Marketing Manager", blurb: "Time-poor, juggling 3 campaigns. Cares about speed.", gender: "female" },
-    { id: "revops", name: "Jordan Kim", role: "Curious RevOps Lead", blurb: "Loves architecture. Asks about workflows and data.", gender: "female" },
+    { id: "revops", name: "Jordan Kim", role: "Curious RevOps Lead", blurb: "Loves architecture. Asks about workflows and data.", gender: "male" },
     { id: "tech-admin", name: "Sam Reyes", role: "Technical HubSpot Admin", blurb: "Knows the product. Will catch any inaccuracy.", gender: "male" },
   ],
   paid_media: [
