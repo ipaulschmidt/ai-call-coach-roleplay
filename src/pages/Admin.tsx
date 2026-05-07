@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -205,6 +205,27 @@ const Admin = () => {
                     )}
                     <div>
                       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Transcript</div>
+                      <div className="mb-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="h-7 gap-1.5 px-2 text-xs"
+                          onClick={async () => {
+                            const text = r.transcript
+                              .map((t) => `${t.role === "user" ? "Consultant" : "Prospect"}: ${t.content}`)
+                              .join("\n\n");
+                            try {
+                              await navigator.clipboard.writeText(text);
+                              toast.success("Transcript copied");
+                            } catch {
+                              toast.error("Couldn't copy — select and copy manually");
+                            }
+                          }}
+                          disabled={r.transcript.length === 0}
+                        >
+                          <Copy className="h-3.5 w-3.5" /> Copy transcript
+                        </Button>
+                      </div>
                       <div className="space-y-2 rounded-md border border-border/60 bg-background/40 p-3 text-sm">
                         {r.transcript.map((t, i) => (
                           <div key={i}>
