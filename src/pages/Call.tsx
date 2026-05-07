@@ -152,7 +152,7 @@ const Call = () => {
       if (!audioElRef.current) {
         const a = new Audio();
         a.preload = "auto";
-        a.playsInline = true;
+        (a as any).playsInline = true;
         audioElRef.current = a;
         // Fire & forget: empty src play will reject, that's fine — it still unlocks audio.
         try { a.play().catch(() => {}); } catch {}
