@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { useSession, type Turn } from "@/lib/session";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
+// ElevenLabs voice id used for the prospect (Sarah - warm, natural)
+const ELEVENLABS_VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
 
 type Status = "idle" | "listening" | "thinking" | "speaking";
 
@@ -87,8 +90,8 @@ const Call = () => {
   const speakingRef = useRef(false);
   const endedRef = useRef(false);
   const shouldListenRef = useRef(false);
-  // Lock in one voice for the entire call so it doesn't switch between utterances
-  const lockedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  // Currently-playing TTS audio element so we can stop it on end-call / interrupt
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -139,18 +142,6 @@ const Call = () => {
     greetedRef.current = true;
     setCallStarted(true);
     setStartedAt(Date.now());
-    // Unlock SpeechSynthesis inside the user gesture by speaking an empty utterance.
-    try {
-      if (window.speechSynthesis) {
-        const u = new SpeechSynthesisUtterance(" ");
-        u.volume = 0;
-        window.speechSynthesis.speak(u);
-      }
-    } catch {}
-    // Wait for voices to load and lock one in BEFORE the first AI reply, so the
-    // greeting and the rest of the call use the same voice.
-    await waitForVoices();
-    lockedVoiceRef.current = pickBrowserVoice();
     void sendToAI([]);
   };
 
@@ -175,39 +166,74 @@ const Call = () => {
     try {
       window.speechSynthesis?.cancel();
     } catch {}
+    try {
+      if (audioElRef.current) {
+        audioElRef.current.pause();
+        audioElRef.current.src = "";
+        audioElRef.current = null;
+      }
+    } catch {}
     speakingRef.current = false;
   };
 
-  const speakViaBrowser = (text: string): Promise<void> => {
-    return new Promise((resolve) => {
-      if (!text.trim() || endedRef.current || !window.speechSynthesis) {
-        resolve();
-        return;
+  // Speak via ElevenLabs (server-side), with a graceful fallback to the browser's
+  // built-in SpeechSynthesis if the network/API call fails.
+  const speakViaElevenLabs = async (text: string): Promise<void> => {
+    if (!text.trim() || endedRef.current) return;
+    try {
+      const resp = await fetch(TTS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text, voiceId: ELEVENLABS_VOICE_ID }),
+      });
+      if (!resp.ok) {
+        const err = await resp.text().catch(() => "");
+        console.error("TTS failed", resp.status, err);
+        return speakViaBrowserFallback(text);
       }
+      const blob = await resp.blob();
+      if (endedRef.current) return;
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioElRef.current = audio;
+      speakingRef.current = true;
+      await new Promise<void>((resolve) => {
+        const cleanup = () => {
+          speakingRef.current = false;
+          URL.revokeObjectURL(url);
+          if (audioElRef.current === audio) audioElRef.current = null;
+          resolve();
+        };
+        audio.onended = cleanup;
+        audio.onerror = cleanup;
+        audio.play().catch((e) => {
+          console.error("Audio playback error", e);
+          cleanup();
+        });
+      });
+    } catch (e) {
+      console.error("TTS error", e);
+      return speakViaBrowserFallback(text);
+    }
+  };
+
+  const speakViaBrowserFallback = (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!text.trim() || endedRef.current || !window.speechSynthesis) return resolve();
       try {
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
-        // Always reuse the voice we locked in at call start
-        if (!lockedVoiceRef.current) lockedVoiceRef.current = pickBrowserVoice();
-        const v = lockedVoiceRef.current;
+        const v = pickBrowserVoice();
         if (v) utter.voice = v;
         utter.lang = v?.lang || "en-US";
-        utter.rate = 1.0;
-        utter.pitch = 1.0;
-        utter.volume = 1.0;
         speakingRef.current = true;
-        utter.onend = () => {
-          speakingRef.current = false;
-          resolve();
-        };
-        utter.onerror = (e) => {
-          console.error("SpeechSynthesis error", e);
-          speakingRef.current = false;
-          resolve();
-        };
+        utter.onend = () => { speakingRef.current = false; resolve(); };
+        utter.onerror = () => { speakingRef.current = false; resolve(); };
         window.speechSynthesis.speak(utter);
-      } catch (e) {
-        console.error(e);
+      } catch {
         speakingRef.current = false;
         resolve();
       }
@@ -411,7 +437,7 @@ const Call = () => {
       // Speak the full reply via the browser's built-in voice (free, no infra)
       if (assistantText.trim()) {
         setStatus("speaking");
-        await speakViaBrowser(assistantText);
+        await speakViaElevenLabs(assistantText);
       }
       // Small buffer so the speaker's tail doesn't bleed back into the mic
       await new Promise((r) => setTimeout(r, 350));
