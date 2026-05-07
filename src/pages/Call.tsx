@@ -447,9 +447,18 @@ const Call = () => {
     if (!config) return;
     if (endedRef.current) return;
     setStatus("thinking");
-    // Don't tear down the mic / STT between turns — iOS Safari can't re-acquire them
-    // outside of the original user gesture. Just gate STT input while the AI talks.
+    // HARD echo suppression: while the AI talks we (a) gate STT results,
+    // (b) physically disable the mic track so no audio is captured, and
+    // (c) abort the active recognizer so any buffered audio is discarded.
     muteSTTRef.current = true;
+    try {
+      streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = false));
+    } catch {}
+    try {
+      recognitionRef.current?.abort?.();
+    } catch {}
+    recognitionRef.current = null;
+    shouldListenRef.current = false;
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
@@ -537,20 +546,16 @@ const Call = () => {
       if (endedRef.current) return;
       // Mark when the AI finished so onresult can drop buffered echo.
       aiSpokeUntilRef.current = Date.now();
-      // Hard-flush the recognizer: abort() discards buffered audio and pending
-      // results; the onend handler will spin up a fresh recognizer. Without
-      // this, results captured during AI playback can still be delivered as
-      // "final" once we lift muteSTTRef.
-      try {
-        recognitionRef.current?.abort?.();
-      } catch {}
       // Buffer so the speaker's tail clears before we re-open the mic.
       await new Promise((r) => setTimeout(r, 600));
       if (endedRef.current) return;
       setStatus("idle");
-      muteSTTRef.current = false;
       aiSpokeUntilRef.current = Date.now();
-      // Make sure STT is running (no-op if already alive)
+      // Re-enable the mic track and spin up a fresh recognizer.
+      try {
+        streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = true));
+      } catch {}
+      muteSTTRef.current = false;
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
       console.error(e);
