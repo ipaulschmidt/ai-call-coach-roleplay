@@ -217,6 +217,11 @@ const Call = () => {
       }
       const blob = await resp.blob();
       if (endedRef.current) return;
+      // Empty / non-audio response — fall back instead of playing silence.
+      if (!blob || blob.size < 256 || !/audio\//i.test(blob.type || "audio/mpeg")) {
+        console.error("TTS returned invalid audio blob", blob?.size, blob?.type);
+        return speakViaBrowserFallback(text);
+      }
       const url = URL.createObjectURL(blob);
       // Reuse the unlocked element if we have one (critical for iOS Safari).
       const audio = audioElRef.current ?? new Audio();
@@ -224,19 +229,29 @@ const Call = () => {
       (audio as any).playsInline = true;
       audioElRef.current = audio;
       speakingRef.current = true;
-      await new Promise<void>((resolve) => {
-        const cleanup = () => {
+      const playbackOk = await new Promise<boolean>((resolve) => {
+        let settled = false;
+        const finish = (ok: boolean) => {
+          if (settled) return;
+          settled = true;
           speakingRef.current = false;
           URL.revokeObjectURL(url);
-          resolve();
+          resolve(ok);
         };
-        audio.onended = cleanup;
-        audio.onerror = cleanup;
+        audio.onended = () => finish(true);
+        audio.onerror = (e) => {
+          console.error("Audio element error", e);
+          finish(false);
+        };
         audio.play().catch((e) => {
           console.error("Audio playback error", e);
-          cleanup();
+          finish(false);
         });
       });
+      if (!playbackOk && !endedRef.current) {
+        await speakViaBrowserFallback(text);
+      }
+      return;
     } catch (e) {
       console.error("TTS error", e);
       return speakViaBrowserFallback(text);
