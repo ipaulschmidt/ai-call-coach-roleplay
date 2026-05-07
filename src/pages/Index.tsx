@@ -133,7 +133,7 @@ const Index = () => {
       practiceArea,
       durationMin,
       goal: buildGoal(practiceArea, callType, finalTopics, durationMin),
-      scenario: pickScenario(practiceArea),
+      scenario: pickScenario(practiceArea, callType),
       personaId: persona.id,
       personaAvatar: PERSONA_AVATARS[persona.id],
     });
