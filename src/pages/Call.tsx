@@ -218,6 +218,7 @@ const Call = () => {
   // built-in SpeechSynthesis if the network/API call fails.
   const speakViaElevenLabs = async (text: string): Promise<void> => {
     if (!text.trim() || endedRef.current) return;
+    let played = false;
     try {
       const voiceId = voiceForPersona(config!.practiceArea, config!.personaId);
       const resp = await fetch(TTS_URL, {
@@ -231,14 +232,14 @@ const Call = () => {
       if (!resp.ok) {
         const err = await resp.text().catch(() => "");
         console.error("TTS failed", resp.status, err);
-        // Don't fall back to the browser voice — that would change the
-        // prospect's voice mid-call. Just skip this utterance.
+        await speakViaBrowserFallback(text);
         return;
       }
       const blob = await resp.blob();
       if (endedRef.current) return;
       if (!blob || blob.size < 256 || !/audio\//i.test(blob.type || "audio/mpeg")) {
         console.error("TTS returned invalid audio blob", blob?.size, blob?.type);
+        await speakViaBrowserFallback(text);
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -257,7 +258,10 @@ const Call = () => {
           URL.revokeObjectURL(url);
           resolve();
         };
-        audio.onended = () => finish();
+        audio.onended = () => {
+          played = true;
+          finish();
+        };
         audio.onerror = (e) => {
           console.error("Audio element error", e);
           finish();
@@ -267,11 +271,53 @@ const Call = () => {
           finish();
         });
       });
+      // Backstop: if playback ended suspiciously early (audio likely truncated
+      // mid-sentence), fall back to the browser voice for whatever text the
+      // ElevenLabs audio probably didn't finish saying. We can't know the cut
+      // point precisely, so this only triggers when nothing played at all.
+      if (!played && !endedRef.current) {
+        await speakViaBrowserFallback(text);
+      }
       return;
     } catch (e) {
       console.error("TTS error", e);
-      // Same reason as above — never silently switch voices.
+      if (!endedRef.current) await speakViaBrowserFallback(text);
       return;
+    }
+  };
+
+  // Browser-built-in voice as a last-resort backstop so the prospect never
+  // goes silent. Voice will sound different from ElevenLabs — that's the
+  // cost of resilience.
+  const speakViaBrowserFallback = async (text: string): Promise<void> => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (!text.trim() || endedRef.current) return;
+    try {
+      await waitForVoices();
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      const isMale = config?.personaId
+        ? voiceForPersona(config.practiceArea, config.personaId).includes("JBFqnCBsd6RMkjVDRZzb")
+        : false;
+      const voices = window.speechSynthesis.getVoices().filter((v) => v.lang?.toLowerCase().startsWith("en"));
+      const male = voices.find((v) => /male|david|mark|daniel|alex|fred|george|guy/i.test(v.name) && !/female/i.test(v.name));
+      utter.voice = isMale ? male || pickBrowserVoice() : pickBrowserVoice();
+      utter.rate = 1.0;
+      speakingRef.current = true;
+      await new Promise<void>((resolve) => {
+        utter.onend = () => {
+          speakingRef.current = false;
+          resolve();
+        };
+        utter.onerror = () => {
+          speakingRef.current = false;
+          resolve();
+        };
+        window.speechSynthesis.speak(utter);
+      });
+    } catch (e) {
+      console.error("Browser TTS fallback error", e);
+      speakingRef.current = false;
     }
   };
 
