@@ -6,13 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { useSession, type Turn } from "@/lib/session";
+import { useSession, voiceForPersona, type Turn } from "@/lib/session";
 import prospectAvatar from "@/assets/prospect-avatar.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
-// ElevenLabs voice id used for the prospect (Sarah - warm, natural)
-const ELEVENLABS_VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
 
 type Status = "idle" | "listening" | "thinking" | "speaking";
 
@@ -176,10 +174,11 @@ const Call = () => {
         try { a.play().catch(() => {}); } catch {}
       }
     } catch {}
-    // Start mic + STT in the gesture too. Don't await before this.
-    if (!muted && supportsSTT) {
-      void startListening();
-    }
+    // NOTE: We intentionally do NOT start the mic recognizer here. The AI
+    // greets first, and starting STT in parallel means the recognizer is
+    // live while the AI is talking — its buffered audio of the AI's own
+    // voice gets emitted as a "user" turn the moment we lift the mute.
+    // STT is started *after* the AI's first turn finishes (see sendToAI).
     void sendToAI([]);
   };
 
@@ -220,25 +219,27 @@ const Call = () => {
   const speakViaElevenLabs = async (text: string): Promise<void> => {
     if (!text.trim() || endedRef.current) return;
     try {
+      const voiceId = voiceForPersona(config!.practiceArea, config!.personaId);
       const resp = await fetch(TTS_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ text, voiceId: ELEVENLABS_VOICE_ID }),
+        body: JSON.stringify({ text, voiceId }),
       });
       if (!resp.ok) {
         const err = await resp.text().catch(() => "");
         console.error("TTS failed", resp.status, err);
-        return speakViaBrowserFallback(text);
+        // Don't fall back to the browser voice — that would change the
+        // prospect's voice mid-call. Just skip this utterance.
+        return;
       }
       const blob = await resp.blob();
       if (endedRef.current) return;
-      // Empty / non-audio response — fall back instead of playing silence.
       if (!blob || blob.size < 256 || !/audio\//i.test(blob.type || "audio/mpeg")) {
         console.error("TTS returned invalid audio blob", blob?.size, blob?.type);
-        return speakViaBrowserFallback(text);
+        return;
       }
       const url = URL.createObjectURL(blob);
       // Reuse the unlocked element if we have one (critical for iOS Safari).
@@ -247,53 +248,31 @@ const Call = () => {
       (audio as any).playsInline = true;
       audioElRef.current = audio;
       speakingRef.current = true;
-      const playbackOk = await new Promise<boolean>((resolve) => {
+      await new Promise<void>((resolve) => {
         let settled = false;
-        const finish = (ok: boolean) => {
+        const finish = () => {
           if (settled) return;
           settled = true;
           speakingRef.current = false;
           URL.revokeObjectURL(url);
-          resolve(ok);
+          resolve();
         };
-        audio.onended = () => finish(true);
+        audio.onended = () => finish();
         audio.onerror = (e) => {
           console.error("Audio element error", e);
-          finish(false);
+          finish();
         };
         audio.play().catch((e) => {
           console.error("Audio playback error", e);
-          finish(false);
+          finish();
         });
       });
-      if (!playbackOk && !endedRef.current) {
-        await speakViaBrowserFallback(text);
-      }
       return;
     } catch (e) {
       console.error("TTS error", e);
-      return speakViaBrowserFallback(text);
+      // Same reason as above — never silently switch voices.
+      return;
     }
-  };
-
-  const speakViaBrowserFallback = (text: string): Promise<void> => {
-    return new Promise((resolve) => {
-      if (!text.trim() || endedRef.current || !window.speechSynthesis) return resolve();
-      try {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        const v = pickBrowserVoice();
-        if (v) utter.voice = v;
-        utter.lang = v?.lang || "en-US";
-        speakingRef.current = true;
-        utter.onend = () => { speakingRef.current = false; resolve(); };
-        utter.onerror = () => { speakingRef.current = false; resolve(); };
-        window.speechSynthesis.speak(utter);
-      } catch {
-        speakingRef.current = false;
-        resolve();
-      }
-    });
   };
 
   const startMeter = async () => {
@@ -362,7 +341,7 @@ const Call = () => {
       if (muteSTTRef.current) return;
       // Drop results that arrive right after the AI stopped speaking — these
       // are almost always buffered echo of the AI's own voice.
-      if (Date.now() - aiSpokeUntilRef.current < 800) {
+      if (Date.now() - aiSpokeUntilRef.current < 1500) {
         // Also clear any partial buffer accumulated from the echo.
         finalBuffer = "";
         setInterim("");
@@ -547,7 +526,7 @@ const Call = () => {
       // Mark when the AI finished so onresult can drop buffered echo.
       aiSpokeUntilRef.current = Date.now();
       // Buffer so the speaker's tail clears before we re-open the mic.
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 800));
       if (endedRef.current) return;
       setStatus("idle");
       aiSpokeUntilRef.current = Date.now();
