@@ -92,6 +92,7 @@ const Call = () => {
   const speakingRef = useRef(false);
   const endedRef = useRef(false);
   const shouldListenRef = useRef(false);
+  const lastSttEventRef = useRef<number>(Date.now());
   // Currently-playing TTS audio element so we can stop it on end-call / interrupt
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   // While true, ignore STT results (the AI is speaking — don't capture its own voice)
@@ -348,6 +349,7 @@ const Call = () => {
     };
 
     rec.onresult = (event: any) => {
+      lastSttEventRef.current = Date.now();
       // Drop results while the AI is talking so we don't transcribe its own
       // voice bleeding back through the speakers. The recognizer stays alive.
       if (muteSTTRef.current) return;
@@ -382,6 +384,7 @@ const Call = () => {
       }
     };
     rec.onend = () => {
+      lastSttEventRef.current = Date.now();
       // Auto-restart if we're supposed to keep listening (browsers stop STT after ~60s of silence)
       if (shouldListenRef.current && recognitionRef.current === rec && !endedRef.current) {
         setTimeout(() => {
@@ -393,9 +396,26 @@ const Call = () => {
     try {
       rec.start();
       shouldListenRef.current = true;
+      lastSttEventRef.current = Date.now();
       setStatus("listening");
     } catch {}
   }, [setTranscript, status]);
+
+  // Watchdog: if STT goes silent (no events) for 15s while we expect it to be
+  // listening, force a restart. Catches the iOS Safari case where the recognizer
+  // appears alive but has stopped delivering audio.
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (endedRef.current || muted || !supportsSTT || !callStarted) return;
+      if (muteSTTRef.current) return; // AI is talking, don't restart
+      if (Date.now() - lastSttEventRef.current < 15000) return;
+      const rec = recognitionRef.current;
+      if (!rec) return;
+      try { rec.stop(); } catch {}
+      lastSttEventRef.current = Date.now();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [muted, supportsSTT, callStarted]);
 
   const stopListening = () => {
     cleanupSTT();
