@@ -25,6 +25,7 @@ import {
   type PracticeArea,
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
+import { PERSONA_AVATARS } from "@/lib/personaAvatars";
 
 const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
   { id: "easy", label: "Easy", desc: "Friendly, curious prospect" },
@@ -133,6 +134,8 @@ const Index = () => {
       durationMin,
       goal: buildGoal(practiceArea, callType, finalTopics, durationMin),
       scenario: pickScenario(practiceArea),
+      personaId: persona.id,
+      personaAvatar: PERSONA_AVATARS[persona.id],
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
