@@ -92,19 +92,19 @@ const Call = () => {
   const speakingRef = useRef(false);
   const endedRef = useRef(false);
   const shouldListenRef = useRef(false);
+  const lastSttEventRef = useRef<number>(Date.now());
   // Currently-playing TTS audio element so we can stop it on end-call / interrupt
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   // While true, ignore STT results (the AI is speaking — don't capture its own voice)
   const muteSTTRef = useRef(false);
 
-  // Toggle the mic input track itself when the AI is speaking. This is a stronger
-  // guard than just dropping STT results: it ensures the browser's recognizer
-  // isn't fed the AI's own voice through the device speakers.
-  const setMicTrackEnabled = (enabled: boolean) => {
-    try {
-      streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = enabled));
-    } catch {}
-  };
+  // NOTE: We intentionally do NOT toggle `track.enabled` while the AI speaks.
+  // On iOS Safari (and some Chromium builds) flipping the mic track off/on
+  // causes SpeechRecognition to fire `onend` and the auto-restart often fails
+  // silently outside of a user gesture — which leaves the mic dead until the
+  // user taps something. Instead we keep the mic hot the whole call and rely on:
+  //   1. `echoCancellation: true` on getUserMedia (handles speaker bleed)
+  //   2. `muteSTTRef` to drop STT results that arrive while the AI talks
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -349,7 +349,9 @@ const Call = () => {
     };
 
     rec.onresult = (event: any) => {
-      // Ignore everything while the AI is speaking so we don't transcribe its own voice
+      lastSttEventRef.current = Date.now();
+      // Drop results while the AI is talking so we don't transcribe its own
+      // voice bleeding back through the speakers. The recognizer stays alive.
       if (muteSTTRef.current) return;
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -361,7 +363,7 @@ const Call = () => {
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
         if (finalBuffer.trim()) flush();
-      }, 2000);
+      }, 1500);
     };
     rec.onerror = (e: any) => {
       if (e.error === "no-speech" || e.error === "aborted" || e.error === "network") return;
@@ -382,6 +384,7 @@ const Call = () => {
       }
     };
     rec.onend = () => {
+      lastSttEventRef.current = Date.now();
       // Auto-restart if we're supposed to keep listening (browsers stop STT after ~60s of silence)
       if (shouldListenRef.current && recognitionRef.current === rec && !endedRef.current) {
         setTimeout(() => {
@@ -393,9 +396,26 @@ const Call = () => {
     try {
       rec.start();
       shouldListenRef.current = true;
+      lastSttEventRef.current = Date.now();
       setStatus("listening");
     } catch {}
   }, [setTranscript, status]);
+
+  // Watchdog: if STT goes silent (no events) for 15s while we expect it to be
+  // listening, force a restart. Catches the iOS Safari case where the recognizer
+  // appears alive but has stopped delivering audio.
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (endedRef.current || muted || !supportsSTT || !callStarted) return;
+      if (muteSTTRef.current) return; // AI is talking, don't restart
+      if (Date.now() - lastSttEventRef.current < 15000) return;
+      const rec = recognitionRef.current;
+      if (!rec) return;
+      try { rec.stop(); } catch {}
+      lastSttEventRef.current = Date.now();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [muted, supportsSTT, callStarted]);
 
   const stopListening = () => {
     cleanupSTT();
@@ -408,7 +428,6 @@ const Call = () => {
     // Don't tear down the mic / STT between turns — iOS Safari can't re-acquire them
     // outside of the original user gesture. Just gate STT input while the AI talks.
     muteSTTRef.current = true;
-    setMicTrackEnabled(false);
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
@@ -499,7 +518,6 @@ const Call = () => {
       if (endedRef.current) return;
       setStatus("idle");
       muteSTTRef.current = false;
-      setMicTrackEnabled(true);
       // Make sure STT is running (no-op if already alive)
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
@@ -507,7 +525,6 @@ const Call = () => {
       if (!endedRef.current) toast.error("Connection lost. Try again.");
       setStatus("idle");
       muteSTTRef.current = false;
-      setMicTrackEnabled(true);
     }
   };
 
