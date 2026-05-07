@@ -97,6 +97,13 @@ const Call = () => {
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   // While true, ignore STT results (the AI is speaking — don't capture its own voice)
   const muteSTTRef = useRef(false);
+  // Timestamp (ms) when the AI most recently finished speaking. Used to drop
+  // STT results that the recognizer buffered during AI playback and only
+  // emits a moment after we lift `muteSTTRef`.
+  const aiSpokeUntilRef = useRef<number>(0);
+  // Have we received any user mic input that wasn't during AI speech yet?
+  // Guards against the very first AI greeting being echoed back as a "user" turn.
+  const userHasSpokenRef = useRef(false);
 
   // NOTE: We intentionally do NOT toggle `track.enabled` while the AI speaks.
   // On iOS Safari (and some Chromium builds) flipping the mic track off/on
@@ -353,6 +360,15 @@ const Call = () => {
       // Drop results while the AI is talking so we don't transcribe its own
       // voice bleeding back through the speakers. The recognizer stays alive.
       if (muteSTTRef.current) return;
+      // Drop results that arrive right after the AI stopped speaking — these
+      // are almost always buffered echo of the AI's own voice.
+      if (Date.now() - aiSpokeUntilRef.current < 800) {
+        // Also clear any partial buffer accumulated from the echo.
+        finalBuffer = "";
+        setInterim("");
+        if (silenceTimer) clearTimeout(silenceTimer);
+        return;
+      }
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const res = event.results[i];
@@ -365,7 +381,10 @@ const Call = () => {
       // so a brief pause doesn't get treated as the end of their turn.
       const quietMs = interimText.trim() ? 3500 : 2500;
       silenceTimer = setTimeout(() => {
-        if (finalBuffer.trim()) flush();
+        if (finalBuffer.trim()) {
+          userHasSpokenRef.current = true;
+          flush();
+        }
       }, quietMs);
     };
     rec.onerror = (e: any) => {
@@ -516,11 +535,21 @@ const Call = () => {
         await speakViaElevenLabs(assistantText);
       }
       if (endedRef.current) return;
-      // Small buffer so the speaker's tail doesn't bleed back into the mic
-      await new Promise((r) => setTimeout(r, 350));
+      // Mark when the AI finished so onresult can drop buffered echo.
+      aiSpokeUntilRef.current = Date.now();
+      // Hard-flush the recognizer: abort() discards buffered audio and pending
+      // results; the onend handler will spin up a fresh recognizer. Without
+      // this, results captured during AI playback can still be delivered as
+      // "final" once we lift muteSTTRef.
+      try {
+        recognitionRef.current?.abort?.();
+      } catch {}
+      // Buffer so the speaker's tail clears before we re-open the mic.
+      await new Promise((r) => setTimeout(r, 600));
       if (endedRef.current) return;
       setStatus("idle");
       muteSTTRef.current = false;
+      aiSpokeUntilRef.current = Date.now();
       // Make sure STT is running (no-op if already alive)
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
