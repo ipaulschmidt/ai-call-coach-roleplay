@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, MicOff, PhoneOff, Send, Target, Clock } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Send, Target, Clock, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useSession, type Turn } from "@/lib/session";
+import prospectAvatar from "@/assets/prospect-avatar.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
@@ -75,7 +77,7 @@ const Call = () => {
   const [textInput, setTextInput] = useState("");
   const [supportsSTT, setSupportsSTT] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [startedAt, setStartedAt] = useState<number>(() => Date.now());
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState<number>(Date.now());
   const [callStarted, setCallStarted] = useState(false);
 
@@ -131,7 +133,7 @@ const Call = () => {
   }, []);
 
   const durationMs = (config?.durationMin ?? 10) * 60_000;
-  const elapsedMs = now - startedAt;
+  const elapsedMs = startedAt ? now - startedAt : 0;
   const remainingMs = Math.max(0, durationMs - elapsedMs);
   const remainingMin = Math.floor(remainingMs / 60_000);
   const remainingSec = Math.floor((remainingMs % 60_000) / 1000);
