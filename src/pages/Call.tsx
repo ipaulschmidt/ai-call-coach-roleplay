@@ -638,7 +638,7 @@ const Call = () => {
                 }}
               >
                 <Avatar className="h-full w-full">
-                  <AvatarImage src={prospectAvatar} alt={config.persona.split(" — ")[0]} className="object-cover" />
+                  <AvatarImage src={config.personaAvatar || prospectAvatar} alt={config.persona.split(" — ")[0]} className="object-cover" />
                   <AvatarFallback>{config.persona.split(" — ")[0]?.[0] ?? "P"}</AvatarFallback>
                 </Avatar>
               </div>
