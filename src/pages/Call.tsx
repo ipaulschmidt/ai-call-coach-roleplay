@@ -568,7 +568,11 @@ const Call = () => {
               title={`${config.durationMin} min target`}
             >
               <Clock className="h-3.5 w-3.5" />
-              {overtime ? "Overtime" : `${remainingMin}:${remainingSec.toString().padStart(2, "0")}`}
+              {!callStarted
+                ? `${config.durationMin}:00`
+                : overtime
+                ? "Overtime"
+                : `${remainingMin}:${remainingSec.toString().padStart(2, "0")}`}
             </div>
             <Button variant="destructive" onClick={endCall} className="gap-2">
               <PhoneOff className="h-4 w-4" /> End call
@@ -578,18 +582,25 @@ const Call = () => {
 
         <Card className="mb-6 border-primary/30 bg-primary/5 p-4 backdrop-blur">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-md bg-primary/15 p-2">
-              <Target className="h-4 w-4 text-primary" />
-            </div>
-            <div className="flex-1">
-              <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                Your goal · {config.durationMin} min target
+            <div className="flex-1 space-y-3">
+              <div>
+                <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                  <Briefcase className="h-3.5 w-3.5" /> Scenario
+                </div>
+                <p className="text-sm leading-relaxed text-foreground/90">
+                  {config.scenario || "An inbound prospect just hopped on the call with you."}
+                </p>
               </div>
-              <p className="text-sm leading-relaxed text-foreground/90">{config.goal}</p>
+              <div>
+                <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                  <Target className="h-3.5 w-3.5" /> Your goal · {config.durationMin} min target
+                </div>
+                <p className="text-sm leading-relaxed text-foreground/90">{config.goal}</p>
+              </div>
             </div>
             {!callStarted && (
               <Button onClick={handleStartCall} size="lg" className="gap-2 shrink-0">
-                <Mic className="h-4 w-4" /> Start call
+                <Mic className="h-4 w-4" /> Start the call
               </Button>
             )}
           </div>
@@ -599,21 +610,51 @@ const Call = () => {
           {/* Visualizer */}
           <Card className="flex flex-col items-center justify-center gap-6 border-border/60 bg-card/60 p-8 backdrop-blur min-h-[360px]">
             <div className="relative flex h-56 w-56 items-center justify-center">
+              {/* Speaking halo around the prospect avatar */}
               <div
-                className={`absolute inset-0 rounded-full blur-2xl transition-opacity ${
-                  status === "speaking" ? "opacity-90" : "opacity-50"
+                className={`absolute inset-0 rounded-full blur-2xl transition-opacity duration-300 ${
+                  status === "speaking" ? "opacity-80" : "opacity-30"
                 }`}
                 style={{ background: "var(--gradient-orb)" }}
               />
               <div
-                className="relative h-40 w-40 rounded-full transition-transform duration-150"
+                className="relative h-44 w-44 rounded-full ring-4 transition-all duration-200"
                 style={{
-                  background: "var(--gradient-orb)",
-                  transform: `scale(${orbScale})`,
-                  boxShadow: "var(--shadow-glow)",
+                  transform: `scale(${status === "speaking" ? 1.05 : 1})`,
+                  boxShadow: status === "speaking" ? "var(--shadow-glow)" : "none",
+                  // ring color reflects speaking state
                 }}
-              />
+              >
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={prospectAvatar} alt={config.persona.split(" — ")[0]} className="object-cover" />
+                  <AvatarFallback>{config.persona.split(" — ")[0]?.[0] ?? "P"}</AvatarFallback>
+                </Avatar>
+              </div>
             </div>
+
+            {/* Mic level meter — clearly shows when your microphone is picking you up */}
+            {supportsSTT && !muted && callStarted && (
+              <div className="flex w-full max-w-xs flex-col items-center gap-2">
+                <div className="flex items-end gap-1 h-8">
+                  {Array.from({ length: 16 }).map((_, i) => {
+                    const threshold = (i + 1) / 16;
+                    const active = audioLevel * 5 > threshold;
+                    return (
+                      <div
+                        key={i}
+                        className={`w-1.5 rounded-sm transition-all duration-75 ${
+                          active ? "bg-primary" : "bg-muted"
+                        }`}
+                        style={{ height: `${30 + threshold * 70}%` }}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {audioLevel > 0.02 ? "Mic picking you up" : "Mic on — try speaking"}
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col items-center gap-3">
               <span
