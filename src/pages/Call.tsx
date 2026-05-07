@@ -460,20 +460,23 @@ const Call = () => {
         }
       }
 
+      if (endedRef.current) return;
       // Speak the full reply via the browser's built-in voice (free, no infra)
       if (assistantText.trim()) {
         setStatus("speaking");
         await speakViaElevenLabs(assistantText);
       }
+      if (endedRef.current) return;
       // Small buffer so the speaker's tail doesn't bleed back into the mic
       await new Promise((r) => setTimeout(r, 350));
+      if (endedRef.current) return;
       setStatus("idle");
       muteSTTRef.current = false;
       // Make sure STT is running (no-op if already alive)
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
       console.error(e);
-      toast.error("Connection lost. Try again.");
+      if (!endedRef.current) toast.error("Connection lost. Try again.");
       setStatus("idle");
       muteSTTRef.current = false;
     }
