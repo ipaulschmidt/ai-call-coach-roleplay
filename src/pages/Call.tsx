@@ -361,9 +361,12 @@ const Call = () => {
       }
       setInterim(interimText);
       if (silenceTimer) clearTimeout(silenceTimer);
+      // Wait longer if the user is mid-thought (interim text still arriving)
+      // so a brief pause doesn't get treated as the end of their turn.
+      const quietMs = interimText.trim() ? 3500 : 2500;
       silenceTimer = setTimeout(() => {
         if (finalBuffer.trim()) flush();
-      }, 1500);
+      }, quietMs);
     };
     rec.onerror = (e: any) => {
       if (e.error === "no-speech" || e.error === "aborted" || e.error === "network") return;
