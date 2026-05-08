@@ -1,6 +1,6 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mic, Sparkles, Target, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
+import { Mic, Sparkles, Target, Lock, Gauge, Clock, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -12,7 +12,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import {
   PERSONAS_BY_AREA,
   PRACTICE_AREAS,
@@ -49,76 +48,11 @@ const Index = () => {
   const [personaId, setPersonaId] = useState<string>(personas[0].id);
   const [callType, setCallType] = useState<CallType>("discovery");
   const [durationMin, setDurationMin] = useState<number>(10);
-  const [micTest, setMicTest] = useState<{
-    status: "idle" | "testing" | "ok" | "fail";
-    heard?: string;
-    error?: string;
-  }>({ status: "idle" });
-  const recRef = useRef<any>(null);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
     setPersonaId(PERSONAS_BY_AREA[id][0].id);
     setTopics("");
-  };
-
-  const runMicTest = async () => {
-    const Impl: any =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!Impl) {
-      setMicTest({ status: "fail", error: "Your browser doesn't support speech recognition. Use Chrome or Edge." });
-      return;
-    }
-    setMicTest({ status: "testing" });
-    let stream: MediaStream | null = null;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setMicTest({ status: "fail", error: "Mic permission denied. Allow it in the browser address bar and retry." });
-      return;
-    }
-
-    const rec = new Impl();
-    recRef.current = rec;
-    rec.continuous = false;
-    rec.interimResults = true;
-    rec.lang = "en-US";
-    let heard = "";
-    let settled = false;
-
-    const finish = (result: typeof micTest) => {
-      if (settled) return;
-      settled = true;
-      try { rec.stop(); } catch {}
-      stream?.getTracks().forEach((t) => t.stop());
-      setMicTest(result);
-      if (result.status === "ok") toast.success(`Heard: "${result.heard}"`);
-      else if (result.status === "fail") toast.error(result.error || "Mic test failed");
-    };
-
-    rec.onresult = (e: any) => {
-      for (let i = e.resultIndex; i < e.results.length; i++) heard += e.results[i][0].transcript;
-    };
-    rec.onerror = (e: any) => {
-      if (e.error === "service-not-allowed" || e.error === "not-allowed") {
-        finish({ status: "fail", error: "Mic blocked in this preview frame. Open the preview in a new tab (↗) and retry." });
-      } else if (e.error === "no-speech") {
-        finish({ status: "fail", error: "Didn't hear anything. Try again and speak clearly." });
-      } else {
-        finish({ status: "fail", error: `Speech error: ${e.error}` });
-      }
-    };
-    rec.onend = () => {
-      const text = heard.trim();
-      if (text) finish({ status: "ok", heard: text });
-      else finish({ status: "fail", error: "Didn't catch any words. Try again." });
-    };
-
-    try { rec.start(); } catch {
-      finish({ status: "fail", error: "Couldn't start mic. Try again." });
-      return;
-    }
-    setTimeout(() => { try { rec.stop(); } catch {} }, 2000);
   };
 
   const start = () => {
@@ -143,32 +77,78 @@ const Index = () => {
   };
 
   const currentArea = PRACTICE_AREAS.find((a) => a.id === practiceArea)!;
+  const selectedPersona = personas.find((p) => p.id === personaId)!;
+  const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
+  const selectedDuration = DURATION_OPTIONS.find((d) => d.value === durationMin)!;
+  const selectedCallType = CALL_TYPES.find((c) => c.id === callType)!;
 
   return (
-    <main className="min-h-screen px-4 py-10 md:py-16">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-6 flex items-center justify-between">
+    <main className="min-h-screen px-4 py-8 md:py-12">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-10 flex items-center justify-between">
           <img src={logo} alt="SmartBug" className="h-7 md:h-8" />
           <Link to="/admin" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
             <Lock className="h-3.5 w-3.5" /> Admin
           </Link>
         </div>
-        <header className="mb-10 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            SmartBug · Consultant Mode
+
+        {/* Editorial hero */}
+        <header className="mb-12 grid gap-8 md:mb-16 md:grid-cols-[1.4fr_1fr] md:items-center">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              SmartBug · Consultant Mode
+            </div>
+            <h1 className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
+              Practice the call.<br />
+              <span className="text-primary">Win the room.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
+              Roleplay HubSpot, Paid Media, and Globalia discovery & service calls against an AI prospect. Get scored on strategy, technical accuracy, and confidence.
+            </p>
           </div>
-          <h1 className="text-balance text-4xl font-bold tracking-tight md:text-6xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
-            SmartBug <span className="text-primary">Coach</span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
-            Roleplay HubSpot, Paid Media, and Globalia discovery & service calls against an AI prospect. Get scored on strategy, technical accuracy, and confidence.
-          </p>
+          {/* Live preview card */}
+          <Card className="overflow-hidden border-border/60 bg-card/70 shadow-elevated backdrop-blur">
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+              <img
+                src={PERSONA_AVATARS[selectedPersona.id]}
+                alt={selectedPersona.name}
+                className="h-full w-full object-cover transition-opacity duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="text-xs uppercase tracking-wider text-primary">Today's prospect</div>
+                <div className="mt-1 text-lg font-semibold leading-tight">{selectedPersona.name}</div>
+                <div className="text-xs text-muted-foreground">{selectedPersona.role}</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60 text-center">
+              <div className="px-2 py-3">
+                <Gauge className="mx-auto h-4 w-4 text-primary" />
+                <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Difficulty</div>
+                <div className="text-xs font-semibold">{selectedDifficulty.label}</div>
+              </div>
+              <div className="px-2 py-3">
+                <Users className="mx-auto h-4 w-4 text-primary" />
+                <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Call type</div>
+                <div className="text-xs font-semibold">{selectedCallType.label.split(" ")[0]}</div>
+              </div>
+              <div className="px-2 py-3">
+                <Clock className="mx-auto h-4 w-4 text-primary" />
+                <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Length</div>
+                <div className="text-xs font-semibold">{selectedDuration.label}</div>
+              </div>
+            </div>
+          </Card>
         </header>
 
-        <Card className="space-y-8 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
+        <Card className="space-y-10 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-10">
+          {/* Step 01 */}
           <section>
-            <Label className="mb-3 block text-sm font-semibold">Practice area</Label>
+            <div className="mb-4 flex items-baseline gap-3">
+              <span className="text-xs font-mono text-primary">01</span>
+              <Label className="text-base font-semibold">Pick your practice area</Label>
+            </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {PRACTICE_AREAS.map((a) => (
                 <button
@@ -188,36 +168,71 @@ const Index = () => {
             </div>
           </section>
 
+          {/* Step 02 — Persona */}
           <section>
-            <Label htmlFor="topics" className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <Target className="h-4 w-4 text-primary" /> Quiz me on…
-            </Label>
-            <Textarea
-              id="topics"
-              value={topics}
-              onChange={(e) => setTopics(e.target.value)}
-              placeholder={currentArea.defaultTopics}
-              className="min-h-[110px] resize-none border-border/70 bg-background/50 text-base"
-            />
-            <p className="mt-2 text-xs text-muted-foreground">
-              List specific tactics, tools, or services. The prospect will probe your knowledge of these. Leave blank to use defaults for {currentArea.label}.
-            </p>
+            <div className="mb-4 flex items-baseline gap-3">
+              <span className="text-xs font-mono text-primary">02</span>
+              <Label className="text-base font-semibold">Choose your prospect</Label>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {personas.map((p) => {
+                const selected = personaId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPersonaId(p.id)}
+                    className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${
+                      selected
+                        ? "border-primary bg-primary/10 ring-1 ring-primary"
+                        : "border-border/60 bg-background/40 hover:border-border"
+                    }`}
+                  >
+                    <img
+                      src={PERSONA_AVATARS[p.id]}
+                      alt={p.name}
+                      className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-border"
+                    />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">{p.name}</div>
+                      <div className="truncate text-xs text-primary">{p.role}</div>
+                      <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{p.blurb}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </section>
 
+          {/* Step 03 — Call shape: type + difficulty + length in one row */}
           <section>
-            <Label htmlFor="name" className="mb-2 block text-sm font-semibold">Your name (optional)</Label>
-            <Input
-              id="name"
-              value={consultantName}
-              onChange={(e) => setConsultantName(e.target.value)}
-              placeholder="So admins can see who ran this call"
-              className="bg-background/50"
-            />
-          </section>
+            <div className="mb-4 flex items-baseline gap-3">
+              <span className="text-xs font-mono text-primary">03</span>
+              <Label className="text-base font-semibold">Shape the call</Label>
+            </div>
 
-          <section>
-            <Label className="mb-3 block text-sm font-semibold">Difficulty</Label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mb-5">
+              <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Call type</div>
+              <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
+                {CALL_TYPES.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCallType(c.id)}
+                    className={`rounded-full px-4 py-1.5 text-sm transition-all ${
+                      callType === c.id
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Difficulty</div>
+            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {DIFFICULTIES.map((d) => (
                 <button
                   key={d.id}
@@ -234,52 +249,8 @@ const Index = () => {
                 </button>
               ))}
             </div>
-          </section>
 
-          <section>
-            <Label className="mb-3 block text-sm font-semibold">Prospect persona</Label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {personas.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setPersonaId(p.id)}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    personaId === p.id
-                      ? "border-primary bg-primary/10 ring-1 ring-primary"
-                      : "border-border/60 bg-background/40 hover:border-border"
-                  }`}
-                >
-                  <div className="text-sm font-semibold">{p.name}</div>
-                  <div className="text-xs text-primary">{p.role}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{p.blurb}</div>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <Label className="mb-3 block text-sm font-semibold">Call type</Label>
-            <div className="flex flex-wrap gap-2">
-              {CALL_TYPES.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setCallType(c.id)}
-                  className={`rounded-full border px-4 py-1.5 text-sm transition-all ${
-                    callType === c.id
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border/60 bg-background/40 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <Label className="mb-3 block text-sm font-semibold">Roleplay length</Label>
+            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Roleplay length</div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {DURATION_OPTIONS.map((d) => (
                 <button
@@ -297,46 +268,70 @@ const Index = () => {
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-3 text-xs text-muted-foreground">
               Industry best practice for sales roleplays is 5–10 min. The prospect will start wrapping up as time runs out.
             </p>
           </section>
 
-          <Button
-            onClick={start}
-            size="lg"
-            className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 glow"
-          >
-            <Mic className="h-5 w-5" />
-            Continue
-          </Button>
-
-          <div className="rounded-lg border border-border/60 bg-background/40 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold">Mic check</div>
-                <div className="text-xs text-muted-foreground">Records 2 seconds and confirms speech recognition is working.</div>
-              </div>
-              <Button type="button" variant="secondary" onClick={runMicTest} disabled={micTest.status === "testing"} className="gap-2 shrink-0">
-                {micTest.status === "testing" ? (<><Loader2 className="h-4 w-4 animate-spin" /> Listening…</>) : (<><Mic className="h-4 w-4" /> Test mic</>)}
-              </Button>
+          {/* Step 04 — Personalize */}
+          <section>
+            <div className="mb-4 flex items-baseline gap-3">
+              <span className="text-xs font-mono text-primary">04</span>
+              <Label className="text-base font-semibold">Personalize the conversation</Label>
             </div>
-            {micTest.status === "ok" && (
-              <div className="mt-3 flex items-start gap-2 rounded-md border border-primary/40 bg-primary/10 p-2 text-xs">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>Mic works. Heard: <span className="font-medium">"{micTest.heard}"</span></span>
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <Label htmlFor="topics" className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  <Target className="h-3.5 w-3.5 text-primary" /> Quiz me on…
+                </Label>
+                <Textarea
+                  id="topics"
+                  value={topics}
+                  onChange={(e) => setTopics(e.target.value)}
+                  placeholder={currentArea.defaultTopics}
+                  className="min-h-[120px] resize-none border-border/70 bg-background/50 text-sm"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Specific tactics, tools, or services. Leave blank to use defaults for {currentArea.label}.
+                </p>
               </div>
-            )}
-            {micTest.status === "fail" && (
-              <div className="mt-3 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs">
-                <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-                <span>{micTest.error}</span>
+              <div>
+                <Label htmlFor="name" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">Your name (optional)</Label>
+                <Input
+                  id="name"
+                  value={consultantName}
+                  onChange={(e) => setConsultantName(e.target.value)}
+                  placeholder="So admins can see who ran this call"
+                  className="bg-background/50"
+                />
               </div>
-            )}
+            </div>
+          </section>
+
+          {/* Sticky-feeling CTA bar */}
+          <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm">
+              <div className="font-semibold">
+                Ready to call <span className="text-primary">{selectedPersona.name}</span>?
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {selectedCallType.label} · {selectedDifficulty.label} · {selectedDuration.label} · {currentArea.label}
+              </div>
+            </div>
+            <Button
+              onClick={start}
+              size="lg"
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 glow"
+            >
+              Start the roleplay
+              <ArrowRight className="h-5 w-5" />
+            </Button>
           </div>
         </Card>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">Voice powered by your browser. Best in Chrome or Edge. Mic permission required.</p>
+        <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+          <Mic className="h-3.5 w-3.5" /> Voice powered by your browser. Best in Chrome or Edge. Mic permission required.
+        </p>
 
         <section className="mt-16">
           <h2 className="mb-6 text-center text-2xl font-bold tracking-tight md:text-3xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
