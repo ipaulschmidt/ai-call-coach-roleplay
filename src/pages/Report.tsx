@@ -40,6 +40,22 @@ const Report = () => {
 
   const viewConfig = id ? sharedConfig : config;
   const viewTranscript = id ? (sharedTranscript ?? []) : transcript;
+  const isTough = viewConfig?.callType === "tough";
+  const labels = isTough
+    ? {
+        sales_strategy: "Empathy & Acknowledgement",
+        technical_delivery: "Options Offered",
+        consultant_confidence: "Firmness / Boundaries",
+        agenda_setting: "Scope & Money Protected",
+        next_steps: "Concrete Next Step",
+      }
+    : {
+        sales_strategy: "Sales Strategy",
+        technical_delivery: "Technical Delivery",
+        consultant_confidence: "Consultant Confidence",
+        agenda_setting: "Agenda Setting",
+        next_steps: "Next Steps",
+      };
 
   useEffect(() => {
     if (id) {
@@ -175,17 +191,17 @@ const Report = () => {
           <>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <ScoreCard
-                title="Sales Strategy"
+                title={labels.sales_strategy}
                 score={evaluation.sales_strategy.score}
                 notes={evaluation.sales_strategy.notes}
               />
               <ScoreCard
-                title="Technical Delivery"
+                title={labels.technical_delivery}
                 score={evaluation.technical_delivery.score}
                 notes={evaluation.technical_delivery.notes}
               />
               <ScoreCard
-                title="Consultant Confidence"
+                title={labels.consultant_confidence}
                 score={evaluation.consultant_confidence.score}
                 notes={evaluation.consultant_confidence.notes}
               />
@@ -195,12 +211,12 @@ const Report = () => {
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {evaluation.agenda_setting && (
                   <ScoreCard
-                    title="Agenda Setting"
+                    title={labels.agenda_setting}
                     score={evaluation.agenda_setting.score}
                     notes={evaluation.agenda_setting.notes}
                   />
                 )}
-                {evaluation.active_listening && (
+                {!isTough && evaluation.active_listening && (
                   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
                     <div className="text-xs uppercase tracking-widest text-muted-foreground">Active Listening</div>
                     <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -222,26 +238,28 @@ const Report = () => {
                 )}
                 {evaluation.next_steps && (
                   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Next Steps</div>
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground">{labels.next_steps}</div>
                     <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.next_steps.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                       {evaluation.next_steps.score}
                       <span className="text-xl text-muted-foreground">/100</span>
                     </div>
                     <p className="mt-3 text-sm text-muted-foreground">{evaluation.next_steps.notes}</p>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.offered_times ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
-                        {evaluation.next_steps.offered_times ? "Offered specific times" : "No times offered"}
-                      </span>
-                      <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.secured_meeting ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                        {evaluation.next_steps.secured_meeting ? "Meeting booked" : "Not booked"}
-                      </span>
-                    </div>
+                    {!isTough && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.offered_times ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
+                          {evaluation.next_steps.offered_times ? "Offered specific times" : "No times offered"}
+                        </span>
+                        <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.secured_meeting ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          {evaluation.next_steps.secured_meeting ? "Meeting booked" : "Not booked"}
+                        </span>
+                      </div>
+                    )}
                   </Card>
                 )}
               </div>
             )}
 
-            <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {!isTough && <div className="mt-8 grid gap-6 md:grid-cols-2">
               <Card className="border-border/60 bg-card/60 p-5">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                   <Target className="h-4 w-4 text-primary" /> Topic coverage
@@ -294,7 +312,7 @@ const Report = () => {
                   </p>
                 </div>
               </Card>
-            </div>
+            </div>}
 
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               <Card className="border-border/60 bg-card/60 p-5">
