@@ -267,7 +267,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "30_polite_evasive",
         label: "30 days late, polite but evasive",
-        scenario: "You've been a client for 8 months. Your last invoice is 32 days past due. You're cordial but keep deflecting when accounting comes up.",
+        scenario: "They've been a client for 8 months. Their last invoice is 32 days past due. They're cordial but keep deflecting when accounting comes up.",
         internalPlaybook: PB([
           "Stay friendly on the surface; deflect with 'AP is slow this month' / 'I'll check with finance'",
           "Soften only when the consultant names the specific invoice + amount + due date",
@@ -278,7 +278,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "60_going_dark",
         label: "60+ days late, going dark",
-        scenario: "You're 65 days past due on a $14k invoice and have stopped responding to email. The consultant finally got you on the phone.",
+        scenario: "They're 65 days past due on a $14k invoice and have stopped responding to email. The consultant finally got you on the phone.",
         internalPlaybook: PB([
           "Open guarded, mildly annoyed at being 'cornered'",
           "Real reason: cash flow crunch, but you won't volunteer it without empathy first",
@@ -289,7 +289,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "chronic_late",
         label: "Chronic late payer",
-        scenario: "Every invoice for the last 6 months has been 20–40 days late. You think it's normal. The consultant is here to reset terms.",
+        scenario: "Every invoice for the last 6 months has been 20–40 days late. They think it's normal. The consultant is here to reset terms.",
         internalPlaybook: PB([
           "You don't see a problem ('we always pay eventually')",
           "Push back on auto-pay and shorter terms",
@@ -300,7 +300,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "disputing_invoice",
         label: "Disputing the invoice",
-        scenario: "You're refusing to pay last month's invoice — you say the hours billed don't match what was delivered.",
+        scenario: "They're refusing to pay last month's invoice — you say the hours billed don't match what was delivered.",
         internalPlaybook: PB([
           "Lead with the dispute, not the relationship",
           "Real complaint underneath: you didn't feel kept in the loop",
@@ -340,7 +340,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "major_add_assumed",
         label: "Expecting a major add as included",
-        scenario: "You're treating a brand-new initiative (a second brand / new platform / new region) as if it were always part of the original SOW.",
+        scenario: "They're treating a brand-new initiative (a second brand / new platform / new region) as if it were always part of the original SOW.",
         internalPlaybook: PB([
           "Genuinely believe it was implied",
           "Reference vague phrases from the original kickoff to support it",
@@ -351,7 +351,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "free_strategy",
         label: "Pushing for free strategy work",
-        scenario: "You keep asking for 'a quick strategy doc' / 'just your recommendation' on areas outside the retainer.",
+        scenario: "They keep asking for 'a quick strategy doc' / 'just their recommendation' on areas outside the retainer.",
         internalPlaybook: PB([
           "Flatter the consultant's expertise to get free thinking",
           "Push back on the idea that strategy is billable",
@@ -369,7 +369,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "hard_launch",
         label: "Missed a hard launch date",
-        scenario: "The campaign was supposed to go live yesterday. It didn't. You're the client and you just found out.",
+        scenario: "The campaign was supposed to go live yesterday. It didn't. They're the client and you just found out.",
         internalPlaybook: PB([
           "Open hot — frustrated, possibly catastrophizing impact",
           "Calm down only after a clean ownership statement (no excuses) + a real recovery plan",
@@ -380,7 +380,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "slipped_milestone",
         label: "Slipped milestone, you found out",
-        scenario: "You discovered through a status report (not a heads-up call) that a milestone slipped 2 weeks. You feel out of the loop.",
+        scenario: "They discovered through a status report (not a heads-up call) that a milestone slipped 2 weeks. They feel out of the loop.",
         internalPlaybook: PB([
           "The miss matters less than the silence — that's the real wound",
           "Push on 'why didn't you tell me'",
@@ -391,7 +391,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "cascading",
         label: "Cascading delays",
-        scenario: "The third deadline in a row is at risk. Your patience is running out.",
+        scenario: "The third deadline in a row is at risk. Their patience is running out.",
         internalPlaybook: PB([
           "Skeptical of any new promise; reference the prior misses",
           "Want to know what is structurally different this time",
@@ -420,7 +420,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "evaluating_others",
         label: "'We're evaluating other agencies'",
-        scenario: "You drop, mid-call, that you're talking to two other firms about taking over the work.",
+        scenario: "They drop, mid-call, that you're talking to two other firms about taking over the work.",
         internalPlaybook: PB([
           "Don't reveal the real driver until asked thoughtfully",
           "Real driver: a specific unmet expectation, not price",
@@ -431,7 +431,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "non_renewal",
         label: "End-of-contract non-renewal",
-        scenario: "Your contract ends in 30 days. You've decided not to renew but haven't told them yet.",
+        scenario: "Their contract ends in 30 days. They've decided not to renew but haven't told them yet.",
         internalPlaybook: PB([
           "Polite but firm; decision is mostly made",
           "Will share real reasons if the consultant is calm and curious",
@@ -442,7 +442,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "sudden_cancel",
         label: "Sudden cancellation request",
-        scenario: "You're calling to cancel effective immediately. You won't say exactly why on the call.",
+        scenario: "They're calling to cancel effective immediately. They won't say exactly why on the call.",
         internalPlaybook: PB([
           "Closed off, transactional",
           "Real reason: leadership change above you, not the work",
@@ -453,7 +453,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "soft_think",
         label: "Soft 'we need to think about this'",
-        scenario: "You're hedging on continuing past Q1 — not a hard no, but the energy has shifted.",
+        scenario: "They're hedging on continuing past Q1 — not a hard no, but the energy has shifted.",
         internalPlaybook: PB([
           "Vague on purpose; testing whether they'll dig",
           "Underlying issue: you don't see clear progress vs. cost",
@@ -471,7 +471,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "annual_happy",
         label: "Annual lift on a happy client",
-        scenario: "Standard 7% annual increase at renewal. You're a happy client but you weren't expecting it.",
+        scenario: "Standard 7% annual increase at renewal. They're a happy client but you weren't expecting it.",
         internalPlaybook: PB([
           "Mild surprise, not anger",
           "Want to understand why and what you're getting",
@@ -482,7 +482,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "mid_contract",
         label: "Mid-contract increase needed",
-        scenario: "You're being told costs are going up before your contract is up for renewal. This feels off to you.",
+        scenario: "They're being told costs are going up before their contract is up for renewal. This feels off to you.",
         internalPlaybook: PB([
           "Push back on the timing; reference the contract",
           "Open to a delayed effective date or a concession",
@@ -493,7 +493,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "renewal_new_pricing",
         label: "New pricing applied at renewal",
-        scenario: "You're a long-time client being moved to the firm's new (higher) standard pricing model.",
+        scenario: "They're a long-time client being moved to the firm's new (higher) standard pricing model.",
         internalPlaybook: PB([
           "Feel like loyalty isn't being rewarded",
           "Want to understand the structural change, not just the number",
@@ -504,7 +504,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "price_sensitive",
         label: "Raising rate on a price-sensitive client",
-        scenario: "Budget is genuinely tight on your side. The consultant still has to deliver a rate increase.",
+        scenario: "Budget is genuinely tight on their side. The consultant still has to deliver a rate increase.",
         internalPlaybook: PB([
           "Real budget pressure — not posturing",
           "Open to scope adjustment to keep total spend close to flat",
@@ -522,7 +522,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "reassigning_favorite",
         label: "Reassigning their favorite consultant",
-        scenario: "Your trusted day-to-day lead is being moved to a new account. The consultant on this call has to deliver the news.",
+        scenario: "Their trusted day-to-day lead is being moved to a new account. The consultant on this call has to deliver the news.",
         internalPlaybook: PB([
           "Initial reaction: visible disappointment, mild panic",
           "Want to know who, why, and how continuity is protected",
@@ -533,7 +533,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "pm_left",
         label: "PM left the firm",
-        scenario: "Your project manager quit. You only learned about it from an out-of-office reply.",
+        scenario: "Their project manager quit. They only learned about it from an out-of-office reply.",
         internalPlaybook: PB([
           "Annoyed at the comms failure as much as the change",
           "Worried about institutional knowledge",
@@ -544,7 +544,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "team_shuffle",
         label: "Seasonal account team shuffle",
-        scenario: "Half your team is rotating off as part of an annual reorg. You feel like you're starting over.",
+        scenario: "Half their team is rotating off as part of an annual reorg. They feel like you're starting over.",
         internalPlaybook: PB([
           "Skeptical of 'this is normal' framing",
           "Want concrete protection of momentum",
@@ -555,7 +555,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "senior_to_junior",
         label: "Senior swap to junior",
-        scenario: "A senior strategist is being replaced by someone more junior on your account.",
+        scenario: "A senior strategist is being replaced by someone more junior on their account.",
         internalPlaybook: PB([
           "Read this as a downgrade",
           "Worry it's because you're 'not important enough'",
@@ -573,7 +573,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "campaign_tanked",
         label: "Paid campaign tanked",
-        scenario: "Last month's campaign underperformed badly — CPL doubled, ROAS halved. You want answers.",
+        scenario: "Last month's campaign underperformed badly — CPL doubled, ROAS halved. They want answers.",
         internalPlaybook: PB([
           "Open frustrated, want a culprit",
           "Calm down with honest diagnosis + plan, not blame",
@@ -584,7 +584,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "pipeline_didnt",
         label: "Pipeline didn't materialize",
-        scenario: "You spent 2 quarters investing in demand-gen and the pipeline impact isn't showing up.",
+        scenario: "They spent 2 quarters investing in demand-gen and the pipeline impact isn't showing up.",
         internalPlaybook: PB([
           "Patient but losing faith",
           "Want to know if this is fixable or the wrong strategy",
@@ -606,7 +606,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "wrong_kpi",
         label: "Wrong KPI was being optimized",
-        scenario: "You realize together the team has been optimizing for a metric that doesn't drive your business.",
+        scenario: "They realize together the team has been optimizing for a metric that doesn't drive their business.",
         internalPlaybook: PB([
           "Frustrated this wasn't caught earlier",
           "Want a reset, not a rationalization",
@@ -635,7 +635,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "scope_not_viable",
         label: "Scope/relationship not viable",
-        scenario: "The work has drifted into something the firm can't profitably or competently deliver. You have to end it cleanly.",
+        scenario: "The work has drifted into something the firm can't profitably or competently deliver. They have to end it cleanly.",
         internalPlaybook: PB([
           "Hurt — read this as rejection",
           "Want a clear reason, not a corporate one",
@@ -646,7 +646,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "abusive",
         label: "Culture / abusive behavior",
-        scenario: "A specific stakeholder has been verbally abusive to your team. The firm is ending the engagement.",
+        scenario: "A specific stakeholder has been verbally abusive to their team. The firm is ending the engagement.",
         internalPlaybook: PB([
           "Defensive about the behavior, may minimize it",
           "Want to argue specific incidents",
@@ -657,7 +657,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "strategic_refocus",
         label: "Strategic refocus away from their segment",
-        scenario: "The firm is exiting your industry / size segment. The work is fine — the fit isn't.",
+        scenario: "The firm is exiting their industry / size segment. The work is fine — the fit isn't.",
         internalPlaybook: PB([
           "Confused, want to know if this is really about them",
           "Open to a thoughtful handoff",
@@ -675,7 +675,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "mid_engagement",
         label: "Asking for a discount mid-engagement",
-        scenario: "You're asking for 15% off the next 3 months. Nothing has gone wrong — you just want a better deal.",
+        scenario: "They're asking for 15% off the next 3 months. Nothing has gone wrong — you just want a better deal.",
         internalPlaybook: PB([
           "Frame it as 'just asking'",
           "Will accept a no if the consultant doesn't flinch",
@@ -686,7 +686,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "cut_hours",
         label: "Wants to cut retainer hours",
-        scenario: "You want to drop your retainer from 40 hrs to 20 hrs/month, keep 'the same outcomes.'",
+        scenario: "They want to drop their retainer from 40 hrs to 20 hrs/month, keep 'the same outcomes.'",
         internalPlaybook: PB([
           "Don't accept that fewer hours = fewer deliverables",
           "Want the consultant to make it work",
@@ -697,7 +697,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "pull_in_house",
         label: "Threatening to pull work in-house",
-        scenario: "You're floating bringing the work in-house unless the firm matches the cost of one FTE.",
+        scenario: "They're floating bringing the work in-house unless the firm matches the cost of one FTE.",
         internalPlaybook: PB([
           "Half-bluff — you haven't actually scoped the in-house cost",
           "Open to options if the consultant engages seriously",
@@ -708,7 +708,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "match_quote",
         label: "'Match this other agency's quote'",
-        scenario: "You have a competing proposal at 30% lower cost and want this firm to match it to keep the work.",
+        scenario: "They have a competing proposal at 30% lower cost and want this firm to match it to keep the work.",
         internalPlaybook: PB([
           "Genuinely have the quote",
           "Don't actually want to switch — you trust this team",
@@ -726,7 +726,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "make_it_pop",
         label: "'Make it pop' / vague feedback",
-        scenario: "You keep sending back work with vague feedback like 'feels off' / 'make it pop.' You can't articulate why.",
+        scenario: "They keep sending back work with vague feedback like 'feels off' / 'make it pop.' They can't articulate why.",
         internalPlaybook: PB([
           "Genuinely struggle to put words to it",
           "Respond well to structured questions, not 'what do you mean?'",
@@ -737,7 +737,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "contradictory",
         label: "Contradictory feedback across stakeholders",
-        scenario: "Two of your stakeholders gave directly opposite feedback. You forwarded both to the consultant.",
+        scenario: "Two of their stakeholders gave directly opposite feedback. They forwarded both to the consultant.",
         internalPlaybook: PB([
           "Want the consultant to solve the politics for you",
           "Will resist a meeting that 'wastes' executive time",
@@ -748,7 +748,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "nitpicking",
         label: "Nitpicking deliverables",
-        scenario: "You're on round 7 of revisions on a single deliverable, focused on tiny details that don't change outcomes.",
+        scenario: "They're on round 7 of revisions on a single deliverable, focused on tiny details that don't change outcomes.",
         internalPlaybook: PB([
           "Feel responsible for 'getting it right'",
           "Don't see the cost of the loop",
@@ -759,7 +759,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "post_signoff",
         label: "Changing direction after sign-off",
-        scenario: "You signed off on the strategy 3 weeks ago and are now asking for a substantially different direction.",
+        scenario: "They signed off on the strategy 3 weeks ago and are now asking for a substantially different direction.",
         internalPlaybook: PB([
           "Don't see the change as a change",
           "Push back on the idea that this is a new SOW",
@@ -777,7 +777,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "stuck_signoff",
         label: "Sign-off stuck for weeks",
-        scenario: "A deliverable has been waiting 3 weeks for your sign-off. The consultant is calling to unstick it.",
+        scenario: "A deliverable has been waiting 3 weeks for their sign-off. The consultant is calling to unstick it.",
         internalPlaybook: PB([
           "Slightly defensive ('I've been swamped')",
           "Won't commit to a date without prompting",
@@ -788,7 +788,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "gone_dark",
         label: "Client gone dark",
-        scenario: "You haven't responded to anything in 10 days. The consultant finally got you on a call.",
+        scenario: "They haven't responded to anything in 10 days. The consultant finally got you on a call.",
         internalPlaybook: PB([
           "Real reason: another priority has eaten you alive",
           "Don't see how it's affecting the work",
@@ -828,7 +828,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "new_cmo",
         label: "New CMO wants to re-evaluate everything",
-        scenario: "A new CMO joined last month and is reviewing all agency relationships. You've been told this call is 'just a chat.'",
+        scenario: "A new CMO joined last month and is reviewing all agency relationships. They've been told this call is 'just a chat.'",
         internalPlaybook: PB([
           "Friendly, but evaluating",
           "Want a clear story of value to date and forward plan",
@@ -839,7 +839,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "champion_left",
         label: "Champion left, replacement is skeptical",
-        scenario: "Your internal champion is gone. Their replacement is openly skeptical of agency spend in general.",
+        scenario: "Their internal champion is gone. Their replacement is openly skeptical of agency spend in general.",
         internalPlaybook: PB([
           "Direct, slightly cold",
           "Will respect specifics and numbers; suspicious of relationship language",
@@ -861,7 +861,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "acquired",
         label: "Acquired company, new leadership",
-        scenario: "Your company was just acquired. New parent leadership is on the call to vet whether to keep the engagement.",
+        scenario: "Their company was just acquired. New parent leadership is on the call to vet whether to keep the engagement.",
         internalPlaybook: PB([
           "Polite but transactional",
           "Want to understand fit with the new parent's playbook",
@@ -879,7 +879,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "by_monday",
         label: "'We need this by Monday'",
-        scenario: "It's Thursday afternoon. You're asking for a substantial deliverable by Monday morning.",
+        scenario: "It's Thursday afternoon. They're asking for a substantial deliverable by Monday morning.",
         internalPlaybook: PB([
           "Apologetic but insistent",
           "Real underlying driver: a board / exec ask you can't push back on",
@@ -890,7 +890,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "weekend_ask",
         label: "Weekend / after-hours ask",
-        scenario: "You're texting on a Saturday morning expecting work to start before Monday.",
+        scenario: "They're texting on a Saturday morning expecting work to start before Monday.",
         internalPlaybook: PB([
           "Don't see it as crossing a line",
           "Will respect a calm boundary if the response is fast",
@@ -901,7 +901,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "urgent_pivot",
         label: "Urgent pivot mid-sprint",
-        scenario: "You want to drop everything in flight and pivot the whole sprint to a new urgent priority.",
+        scenario: "They want to drop everything in flight and pivot the whole sprint to a new urgent priority.",
         internalPlaybook: PB([
           "Justified urgency, but you haven't thought about what gets dropped",
           "Open to trade-offs once made explicit",
@@ -912,7 +912,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "ceo_panic",
         label: "CEO-driven panic request",
-        scenario: "Your CEO saw something today and demanded a response by EOD. You're delivering the panic to the consultant.",
+        scenario: "Their CEO saw something today and demanded a response by EOD. They're delivering the panic to the consultant.",
         internalPlaybook: PB([
           "Adopting the CEO's urgency without filtering",
           "Will calm down if the consultant calmly reframes the actual ask",
@@ -930,7 +930,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "late_approval",
         label: "Their late approval, blamed on you",
-        scenario: "You approved the asset 8 days late and the launch slipped. You're framing the slippage as the firm's fault.",
+        scenario: "They approved the asset 8 days late and the launch slipped. They're framing the slippage as the firm's fault.",
         internalPlaybook: PB([
           "Genuinely don't see your role in it",
           "Will soften with calm receipts (timestamps), not arguments",
@@ -941,7 +941,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "bad_data",
         label: "Their bad data, blamed on your reporting",
-        scenario: "The numbers in the report are off because you sent the wrong source data. You're blaming the firm's reporting.",
+        scenario: "The numbers in the report are off because you sent the wrong source data. They're blaming the firm's reporting.",
         internalPlaybook: PB([
           "Defensive about your data hygiene",
           "Open to a process fix once the source is acknowledged",
@@ -952,7 +952,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "stakeholder_noshow",
         label: "Their stakeholder didn't show, your fault somehow",
-        scenario: "A key stakeholder on your side missed the workshop. You're blaming the consultant for not 'doing enough' to ensure attendance.",
+        scenario: "A key stakeholder on their side missed the workshop. They're blaming the consultant for not 'doing enough' to ensure attendance.",
         internalPlaybook: PB([
           "Won't accept that internal attendance is your responsibility",
           "Will respect a calm restatement of who owns what",
@@ -963,7 +963,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "escalation",
         label: "Escalating to your boss over their own miss",
-        scenario: "You've gone over the consultant's head to their leadership about a slip you actually caused.",
+        scenario: "They've gone over the consultant's head to their leadership about a slip you actually caused.",
         internalPlaybook: PB([
           "Convinced you're in the right",
           "Surprised the consultant is addressing the escalation directly",
