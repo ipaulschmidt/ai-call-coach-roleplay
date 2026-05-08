@@ -766,8 +766,31 @@ const Call = () => {
                   })}
                 </div>
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {audioLevel > 0.02 ? "Mic picking you up" : "Mic on — try speaking"}
+                  {sttStatus === "ai-speaking"
+                    ? "AI speaking — mic paused"
+                    : sttStatus === "muted"
+                    ? "Mic muted"
+                    : sttStatus === "needs-resume"
+                    ? "Mic stopped — tap resume"
+                    : sttStatus === "blocked"
+                    ? "Mic blocked"
+                    : audioLevel > 0.02
+                    ? "Listening — picking you up"
+                    : "Listening — try speaking"}
                 </div>
+                {sttStatus === "needs-resume" && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setSttStatus("listening");
+                      void startListening();
+                    }}
+                    className="gap-2"
+                  >
+                    <Mic className="h-3.5 w-3.5" /> Resume mic
+                  </Button>
+                )}
               </div>
             )}
 
