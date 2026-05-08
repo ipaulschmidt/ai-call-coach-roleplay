@@ -265,24 +265,52 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Difficulty</div>
-            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => setDifficulty(d.id)}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    difficulty === d.id
-                      ? "border-primary bg-primary/10 ring-1 ring-primary"
-                      : "border-border/60 bg-background/40 hover:border-border"
-                  }`}
-                >
-                  <div className="font-semibold">{d.label}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
-                </button>
-              ))}
-            </div>
+            {isTough ? (
+              <div className="mb-5">
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Conversation type</div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {TOUGH_SITUATIONS.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSituationId(s.id)}
+                      className={`rounded-lg border p-4 text-left transition-all ${
+                        situationId === s.id
+                          ? "border-primary bg-primary/10 ring-1 ring-primary"
+                          : "border-border/60 bg-background/40 hover:border-border"
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">{s.label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{s.subtitle}</div>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Each conversation type has multiple variants — the specific scenario is rolled when you start the call, so the same bucket feels fresh on repeat practice.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Difficulty</div>
+                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {DIFFICULTIES.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => setDifficulty(d.id)}
+                      className={`rounded-lg border p-4 text-left transition-all ${
+                        difficulty === d.id
+                          ? "border-primary bg-primary/10 ring-1 ring-primary"
+                          : "border-border/60 bg-background/40 hover:border-border"
+                      }`}
+                    >
+                      <div className="font-semibold">{d.label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Roleplay length</div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -349,7 +377,7 @@ const Index = () => {
                 Ready to call <span className="text-primary">{selectedPersona.name}</span>?
               </div>
               <div className="text-xs text-muted-foreground">
-                {selectedCallType.label} · {selectedDifficulty.label} · {selectedDuration.label} · {currentArea.label}
+                {selectedCallType.label} · {isTough ? (selectedSituation?.label ?? "Tough conversation") : selectedDifficulty.label} · {selectedDuration.label} · {currentArea.label}
               </div>
             </div>
             <Button
