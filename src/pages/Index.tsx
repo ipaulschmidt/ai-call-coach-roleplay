@@ -100,11 +100,11 @@ const Index = () => {
               SmartBug · Consultant Mode
             </div>
             <h1 className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
-              Practice the call.<br />
-              <span className="text-primary">Win the room.</span>
+              Sharpen your craft.<br />
+              <span className="text-primary">One call at a time.</span>
             </h1>
             <p className="mt-5 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
-              Roleplay HubSpot, Paid Media, and Globalia discovery & service calls against an AI prospect. Get scored on strategy, technical accuracy, and confidence.
+              Roleplay SmartBug, Point Success, and Globalia discovery & delivery conversations against an AI client. Get coached on strategy, technical accuracy, and confidence.
             </p>
           </div>
           {/* Live preview card */}
