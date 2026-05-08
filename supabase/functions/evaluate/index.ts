@@ -253,7 +253,37 @@ Then provide:
     const data = await response.json();
     const call = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!call) throw new Error("No tool call in response");
-    const evaluation = JSON.parse(call.function.arguments);
+    const raw = JSON.parse(call.function.arguments);
+
+    // For tough mode, map the 5 tough metrics into the standard Evaluation
+    // shape so the existing Report renders. Report will relabel by callType.
+    const evaluation = isTough
+      ? {
+          sales_strategy: raw.empathy,
+          technical_delivery: {
+            score: raw.options_offered.score,
+            notes: raw.options_offered.notes,
+            topics_covered: [],
+            topics_missed: [],
+          },
+          consultant_confidence: {
+            score: raw.firmness.score,
+            notes: raw.firmness.notes,
+            filler_words: [],
+            pacing: "good",
+          },
+          agenda_setting: raw.scope_money_protected,
+          next_steps: {
+            score: raw.next_step.score,
+            notes: raw.next_step.notes,
+            offered_times: false,
+            secured_meeting: false,
+          },
+          corrective_feedback: raw.corrective_feedback,
+          wins: raw.wins,
+          summary: raw.summary,
+        }
+      : raw;
 
     return new Response(JSON.stringify({ evaluation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
