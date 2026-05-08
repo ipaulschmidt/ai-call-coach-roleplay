@@ -765,7 +765,7 @@ const Call = () => {
                 </div>
                 <p className="text-sm leading-relaxed text-foreground/90">
                   {config.callType === "tough" && config.scenario
-                    ? `You've been working with ${config.persona.split(" — ")[0]} as a client. ${config.scenario}`
+                    ? `You've been working with ${config.persona.split(" — ")[0]}. Here's the situation: ${config.scenario}`
                     : config.scenario || "An inbound prospect just hopped on the call with you."}
                 </p>
               </div>
