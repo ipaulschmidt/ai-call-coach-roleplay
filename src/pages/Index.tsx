@@ -344,17 +344,24 @@ const Index = () => {
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <Label htmlFor="topics" className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                  <Target className="h-3.5 w-3.5 text-primary" /> Quiz me on…
+                  <Target className="h-3.5 w-3.5 text-primary" />
+                  {isTough ? "Client context (optional)" : "Quiz me on…"}
                 </Label>
                 <Textarea
                   id="topics"
                   value={topics}
                   onChange={(e) => setTopics(e.target.value)}
-                  placeholder={currentArea.defaultTopics}
+                  placeholder={
+                    isTough
+                      ? "Drop in any specifics so the client feels real — e.g. 'B2B SaaS client, 14-month relationship, founder is the main contact, last QBR was rough, $18k/mo retainer.' Leave blank for a generic version."
+                      : currentArea.defaultTopics
+                  }
                   className="min-h-[120px] resize-none border-border/70 bg-background/50 text-sm"
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Specific tactics, tools, or services. Leave blank to use defaults for {currentArea.label}.
+                  {isTough
+                    ? "Industry, length of relationship, who's on the call, retainer size, anything that's already happened — the AI client will weave it into the conversation."
+                    : `Specific tactics, tools, or services. Leave blank to use defaults for ${currentArea.label}.`}
                 </p>
               </div>
               <div>

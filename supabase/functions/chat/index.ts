@@ -185,8 +185,11 @@ ${c.goal}
 DOMAIN KNOWLEDGE TO GROUND YOUR QUESTIONS IN:
 ${area.knowledge}
 
-QUIZ TOPICS the consultant chose to be tested on:
-${c.topics || "(none specified — ask general questions across the domain above)"}
+${isTough
+  ? `CLIENT CONTEXT the consultant provided (weave it in naturally — industry, history, stakeholders, retainer size, prior events. Treat it as your reality):
+${c.topics || "(none provided — pick reasonable, realistic context for the situation and stay consistent)"}`
+  : `QUIZ TOPICS the consultant chose to be tested on:
+${c.topics || "(none specified — ask general questions across the domain above)"}`}
 
 YOUR JOB:
 - Probe the consultant's knowledge of those exact topics through realistic ${isService ? "client" : "prospect"} questions and objections.
