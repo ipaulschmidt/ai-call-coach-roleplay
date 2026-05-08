@@ -261,9 +261,15 @@ const Call = () => {
       const url = URL.createObjectURL(blob);
       // Reuse the unlocked element if we have one (critical for iOS Safari).
       const audio = audioElRef.current ?? new Audio();
-      audio.src = url;
       (audio as any).playsInline = true;
+      audio.preload = "auto";
       audioElRef.current = audio;
+      // iOS Safari: when reusing an <audio> element, you MUST call .load()
+      // after assigning a new src, otherwise .play() resolves but no audio
+      // actually plays on the second and subsequent TTS clips.
+      try { audio.pause(); } catch {}
+      audio.src = url;
+      try { audio.load(); } catch {}
       speakingRef.current = true;
       await new Promise<void>((resolve) => {
         let settled = false;
