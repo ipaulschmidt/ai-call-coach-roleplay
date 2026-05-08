@@ -190,12 +190,21 @@ serve(async (req) => {
 
     const systemPrompt = buildSystemPrompt(config as SimConfig, timing as Timing | undefined);
 
+    // Tag every user message explicitly so the model cannot lose track of who is who.
+    // Without this, short/fragmentary user replies sometimes cause the model to flip
+    // sides and respond AS the consultant addressing its own persona.
+    const taggedMessages = (messages as Array<{ role: string; content: string }>).map((m) =>
+      m.role === "user"
+        ? { ...m, content: `[CONSULTANT speaking to you]: ${m.content}` }
+        : m,
+    );
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
+        messages: [{ role: "system", content: systemPrompt }, ...taggedMessages],
         stream: true,
       }),
     });
