@@ -174,9 +174,20 @@ const Call = () => {
         const a = new Audio();
         a.preload = "auto";
         (a as any).playsInline = true;
+        (a as any).crossOrigin = "anonymous";
         audioElRef.current = a;
-        // Fire & forget: empty src play will reject, that's fine — it still unlocks audio.
-        try { a.play().catch(() => {}); } catch {}
+        // iOS Safari: an empty-src play() does NOT unlock the element. We need to
+        // actually start playback of *something* inside the user gesture. Use a
+        // tiny silent MP3 data URI so subsequent .play() calls (for real TTS audio
+        // returned later from the server) are allowed without another tap.
+        try {
+          a.src =
+            "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//FJAhBaH5ASw0MeoO+e4//9j8jjjDgz//yds+f7LfvGcNV/x4eEgwMS/v//fI//9wIQECMQ///7s8nP///GgYj0HRgg7BAg4Q//8fhEUUFggIQRBQIQEEEEEBAxASEEdkkGgI4AABjwBgAAAOAcADwBgAAOAcADwBgAAOAcADwBgAAOAcADwBgAAA";
+          const p = a.play();
+          if (p && typeof p.then === "function") {
+            p.then(() => { a.pause(); a.removeAttribute("src"); a.load(); }).catch(() => {});
+          }
+        } catch {}
       }
     } catch {}
     // NOTE: We intentionally do NOT start the mic recognizer here. The AI
@@ -250,9 +261,15 @@ const Call = () => {
       const url = URL.createObjectURL(blob);
       // Reuse the unlocked element if we have one (critical for iOS Safari).
       const audio = audioElRef.current ?? new Audio();
-      audio.src = url;
       (audio as any).playsInline = true;
+      audio.preload = "auto";
       audioElRef.current = audio;
+      // iOS Safari: when reusing an <audio> element, you MUST call .load()
+      // after assigning a new src, otherwise .play() resolves but no audio
+      // actually plays on the second and subsequent TTS clips.
+      try { audio.pause(); } catch {}
+      audio.src = url;
+      try { audio.load(); } catch {}
       speakingRef.current = true;
       await new Promise<void>((resolve) => {
         let settled = false;
