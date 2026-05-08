@@ -529,6 +529,12 @@ const Call = () => {
 
     let assistantText = "";
     let firstChunk = true;
+    const controller = new AbortController();
+    // Abort if the model never produces a single chunk within 25s — better
+    // to surface an error than leave the user staring at a "…" bubble.
+    let stallTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+      if (firstChunk) controller.abort();
+    }, 25000);
 
     try {
       const resp = await fetch(CHAT_URL, {
@@ -550,13 +556,17 @@ const Call = () => {
             phase: overtime ? "wrap" : remainingMs <= 2 * 60_000 ? "closing" : remainingMs <= durationMs / 2 ? "mid" : "open",
           },
         }),
+        signal: controller.signal,
       });
 
       if (!resp.ok || !resp.body) {
         const data = await resp.json().catch(() => ({}));
         if (!endedRef.current) toast.error(data.error || `AI error (${resp.status})`);
         setTranscript(history);
+        if (stallTimer) clearTimeout(stallTimer);
         setStatus("idle");
+        muteSTTRef.current = false;
+        setSttStatus(muted ? "muted" : "listening");
         return;
       }
 
@@ -589,6 +599,7 @@ const Call = () => {
               if (firstChunk) {
                 setStatus("speaking");
                 firstChunk = false;
+                if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
               }
               working = [...history, { role: "assistant", content: assistantText }];
               setTranscript(working);
@@ -598,6 +609,17 @@ const Call = () => {
             break;
           }
         }
+      }
+      if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
+
+      // Streamed nothing — drop the placeholder and tell the user.
+      if (!assistantText.trim()) {
+        if (!endedRef.current) toast.error("AI returned no response. Try again.");
+        setTranscript(history);
+        setStatus("idle");
+        muteSTTRef.current = false;
+        setSttStatus(muted ? "muted" : "listening");
+        return;
       }
 
       if (endedRef.current) return;
@@ -635,7 +657,13 @@ const Call = () => {
       }
     } catch (e) {
       console.error(e);
-      if (!endedRef.current) toast.error("Connection lost. Try again.");
+      if (stallTimer) clearTimeout(stallTimer);
+      const aborted = (e as any)?.name === "AbortError";
+      if (!endedRef.current) {
+        toast.error(aborted ? "AI took too long to respond. Try again." : "Connection lost. Try again.");
+      }
+      // Drop the empty "…" placeholder so the user isn't left waiting.
+      setTranscript(history);
       setStatus("idle");
       muteSTTRef.current = false;
       setSttStatus(muted ? "muted" : "listening");
