@@ -429,6 +429,7 @@ const Call = () => {
         setMuted(true);
         cleanupSTT();
         setStatus("idle");
+        setSttStatus("blocked");
         toast.error(
           "Mic blocked in this preview. Open the preview in a new tab (top-right ↗) or just type your replies below.",
           { duration: 8000 },
