@@ -615,11 +615,23 @@ const Call = () => {
       setStatus("idle");
       aiSpokeUntilRef.current = Date.now();
       muteSTTRef.current = false;
-      // Recognizer was kept alive — just make sure it's running. startListening
-      // is a no-op if recognitionRef is already set.
+      // Force a fresh recognizer after every AI turn. The old one often dies
+      // silently during a long AI playback (especially on mobile Chrome / iOS
+      // Safari) — appearing alive but no longer delivering audio. Tearing it
+      // down and starting clean is far more reliable than trusting the
+      // existing instance.
       if (!muted && supportsSTT) {
-        setSttStatus(recognitionRef.current ? "listening" : "off");
-        void startListening();
+        try { recognitionRef.current?.stop(); } catch {}
+        recognitionRef.current = null;
+        setSttStatus("listening");
+        // Tiny delay so the previous recognizer's onend fires before we spin
+        // up a new one (otherwise some browsers throw InvalidStateError).
+        setTimeout(() => {
+          if (endedRef.current || muted) return;
+          startListening().catch(() => {
+            if (!endedRef.current) setSttStatus("needs-resume");
+          });
+        }, 250);
       }
     } catch (e) {
       console.error(e);
