@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type Difficulty = "easy" | "realistic" | "hard";
-export type CallType = "discovery" | "service";
+export type CallType = "discovery" | "service" | "tough";
 export type PracticeArea = "hubspot" | "paid_media" | "globalia";
 
 export interface SimConfig {
@@ -15,6 +15,10 @@ export interface SimConfig {
   scenario?: string;
   personaId?: string;
   personaAvatar?: string;
+  situationId?: string;
+  situationLabel?: string;
+  variantId?: string;
+  internalPlaybook?: string;
 }
 
 export interface Turn {
