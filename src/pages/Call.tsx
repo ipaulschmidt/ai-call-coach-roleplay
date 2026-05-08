@@ -784,11 +784,16 @@ const Call = () => {
                   {Array.from({ length: 16 }).map((_, i) => {
                     const threshold = (i + 1) / 16;
                     const active = audioLevel * 5 > threshold;
+                    const isLive = sttStatus === "listening";
                     return (
                       <div
                         key={i}
                         className={`w-1.5 rounded-sm transition-all duration-75 ${
-                          active ? "bg-primary" : "bg-muted"
+                          active
+                            ? isLive
+                              ? "bg-emerald-500"
+                              : "bg-muted-foreground/40"
+                            : "bg-muted"
                         }`}
                         style={{ height: `${30 + threshold * 70}%` }}
                       />
@@ -825,28 +830,19 @@ const Call = () => {
             )}
 
             <div className="flex flex-col items-center gap-3">
-              <span
-                className={`rounded-full border px-4 py-1 text-xs font-medium uppercase tracking-wider ${
-                  status === "listening"
-                    ? "border-primary bg-primary/10 text-primary"
-                    : status === "speaking"
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : status === "thinking"
-                    ? "border-border bg-muted text-muted-foreground"
-                    : "border-border bg-background text-muted-foreground"
-                }`}
-              >
-                {status === "listening" && "Listening"}
-                {status === "speaking" && "Speaking"}
-                {status === "thinking" && "Thinking…"}
-                {status === "idle" && "Idle"}
-              </span>
-
               <div className="flex gap-2">
                 {supportsSTT && (
-                  <Button onClick={toggleMute} variant={muted ? "secondary" : "default"} className="gap-2">
+                  <Button
+                    onClick={toggleMute}
+                    size="lg"
+                    className={`gap-2 font-semibold ${
+                      muted
+                        ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        : "bg-emerald-500 text-white hover:bg-emerald-600"
+                    }`}
+                  >
                     {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                    {muted ? "Mic off" : "Mic on"}
+                    {muted ? "Turn mic on" : "Mute mic"}
                   </Button>
                 )}
               </div>
@@ -913,6 +909,55 @@ const Call = () => {
           </Card>
         </div>
       </div>
+
+      {/* Big floating mic-state banner — makes it unmistakable when to speak */}
+      {callStarted && supportsSTT && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-4">
+          <div
+            className={`pointer-events-auto flex items-center gap-3 rounded-full border-2 px-6 py-3 text-sm font-semibold uppercase tracking-wider shadow-2xl backdrop-blur transition-all duration-200 ${
+              muted
+                ? "border-destructive bg-destructive text-destructive-foreground"
+                : sttStatus === "ai-speaking"
+                ? "border-amber-500 bg-amber-500/95 text-white"
+                : sttStatus === "needs-resume" || sttStatus === "blocked"
+                ? "border-destructive bg-destructive text-destructive-foreground"
+                : "border-emerald-500 bg-emerald-500/95 text-white"
+            }`}
+          >
+            <span
+              className={`relative flex h-3 w-3 ${
+                !muted && sttStatus === "listening" ? "" : ""
+              }`}
+            >
+              {!muted && sttStatus === "listening" && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+              )}
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-white" />
+            </span>
+            {muted ? (
+              <>
+                <MicOff className="h-4 w-4" /> Mic off — they can't hear you
+              </>
+            ) : sttStatus === "ai-speaking" ? (
+              <>
+                <MicOff className="h-4 w-4" /> Hold — they're speaking
+              </>
+            ) : sttStatus === "needs-resume" ? (
+              <>
+                <MicOff className="h-4 w-4" /> Mic stopped — tap resume
+              </>
+            ) : sttStatus === "blocked" ? (
+              <>
+                <MicOff className="h-4 w-4" /> Mic blocked
+              </>
+            ) : (
+              <>
+                <Mic className="h-4 w-4" /> Your turn — speak now
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 };
