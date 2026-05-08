@@ -472,18 +472,12 @@ const Call = () => {
     if (!config) return;
     if (endedRef.current) return;
     setStatus("thinking");
-    // HARD echo suppression: while the AI talks we (a) gate STT results,
-    // (b) physically disable the mic track so no audio is captured, and
-    // (c) abort the active recognizer so any buffered audio is discarded.
+    // Echo suppression: gate STT results while the AI talks, but keep the
+    // mic stream + recognizer ALIVE. On iOS Safari, disabling the audio
+    // track or aborting SpeechRecognition outside a user gesture leaves the
+    // mic permanently dead (cannot be restarted without another tap). We
+    // rely on muteSTTRef + the post-speech debounce to drop AI echo instead.
     muteSTTRef.current = true;
-    try {
-      streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = false));
-    } catch {}
-    try {
-      recognitionRef.current?.abort?.();
-    } catch {}
-    recognitionRef.current = null;
-    shouldListenRef.current = false;
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
@@ -576,11 +570,9 @@ const Call = () => {
       if (endedRef.current) return;
       setStatus("idle");
       aiSpokeUntilRef.current = Date.now();
-      // Re-enable the mic track and spin up a fresh recognizer.
-      try {
-        streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = true));
-      } catch {}
       muteSTTRef.current = false;
+      // Recognizer was kept alive — just make sure it's running. startListening
+      // is a no-op if recognitionRef is already set.
       if (!muted && supportsSTT) void startListening();
     } catch (e) {
       console.error(e);
