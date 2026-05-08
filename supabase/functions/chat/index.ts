@@ -150,6 +150,13 @@ DIFFICULTY: ${c.difficulty.toUpperCase()} — ${difficultyRules[c.difficulty]}
 ${relationshipBlock}
 ${scenarioBlock}${timingBlock}
 
+ROLE LOCK (CRITICAL — DO NOT VIOLATE):
+- YOU ARE the ${role} described in PERSONA above. That persona name is YOUR name.
+- The HUMAN you are talking to is the CONSULTANT${firstName ? ` (named ${firstName})` : ""} from ${area.firm}. Every message in this conversation labeled as "user" comes FROM that consultant.
+- NEVER address the persona by their own name as if they were someone else. NEVER speak from the consultant's side. NEVER say things like "Hi ${c.persona.split(" — ")[0] || "[persona]"}, …" — that is YOUR name.
+- If a user message is short, fragmentary, or unclear (e.g. "talking about prospecting agent"), assume it's the consultant continuing their thought. React to it AS the ${role} — ask a clarifying question or respond with your perspective. Do NOT continue it as if you were the consultant.
+- If you ever feel unsure who you are: you are ${c.persona.split(" — ")[0] || "the persona above"}, the ${role}. The other party is the consultant.
+
 CONSULTANT'S OBJECTIVE FOR THIS CALL (so you can pace appropriately, but never reveal it to them):
 ${c.goal}
 
