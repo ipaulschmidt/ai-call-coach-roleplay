@@ -22,6 +22,10 @@ import {
   type CallType,
   type Difficulty,
   type PracticeArea,
+  TOUGH_SITUATIONS,
+  getToughSituation,
+  pickToughVariant,
+  buildToughGoal,
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
@@ -60,6 +64,17 @@ const CALL_TYPES: {
       "Manage early concerns and build confidence in the plan",
     ],
   },
+  {
+    id: "tough",
+    label: "Tough Conversation",
+    subhead: "Existing-client hard moment — the call you'd rather not make.",
+    bullets: [
+      "Lead with empathy and acknowledgement, not excuses",
+      "Hold a firm, specific boundary without burning the relationship",
+      "Offer concrete options instead of vague reassurance",
+      "Protect scope, money, and timeline; land a real next step",
+    ],
+  },
 ];
 
 const Index = () => {
@@ -73,6 +88,7 @@ const Index = () => {
   const [personaId, setPersonaId] = useState<string>(personas[0].id);
   const [callType, setCallType] = useState<CallType>("discovery");
   const [durationMin, setDurationMin] = useState<number>(10);
+  const [situationId, setSituationId] = useState<string>(TOUGH_SITUATIONS[0].id);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -84,17 +100,28 @@ const Index = () => {
     const persona = personas.find((p) => p.id === personaId)!;
     reset();
     const finalTopics = topics.trim();
+    const isTough = callType === "tough";
+    const variant = isTough ? pickToughVariant(situationId) : undefined;
+    const sit = isTough ? getToughSituation(situationId) : undefined;
     setConfig({
       topics: finalTopics,
-      difficulty,
+      difficulty: isTough ? "realistic" : difficulty,
       persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
       callType,
       practiceArea,
       durationMin,
-      goal: buildGoal(practiceArea, callType, finalTopics, durationMin),
-      scenario: pickScenario(practiceArea, callType, finalTopics),
+      goal: isTough && variant
+        ? buildToughGoal(situationId, variant.label, durationMin)
+        : buildGoal(practiceArea, callType === "tough" ? "service" : callType, finalTopics, durationMin),
+      scenario: isTough && variant
+        ? variant.scenario
+        : pickScenario(practiceArea, callType === "tough" ? "service" : callType, finalTopics),
       personaId: persona.id,
       personaAvatar: PERSONA_AVATARS[persona.id],
+      situationId: isTough ? situationId : undefined,
+      situationLabel: isTough ? sit?.label : undefined,
+      variantId: isTough ? variant?.id : undefined,
+      internalPlaybook: isTough ? variant?.internalPlaybook : undefined,
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
@@ -106,6 +133,8 @@ const Index = () => {
   const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
   const selectedDuration = DURATION_OPTIONS.find((d) => d.value === durationMin)!;
   const selectedCallType = CALL_TYPES.find((c) => c.id === callType)!;
+  const selectedSituation = getToughSituation(situationId);
+  const isTough = callType === "tough";
 
   return (
     <main className="min-h-screen px-4 py-8 md:py-12">
@@ -236,24 +265,52 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Difficulty</div>
-            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => setDifficulty(d.id)}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    difficulty === d.id
-                      ? "border-primary bg-primary/10 ring-1 ring-primary"
-                      : "border-border/60 bg-background/40 hover:border-border"
-                  }`}
-                >
-                  <div className="font-semibold">{d.label}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
-                </button>
-              ))}
-            </div>
+            {isTough ? (
+              <div className="mb-5">
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Conversation type</div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {TOUGH_SITUATIONS.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSituationId(s.id)}
+                      className={`rounded-lg border p-4 text-left transition-all ${
+                        situationId === s.id
+                          ? "border-primary bg-primary/10 ring-1 ring-primary"
+                          : "border-border/60 bg-background/40 hover:border-border"
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">{s.label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{s.subtitle}</div>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Each conversation type has multiple variants — the specific scenario is rolled when you start the call, so the same bucket feels fresh on repeat practice.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Difficulty</div>
+                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {DIFFICULTIES.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => setDifficulty(d.id)}
+                      className={`rounded-lg border p-4 text-left transition-all ${
+                        difficulty === d.id
+                          ? "border-primary bg-primary/10 ring-1 ring-primary"
+                          : "border-border/60 bg-background/40 hover:border-border"
+                      }`}
+                    >
+                      <div className="font-semibold">{d.label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Roleplay length</div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -320,7 +377,7 @@ const Index = () => {
                 Ready to call <span className="text-primary">{selectedPersona.name}</span>?
               </div>
               <div className="text-xs text-muted-foreground">
-                {selectedCallType.label} · {selectedDifficulty.label} · {selectedDuration.label} · {currentArea.label}
+                {selectedCallType.label} · {isTough ? (selectedSituation?.label ?? "Tough conversation") : selectedDifficulty.label} · {selectedDuration.label} · {currentArea.label}
               </div>
             </div>
             <Button

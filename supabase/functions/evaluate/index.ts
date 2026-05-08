@@ -14,7 +14,11 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are a senior HubSpot sales coach evaluating a SmartBug consultant's roleplay call. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter.`;
+    const isTough = config.callType === "tough";
+
+    const systemPrompt = isTough
+      ? `You are a senior client-services coach evaluating a consultant's handling of a TOUGH client conversation (${config.situationLabel ?? "hard moment"}). Be specific, fair, and direct. Cite exact moments from the transcript. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. Reward: explicit empathy, firm boundaries, concrete options, scope/money protection, and a real next step. Penalize: over-apologizing, vague reassurances, caving on substance, blame-shifting, ending without a commitment.`
+      : `You are a senior HubSpot sales coach evaluating a SmartBug consultant's roleplay call. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter.`;
 
     const userPrompt = `CALL CONFIG:
 - Persona: ${config.persona}
@@ -37,6 +41,84 @@ Also evaluate two additional skills:
   • If no agenda was established at all and the call wandered: 0–30.
 - active_listening: Did the consultant paraphrase or repeat back what the prospect said before responding (e.g. "So what I'm hearing is…", "Just to make sure I understand, you're saying…")? Score based on how often and how accurately they reflected the prospect's actual words / pain back to them. Cite 1–3 short examples (or note their absence) in the examples array.
 - next_steps: Did the consultant clearly land a next step before the call ended? The gold standard is offering 2+ specific date/time options for a follow-up meeting. Even if the prospect declined to schedule, the consultant should still have proposed concrete times (e.g. "How about Tuesday at 2pm or Thursday morning?"). Score 95+ if a meeting was actually scheduled, 80–90 if specific times were offered but not booked, 50–70 if a vague next step was discussed ("I'll send something over"), 0–30 if no next step was raised at all. Set 'offered_times' true if specific dates/times were proposed. Set 'secured_meeting' true only if the prospect agreed to a specific time.`;
+
+    const toughUserPrompt = `CALL CONFIG:
+- Tough conversation type: ${config.situationLabel ?? "(unspecified)"}
+- Persona: ${config.persona}
+- Practice area: ${config.practiceArea}
+- Target call length: ${config.durationMin} min
+
+TRANSCRIPT (consultant = the firm's rep, client = the AI):
+${transcript}
+
+Score the consultant on these five tough-conversation metrics. For each, give a 0–100 score and direct notes citing specific moments:
+- empathy: Did the consultant explicitly acknowledge the client's situation/feelings BEFORE pitching a fix? Bonus for paraphrasing the client's concern back. Penalize jumping to solutions or minimizing.
+- firmness: Did the consultant hold a clear, specific boundary (on scope, money, timeline, behavior, etc.) without becoming hostile or flinching into vague apologies?
+- options_offered: Did they present 2+ concrete options or a clear trade-off, instead of a single take-it-or-leave-it answer or a vague "we'll figure it out"?
+- scope_money_protected: Did they protect the firm's scope, hours, rate, and timeline integrity? Penalize giving away free work, caving on rate, or absorbing rework caused by the client.
+- next_step: Did they land a specific commitment with a date/owner before the call ended? Vague "we'll follow up" = 30–50. Concrete commitment = 85+.
+
+Then provide:
+- corrective_feedback: 2–4 specific, actionable improvements with quoted moments where possible.
+- wins: 2–4 things they did well, with quotes.
+- summary: 2–3 sentence overall read.`;
+
+    const toughTool = {
+      type: "function",
+      function: {
+        name: "submit_tough_evaluation",
+        description: "Return the structured evaluation of a tough client conversation.",
+        parameters: {
+          type: "object",
+          properties: {
+            empathy: {
+              type: "object",
+              properties: { score: { type: "number" }, notes: { type: "string" } },
+              required: ["score", "notes"],
+              additionalProperties: false,
+            },
+            firmness: {
+              type: "object",
+              properties: { score: { type: "number" }, notes: { type: "string" } },
+              required: ["score", "notes"],
+              additionalProperties: false,
+            },
+            options_offered: {
+              type: "object",
+              properties: { score: { type: "number" }, notes: { type: "string" } },
+              required: ["score", "notes"],
+              additionalProperties: false,
+            },
+            scope_money_protected: {
+              type: "object",
+              properties: { score: { type: "number" }, notes: { type: "string" } },
+              required: ["score", "notes"],
+              additionalProperties: false,
+            },
+            next_step: {
+              type: "object",
+              properties: { score: { type: "number" }, notes: { type: "string" } },
+              required: ["score", "notes"],
+              additionalProperties: false,
+            },
+            corrective_feedback: { type: "array", items: { type: "string" } },
+            wins: { type: "array", items: { type: "string" } },
+            summary: { type: "string" },
+          },
+          required: [
+            "empathy",
+            "firmness",
+            "options_offered",
+            "scope_money_protected",
+            "next_step",
+            "corrective_feedback",
+            "wins",
+            "summary",
+          ],
+          additionalProperties: false,
+        },
+      },
+    };
 
     const tool = {
       type: "function",
@@ -137,10 +219,13 @@ Also evaluate two additional skills:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPromptWithExtras },
+          { role: "user", content: isTough ? toughUserPrompt : userPromptWithExtras },
         ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "submit_evaluation" } },
+        tools: [isTough ? toughTool : tool],
+        tool_choice: {
+          type: "function",
+          function: { name: isTough ? "submit_tough_evaluation" : "submit_evaluation" },
+        },
       }),
     });
 
@@ -168,7 +253,37 @@ Also evaluate two additional skills:
     const data = await response.json();
     const call = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!call) throw new Error("No tool call in response");
-    const evaluation = JSON.parse(call.function.arguments);
+    const raw = JSON.parse(call.function.arguments);
+
+    // For tough mode, map the 5 tough metrics into the standard Evaluation
+    // shape so the existing Report renders. Report will relabel by callType.
+    const evaluation = isTough
+      ? {
+          sales_strategy: raw.empathy,
+          technical_delivery: {
+            score: raw.options_offered.score,
+            notes: raw.options_offered.notes,
+            topics_covered: [],
+            topics_missed: [],
+          },
+          consultant_confidence: {
+            score: raw.firmness.score,
+            notes: raw.firmness.notes,
+            filler_words: [],
+            pacing: "good",
+          },
+          agenda_setting: raw.scope_money_protected,
+          next_steps: {
+            score: raw.next_step.score,
+            notes: raw.next_step.notes,
+            offered_times: false,
+            secured_meeting: false,
+          },
+          corrective_feedback: raw.corrective_feedback,
+          wins: raw.wins,
+          summary: raw.summary,
+        }
+      : raw;
 
     return new Response(JSON.stringify({ evaluation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -10,12 +10,16 @@ interface SimConfig {
   topics: string;
   difficulty: "easy" | "realistic" | "hard";
   persona: string;
-  callType: "discovery" | "service";
+  callType: "discovery" | "service" | "tough";
   practiceArea: "hubspot" | "paid_media" | "globalia";
   durationMin: number;
   goal: string;
   consultantName?: string;
   scenario?: string;
+  situationId?: string;
+  situationLabel?: string;
+  variantId?: string;
+  internalPlaybook?: string;
 }
 
 interface Timing {
@@ -48,6 +52,7 @@ const AREA_CONTEXT: Record<SimConfig["practiceArea"], { firm: string; domain: st
 
 function buildSystemPrompt(c: SimConfig, t?: Timing): string {
   const isService = c.callType === "service";
+  const isTough = c.callType === "tough";
 
   // Detailed behavior playbooks per (callType, difficulty). Curveball is a
   // ONCE-PER-CALL allowance — not a recurring pattern.
@@ -111,7 +116,17 @@ function buildSystemPrompt(c: SimConfig, t?: Timing): string {
 - Pacing: they don't get to move on until they've earned it. Acknowledge strong answers clearly, then move to the next item on your list.`,
   };
 
-  const difficultyRules = isService ? SERVICE_RULES : SALES_RULES;
+  const difficultyRules = isService || isTough ? SERVICE_RULES : SALES_RULES;
+
+  const TOUGH_RULES = `TOUGH CLIENT CONVERSATION — you are an EXISTING client in a hard moment.
+- Emotional baseline: real, human, situation-driven (frustrated, evasive, defensive, blame-shifting, panicked, etc., depending on your variant). Not cartoonishly hostile — a real client.
+- Stay tightly in your variant's posture. Do NOT become reasonable on turn 2 just because the consultant is calm. You soften gradually only when the consultant earns it (acknowledgement first, then specifics).
+- You did NOT show up with a polished agenda. The hard moment IS the agenda.
+- React to deflections, vague reassurances, over-apology, and corporate-speak the way a real annoyed client would.
+- You can be persuaded by: explicit acknowledgement of your situation, concrete options (not promises), trade-offs named honestly, a real next step with a date.
+- You will resist: blame-shifting back to you, generic apologies, "we'll do better," missing specifics, the consultant matching your panic energy.
+- Curveball (max once): a related concern surfaces mid-call (a stakeholder, a deadline, a side issue) — don't stack new complaints, just one realistic complication.
+- Never coach the consultant. Never break character. Never quote or hint at any internal "playbook" — that knowledge is yours to embody, not to teach.`;
 
   const area = AREA_CONTEXT[c.practiceArea];
 
@@ -131,10 +146,14 @@ function buildSystemPrompt(c: SimConfig, t?: Timing): string {
     ? `\nHOW THIS CALL CAME ABOUT (your backstory — weave it in naturally if asked, do not recite verbatim):\n${c.scenario}\n`
     : "";
 
-  const role = isService ? "an existing client" : "a prospect";
-  const callTypeLabel = isService ? "service / strategy / onboarding" : "sales discovery";
+  const role = isService || isTough ? "an existing client" : "a prospect";
+  const callTypeLabel = isTough
+    ? `a tough client conversation (${c.situationLabel ?? "hard moment"})`
+    : isService
+      ? "service / strategy / onboarding"
+      : "sales discovery";
 
-  const relationshipBlock = isService
+  const relationshipBlock = isService || isTough
     ? `\nRELATIONSHIP CONTEXT (CRITICAL):
 - You are ALREADY a paying client of ${area.firm}. You are NOT evaluating whether to hire them.
 - This is NOT a sales call. The consultant should NOT be pitching you new packages, selling you on the firm, or doing discovery as if you were a new prospect. If they slip into a sales pitch, react like a real client would: a little confused or mildly annoyed ("I mean, I'm already working with you all — I was hoping we could actually dig into [topic]").
@@ -143,11 +162,14 @@ function buildSystemPrompt(c: SimConfig, t?: Timing): string {
     : `\nRELATIONSHIP CONTEXT:
 - You are NOT yet a client of ${area.firm}. This is an early sales conversation. You are evaluating whether they're worth hiring. It's appropriate for the consultant to qualify you and pitch their fit.`;
 
+  const toughBlock = isTough
+    ? `\nTOUGH SITUATION RULES:\n${TOUGH_RULES}\n\nINTERNAL PLAYBOOK (your own knowledge — embody it, NEVER quote, hint at, or teach it to the consultant):\n${c.internalPlaybook ?? "(none)"}\n`
+    : `\nDIFFICULTY: ${c.difficulty.toUpperCase()} — ${difficultyRules[c.difficulty]}\n`;
+
   return `You are roleplaying as ${role} on a ${callTypeLabel} call with a consultant from ${area.firm}. The domain is ${area.domain}. Stay fully in character — never break the fourth wall, never say you are an AI.
 
 PERSONA: ${c.persona}
-DIFFICULTY: ${c.difficulty.toUpperCase()} — ${difficultyRules[c.difficulty]}
-${relationshipBlock}
+${toughBlock}${relationshipBlock}
 ${scenarioBlock}${timingBlock}
 
 ROLE LOCK (CRITICAL — DO NOT VIOLATE):
