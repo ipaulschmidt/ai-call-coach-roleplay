@@ -758,10 +758,15 @@ const Call = () => {
             <div className="flex-1 space-y-3">
               <div>
                 <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                  <Briefcase className="h-3.5 w-3.5" /> Scenario
+                  <Briefcase className="h-3.5 w-3.5" />
+                  {config.callType === "tough"
+                    ? `${config.persona.split(" — ")[0]}'s situation`
+                    : "Scenario"}
                 </div>
                 <p className="text-sm leading-relaxed text-foreground/90">
-                  {config.scenario || "An inbound prospect just hopped on the call with you."}
+                  {config.callType === "tough" && config.scenario
+                    ? `You've been working with ${config.persona.split(" — ")[0]} as a client. ${config.scenario}`
+                    : config.scenario || "An inbound prospect just hopped on the call with you."}
                 </p>
               </div>
               <div>
