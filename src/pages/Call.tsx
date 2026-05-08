@@ -78,6 +78,11 @@ const Call = () => {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState<number>(Date.now());
   const [callStarted, setCallStarted] = useState(false);
+  // Explicit STT status, separate from the overall call status, so the user
+  // can see exactly why the mic appears inactive mid-call.
+  const [sttStatus, setSttStatus] = useState<
+    "off" | "listening" | "ai-speaking" | "muted" | "blocked" | "needs-resume"
+  >("off");
 
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -435,7 +440,17 @@ const Call = () => {
       // Auto-restart if we're supposed to keep listening (browsers stop STT after ~60s of silence)
       if (shouldListenRef.current && recognitionRef.current === rec && !endedRef.current) {
         setTimeout(() => {
-          try { rec.start(); } catch {}
+          try {
+            rec.start();
+          } catch {
+            // iOS Safari sometimes refuses to restart outside a user gesture.
+            // Drop the dead recognizer and try a fresh one; if that also fails,
+            // surface a "Tap to resume" affordance so the user can recover.
+            recognitionRef.current = null;
+            startListening().catch(() => {
+              if (!endedRef.current && !muted) setSttStatus("needs-resume");
+            });
+          }
         }, 100);
       }
     };
@@ -445,6 +460,7 @@ const Call = () => {
       shouldListenRef.current = true;
       lastSttEventRef.current = Date.now();
       setStatus("listening");
+      if (!muteSTTRef.current) setSttStatus("listening");
     } catch {}
   }, [setTranscript, status]);
 
@@ -457,7 +473,16 @@ const Call = () => {
       if (muteSTTRef.current) return; // AI is talking, don't restart
       if (Date.now() - lastSttEventRef.current < 15000) return;
       const rec = recognitionRef.current;
-      if (!rec) return;
+      if (!rec) {
+        // No recognizer at all — try to bring it back up.
+        startListening().catch(() => {
+          if (!endedRef.current) setSttStatus("needs-resume");
+        });
+        lastSttEventRef.current = Date.now();
+        return;
+      }
+      // Recognizer looks alive but isn't delivering audio (common iOS Safari
+      // failure mode). Stop it and let onend → start() bring it back.
       try { rec.stop(); } catch {}
       lastSttEventRef.current = Date.now();
     }, 5000);
@@ -478,6 +503,7 @@ const Call = () => {
     // mic permanently dead (cannot be restarted without another tap). We
     // rely on muteSTTRef + the post-speech debounce to drop AI echo instead.
     muteSTTRef.current = true;
+    setSttStatus("ai-speaking");
 
     const placeholder: Turn = { role: "assistant", content: "" };
     let working = [...history, placeholder];
@@ -573,12 +599,16 @@ const Call = () => {
       muteSTTRef.current = false;
       // Recognizer was kept alive — just make sure it's running. startListening
       // is a no-op if recognitionRef is already set.
-      if (!muted && supportsSTT) void startListening();
+      if (!muted && supportsSTT) {
+        setSttStatus(recognitionRef.current ? "listening" : "off");
+        void startListening();
+      }
     } catch (e) {
       console.error(e);
       if (!endedRef.current) toast.error("Connection lost. Try again.");
       setStatus("idle");
       muteSTTRef.current = false;
+      setSttStatus(muted ? "muted" : "listening");
     }
   };
 
@@ -594,9 +624,11 @@ const Call = () => {
   const toggleMute = () => {
     if (muted) {
       setMuted(false);
+      setSttStatus("listening");
       if (status === "idle") void startListening();
     } else {
       setMuted(true);
+      setSttStatus("muted");
       stopListening();
     }
   };
