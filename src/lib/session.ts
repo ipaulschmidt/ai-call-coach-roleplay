@@ -278,7 +278,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "60_going_dark",
         label: "60+ days late, going dark",
-        scenario: "They're 65 days past due on a $14k invoice and have stopped responding to email. The consultant finally got they on the phone.",
+        scenario: "They're 65 days past due on a $14k invoice and have stopped responding to email. The consultant finally got them on the phone.",
         internalPlaybook: PB([
           "Open guarded, mildly annoyed at being 'cornered'",
           "Real reason: cash flow crunch, but you won't volunteer it without empathy first",
@@ -351,7 +351,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "free_strategy",
         label: "Pushing for free strategy work",
-        scenario: "They keep asking for 'a quick strategy doc' / 'just their recommendation' on areas outside the retainer.",
+        scenario: "They keep asking for 'a quick strategy doc' / 'just your recommendation' on areas outside the retainer.",
         internalPlaybook: PB([
           "Flatter the consultant's expertise to get free thinking",
           "Push back on the idea that strategy is billable",
@@ -402,7 +402,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "ask_extension",
         label: "Asking for an extension",
-        scenario: "The consultant needs to ask they for more time on a deliverable that hasn't slipped publicly yet.",
+        scenario: "The consultant needs to ask them for more time on a deliverable that hasn't slipped publicly yet.",
         internalPlaybook: PB([
           "Initially neutral — depends entirely on how they ask",
           "React badly to vague reasons; respond well to specifics + trade-offs",
@@ -431,7 +431,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "non_renewal",
         label: "End-of-contract non-renewal",
-        scenario: "Their contract ends in 30 days. They've decided not to renew but haven't told them yet.",
+        scenario: "Their contract ends in 30 days. They've decided not to renew but haven't told the firm yet.",
         internalPlaybook: PB([
           "Polite but firm; decision is mostly made",
           "Will share real reasons if the consultant is calm and curious",
@@ -482,7 +482,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "mid_contract",
         label: "Mid-contract increase needed",
-        scenario: "They're being told costs are going up before their contract is up for renewal. This feels off to they.",
+        scenario: "They're being told costs are going up before their contract is up for renewal. This feels off to them.",
         internalPlaybook: PB([
           "Push back on the timing; reference the contract",
           "Open to a delayed effective date or a concession",
@@ -788,7 +788,7 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
       {
         id: "gone_dark",
         label: "Client gone dark",
-        scenario: "They haven't responded to anything in 10 days. The consultant finally got they on a call.",
+        scenario: "They haven't responded to anything in 10 days. The consultant finally got them on a call.",
         internalPlaybook: PB([
           "Real reason: another priority has eaten you alive",
           "Don't see how it's affecting the work",
