@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mic, Sparkles, Target, Lock, Gauge, Clock, Users, ArrowRight } from "lucide-react";
+import { Mic, Sparkles, Target, Lock, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -32,9 +32,34 @@ const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
   { id: "hard", label: "Hard", desc: "Tough objections, expert pushback" },
 ];
 
-const CALL_TYPES: { id: CallType; label: string }[] = [
-  { id: "discovery", label: "Sales Discovery" },
-  { id: "service", label: "Service / Onboarding" },
+const CALL_TYPES: {
+  id: CallType;
+  label: string;
+  subhead: string;
+  bullets: string[];
+}[] = [
+  {
+    id: "discovery",
+    label: "Sales Discovery",
+    subhead: "Pre-sale conversation with a prospect who hasn't bought yet.",
+    bullets: [
+      "Surface business pain and the cost of doing nothing",
+      "Qualify budget, timeline, and decision process",
+      "Handle pricing pushback and competitor comparisons",
+      "Earn the right to a concrete next step",
+    ],
+  },
+  {
+    id: "service",
+    label: "Service / Onboarding",
+    subhead: "Post-sale kickoff with a client who has already signed.",
+    bullets: [
+      "Align on goals, success criteria, and scope",
+      "Map stakeholders and gather access / data needs",
+      "Set realistic timelines and milestones",
+      "Manage early concerns and build confidence in the plan",
+    ],
+  },
 ];
 
 const Index = () => {
@@ -93,53 +118,18 @@ const Index = () => {
         </div>
 
         {/* Editorial hero */}
-        <header className="mb-12 grid gap-8 md:mb-16 md:grid-cols-[1.4fr_1fr] md:items-center">
-          <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              SmartBug · Consultant Mode
-            </div>
-            <h1 className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
-              Sharpen your craft.<br />
-              <span className="text-primary">One call at a time.</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
-              Roleplay SmartBug, Point Success, and Globalia discovery & delivery conversations against an AI client. Get coached on strategy, technical accuracy, and confidence.
-            </p>
+        <header className="mb-12 max-w-3xl md:mb-16">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            SmartBug · Consultant Mode
           </div>
-          {/* Live preview card */}
-          <Card className="overflow-hidden border-border/60 bg-card/70 shadow-elevated backdrop-blur">
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-              <img
-                src={PERSONA_AVATARS[selectedPersona.id]}
-                alt={selectedPersona.name}
-                className="h-full w-full object-cover transition-opacity duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <div className="text-xs uppercase tracking-wider text-primary">Today's prospect</div>
-                <div className="mt-1 text-lg font-semibold leading-tight">{selectedPersona.name}</div>
-                <div className="text-xs text-muted-foreground">{selectedPersona.role}</div>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60 text-center">
-              <div className="px-2 py-3">
-                <Gauge className="mx-auto h-4 w-4 text-primary" />
-                <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Difficulty</div>
-                <div className="text-xs font-semibold">{selectedDifficulty.label}</div>
-              </div>
-              <div className="px-2 py-3">
-                <Users className="mx-auto h-4 w-4 text-primary" />
-                <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Call type</div>
-                <div className="text-xs font-semibold">{selectedCallType.label.split(" ")[0]}</div>
-              </div>
-              <div className="px-2 py-3">
-                <Clock className="mx-auto h-4 w-4 text-primary" />
-                <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Length</div>
-                <div className="text-xs font-semibold">{selectedDuration.label}</div>
-              </div>
-            </div>
-          </Card>
+          <h1 className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
+            Sharpen your craft.<br />
+            <span className="text-primary">One call at a time.</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
+            Roleplay SmartBug, Point Success, and Globalia discovery & delivery conversations against an AI client. Get coached on strategy, technical accuracy, and confidence.
+          </p>
         </header>
 
         <Card className="space-y-10 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-10">
@@ -228,6 +218,21 @@ const Index = () => {
                     {c.label}
                   </button>
                 ))}
+              </div>
+              <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-4">
+                <div className="text-sm font-semibold">{selectedCallType.label}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{selectedCallType.subhead}</div>
+                <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Practice scenarios where the {callType === "discovery" ? "prospect" : "client"} might…
+                </div>
+                <ul className="mt-2 space-y-1.5">
+                  {selectedCallType.bullets.map((b) => (
+                    <li key={b} className="flex items-start gap-2 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span className="text-foreground/90">{b}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 
