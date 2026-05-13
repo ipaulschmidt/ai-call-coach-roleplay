@@ -83,8 +83,8 @@ export const PRACTICE_AREAS: {
   {
     id: "paid_media",
     label: "Paid Media (Point Success)",
-    tagline: "Paid search, paid social, programmatic, retail media, YouTube/CTV, measurement & analytics, creative strategy, landing-page CRO.",
-    defaultTopics: "Google Ads (Search/PMax), Meta Ads, LinkedIn Ads, programmatic display, retail media, YouTube & CTV, MMM vs MTA, GA4 / server-side tracking, landing page CRO",
+    tagline: "Lead-gen paid media for home-service franchise brands (Budget Blinds, Kitchen Tune-Up, College HUNKS, ProLift Garage Doors, etc.) — Google Ads, Meta, Microsoft.",
+    defaultTopics: "Google Search campaigns, Performance Max, Meta awareness + remarketing, Microsoft Ads, local lead-gen, CPL & lead quality, territory targeting, franchisor preferred-vendor dynamics",
   },
   {
     id: "globalia",
@@ -108,10 +108,11 @@ export const PERSONAS_BY_AREA: Record<PracticeArea, ReadonlyArray<{
     { id: "tech-admin", name: "Sam Reyes", role: "Technical HubSpot Admin", blurb: "Knows the product. Will catch any inaccuracy.", gender: "male" },
   ],
   paid_media: [
-    { id: "ecom-cmo", name: "Dana Wright", role: "DTC E-com CMO", blurb: "Cares about ROAS, CAC, and creative velocity. Hates vanity metrics.", gender: "female" },
-    { id: "b2b-demand", name: "Elena Park", role: "B2B Demand-Gen Director", blurb: "LinkedIn-heavy, pipeline-obsessed, wants attribution clarity.", gender: "female" },
-    { id: "growth-founder", name: "Tessa Rivera", role: "Series-B Growth Founder", blurb: "Scaling fast, skeptical of agencies, wants proof of channel mix.", gender: "female" },
-    { id: "performance-analyst", name: "Riya Mehta", role: "Performance Analyst", blurb: "Will pressure-test MMM, MTA, GA4 setup, and incrementality testing.", gender: "female" },
+    { id: "office-owner", name: "Marcus Hale", role: "Office-Based Franchise Owner", blurb: "Multi-unit Budget Blinds owner. Runs ops, watches the leads dashboard. Talks growth, ROAS, and competitive metrics.", gender: "male" },
+    { id: "overwhelmed-owner", name: "Brittany Cole", role: "Overwhelmed Owner-Operator", blurb: "Single-location Kitchen Tune-Up owner. 1–2 person shop. Hard to reach. Marketing only matters when leads slow down.", gender: "female" },
+    { id: "seasoned-marketer", name: "Ethan Brooks", role: "Seasoned Marketing Manager", blurb: "Independent marketing lead across 4 College HUNKS franchisees. Hands-on, opinionated, holds budget authority.", gender: "male" },
+    { id: "marketing-friend", name: "Hannah Reyes", role: "'The Marketing Girl'", blurb: "Franchisee's niece, marketing student, runs their social. Limited PPC expertise. Owner is watching from behind the scenes.", gender: "female" },
+    { id: "franchisor-director", name: "Lauren Pace", role: "Franchisor Marketing Director", blurb: "Corporate side at HFC. Vets preferred vendors for 1,000+ locations. Cares about network-wide consistency and reporting.", gender: "female" },
   ],
   globalia: [
     { id: "ecom-owner", name: "Carla Núñez", role: "Shopify Store Owner", blurb: "$3M GMV, conversion-obsessed, weighing headless re-platform.", gender: "female" },
