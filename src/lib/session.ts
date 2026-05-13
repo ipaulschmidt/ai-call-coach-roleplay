@@ -150,10 +150,10 @@ const DISCOVERY_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
     (t) => `They were referred by an existing SmartBug client and want to talk through ${t} on this first call.`,
   ],
   paid_media: [
-    (t) => `We met this prospect at a digital marketing conference — they stopped by the Point Success Media booth and asked about ${t}.`,
-    (t) => `They filled out the 'Get a paid media audit' form on the Point Success Media website, calling out ${t} as their main concern.`,
-    (t) => `A HubSpot rep introduced us — the prospect uses HubSpot and wants a paid media partner who can help with ${t}.`,
-    (t) => `They were referred by an existing Point Success Media client and the conversation is centered on ${t}.`,
+    (t) => `New franchisee just opened their location and was given Point Success as a vetted vendor by their franchisor. They want to talk through ${t} before signing on.`,
+    (t) => `Franchisee booked an intro call after a corporate webinar — leads have slowed down and they're hoping ${t} is the answer.`,
+    (t) => `Existing franchisor partner referred them. They've been running ads with another vendor and aren't happy with results around ${t}.`,
+    (t) => `Multi-unit owner heard about us from another franchisee in the network. They want to consolidate ad spend across locations and dig into ${t}.`,
   ],
   globalia: [
     (t) => `We met this prospect at a Shopify / e-commerce meetup — they're exploring ${t} and want to see if we're a fit.`,
@@ -171,10 +171,10 @@ const SERVICE_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
     (t) => `Existing retainer client — they want to expand the engagement to cover ${t} and need a plan.`,
   ],
   paid_media: [
-    (t) => `Existing client — they just renewed their quarterly retainer and want to revisit ${t} for the next 90 days.`,
-    (t) => `New client kickoff — SOW signed for paid media management, and ${t} is the headline focus for onboarding.`,
-    (t) => `Retainer client of 6 months — this month's performance review zooms in on ${t}: what's working, what to change.`,
-    (t) => `Existing client — they bought a block of strategy hours specifically to plan ${t} together.`,
+    (t) => `Existing franchisee client — monthly check-in. Leads are flat and they want to dig into ${t} this call.`,
+    (t) => `New franchisee onboarding — they signed last week, ad accounts are being built, and ${t} is the first conversation.`,
+    (t) => `Long-time franchisee — quarterly performance review. ${t} is the headline topic for the next 90 days.`,
+    (t) => `Multi-unit franchisee — wants to revisit budget allocation across locations and zoom in on ${t}.`,
   ],
   globalia: [
     (t) => `Existing client — they just purchased a block of dev hours and want to spend them on ${t}.`,
