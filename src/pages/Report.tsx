@@ -74,12 +74,12 @@ const Report = () => {
   const loadShared = async (sessionId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("coaching_sessions")
-        .select("*")
-        .eq("id", sessionId)
-        .maybeSingle();
+      const { data: resp, error } = await supabase.functions.invoke("get-session", {
+        body: { id: sessionId },
+      });
       if (error) throw error;
+      if (resp?.error) throw new Error(resp.error);
+      const data = resp?.session;
       if (!data) {
         toast.error("Report not found");
         navigate("/");
@@ -119,19 +119,20 @@ const Report = () => {
       setEvaluation(ev);
       // Persist this coaching session and route to its unique URL
       try {
-        const { data: inserted, error: insertErr } = await supabase.from("coaching_sessions").insert([
-          {
+        const { data: inserted, error: insertErr } = await supabase.functions.invoke("save-session", {
+          body: {
             practice_area: config.practiceArea,
             persona: config.persona,
             difficulty: config.difficulty,
             call_type: config.callType,
             topics: config.topics || undefined,
             consultant_name: sessionStorage.getItem("consultantName") || undefined,
-            transcript: transcript as any,
-            evaluation: ev as any,
+            transcript,
+            evaluation: ev,
           },
-        ]).select("id").single();
+        });
         if (insertErr) throw insertErr;
+        if (inserted?.error) throw new Error(inserted.error);
         if (inserted?.id) {
           navigate(`/report/${inserted.id}`, { replace: true });
         }
