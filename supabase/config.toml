@@ -10,3 +10,9 @@ verify_jwt = false
 
 [functions.tts]
 verify_jwt = false
+
+[functions.save-session]
+verify_jwt = false
+
+[functions.get-session]
+verify_jwt = false
