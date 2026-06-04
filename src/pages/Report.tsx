@@ -173,6 +173,7 @@ const Report = () => {
           durationMinutes: config.durationMin,
           quizTopics: config.topics,
           transcript,
+          evaluation: _ev,
         },
       });
       if (error) {

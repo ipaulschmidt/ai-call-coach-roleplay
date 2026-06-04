@@ -187,6 +187,8 @@ const Admin = () => {
                           <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Summary</div>
                           <p className="text-sm">{r.evaluation.summary}</p>
                         </div>
+                        <ScoresGrid ev={r.evaluation} callType={r.call_type} />
+                        {r.call_type !== "tough" && <SignalsBlock ev={r.evaluation} />}
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>
                             <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Wins</div>
