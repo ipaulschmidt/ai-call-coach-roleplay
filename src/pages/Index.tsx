@@ -350,18 +350,15 @@ const Index = () => {
               <div>
                 <Label htmlFor="topics" className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                   <Target className="h-3.5 w-3.5 text-primary" />
-                  {isTough ? "Client context (optional)" : "Quiz me on…"}
+                  What to focus on or practice pitching
                 </Label>
                 <Textarea
                   id="topics"
+                  rows={6}
                   value={topics}
                   onChange={(e) => setTopics(e.target.value)}
-                  placeholder={
-                    isTough
-                      ? "Drop in any specifics so the client feels real — e.g. 'B2B SaaS client, 14-month relationship, founder is the main contact, last QBR was rough, $18k/mo retainer.' Leave blank for a generic version."
-                      : currentArea.defaultTopics
-                  }
-                  className="min-h-[120px] resize-none border-border/70 bg-background/50 text-sm"
+                  placeholder="Enter topic keywords — or paste content from a service brief or Tettra article. For best results, paste the ICP, language indicators, pricing, and common objections sections rather than the full document. The AI will use whatever you put here to respond as a realistic prospect being pitched that service. Leave blank for general practice."
+                  className="min-h-[160px] resize-none border-border/70 bg-background/50 text-sm"
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
                   {isTough
