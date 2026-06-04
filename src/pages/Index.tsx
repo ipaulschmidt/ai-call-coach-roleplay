@@ -130,6 +130,7 @@ const Index = () => {
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.setItem("repEmail", email);
+    sessionStorage.removeItem("scenarioId");
     navigate("/call");
   };
 
