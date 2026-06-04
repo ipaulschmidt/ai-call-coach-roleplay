@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Call from "./pages/Call.tsx";
 import Report from "./pages/Report.tsx";
 import Admin from "./pages/Admin.tsx";
+import Scenario from "./pages/Scenario.tsx";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/report" element={<Report />} />
           <Route path="/report/:id" element={<Report />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/scenario/:id" element={<Scenario />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
