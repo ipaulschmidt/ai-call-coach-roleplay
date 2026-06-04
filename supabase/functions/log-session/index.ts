@@ -14,6 +14,36 @@ interface Body {
 
 const HS = "https://api.hubapi.com";
 
+let cachedPortalId: string | null = null;
+
+async function getPortalId(authHeader: string): Promise<string | null> {
+  if (cachedPortalId) return cachedPortalId;
+  try {
+    const r = await fetch(`${HS}/account-info/v3/details`, {
+      headers: { Authorization: authHeader },
+    });
+    if (!r.ok) {
+      await r.text();
+      return null;
+    }
+    const d = await r.json();
+    if (d?.portalId) {
+      cachedPortalId = String(d.portalId);
+      return cachedPortalId;
+    }
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function fmtDate(d: Date): string {
   return d.toLocaleString("en-US", {
     month: "long", day: "numeric", year: "numeric",
@@ -22,26 +52,35 @@ function fmtDate(d: Date): string {
 }
 
 function buildNote(b: Body, when: Date): string {
-  const transcriptText = (b.transcript ?? []).map((m) => {
-    const label = m.role === "user" ? "REP" : "PROSPECT/CLIENT";
-    return `[${label}]: ${m.content}`;
-  }).join("\n");
+  const rep = b.repName?.trim() || b.repEmail || "";
+  const row = (label: string, val: string) =>
+    `<tr><td style="padding:2px 12px 2px 0;color:#516f90;font-weight:600;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:2px 0;">${escapeHtml(val)}</td></tr>`;
+
+  const meta = [
+    row("Date", fmtDate(when)),
+    row("Rep", rep),
+    row("Practice Area", b.practiceArea ?? ""),
+    row("Call Type", b.callType ?? ""),
+    row("Persona", b.personaName ?? ""),
+    row("Difficulty", b.difficulty ?? ""),
+    row("Duration", `${b.durationMinutes ?? 0} min`),
+    row("Focus / Quiz Topics", b.quizTopics?.trim() || "None specified"),
+  ].join("");
+
+  const transcriptItems = (b.transcript ?? []).map((m) => {
+    const isRep = m.role === "user";
+    const label = isRep ? "Rep" : "Prospect / Client";
+    const color = isRep ? "#0078d4" : "#33475b";
+    return `<p style="margin:6px 0;line-height:1.5;"><strong style="color:${color};">${label}:</strong> ${escapeHtml(m.content)}</p>`;
+  }).join("");
+
   return [
-    "🎯 SmartBug Coach — Role-Play Session",
-    "",
-    `Date: ${fmtDate(when)}`,
-    `Rep: ${b.repName?.trim() || b.repEmail || ""}`,
-    `Practice Area: ${b.practiceArea ?? ""}`,
-    `Call Type: ${b.callType ?? ""}`,
-    `Persona: ${b.personaName ?? ""}`,
-    `Difficulty: ${b.difficulty ?? ""}`,
-    `Duration: ${b.durationMinutes ?? 0} min`,
-    `Focus / Quiz Topics: ${b.quizTopics?.trim() || "None specified"}`,
-    "",
-    "── TRANSCRIPT ──────────────────────────────",
-    transcriptText,
-    "────────────────────────────────────────────",
-  ].join("\n");
+    `<h2 style="margin:0 0 12px 0;">🎯 SmartBug Coach — Role-Play Session</h2>`,
+    `<table style="border-collapse:collapse;font-size:14px;margin-bottom:16px;"><tbody>${meta}</tbody></table>`,
+    `<hr style="border:none;border-top:1px solid #cbd6e2;margin:16px 0;" />`,
+    `<h3 style="margin:0 0 8px 0;">Transcript</h3>`,
+    `<div>${transcriptItems || '<p style="color:#7c98b6;">No transcript captured.</p>'}</div>`,
+  ].join("");
 }
 
 Deno.serve(async (req) => {
@@ -112,7 +151,18 @@ Deno.serve(async (req) => {
       return json({ logged: false, reason: "api_error" });
     }
 
-    return json({ logged: true });
+    const portalId = await getPortalId(`Bearer ${key}`);
+    const contactUrl = portalId
+      ? `https://app.hubspot.com/contacts/${portalId}/record/0-1/${contact.id}`
+      : null;
+    return json({
+      logged: true,
+      contactId: contact.id,
+      contactUrl,
+      contactName: [contact.properties?.firstname, contact.properties?.lastname]
+        .filter(Boolean)
+        .join(" ") || null,
+    });
   } catch (e) {
     console.error("log-session error", e);
     return json({ logged: false, reason: "api_error" });

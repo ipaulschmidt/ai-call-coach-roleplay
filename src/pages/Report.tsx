@@ -38,7 +38,10 @@ const Report = () => {
   const [sharedConfig, setSharedConfig] = useState<SimConfig | null>(null);
   const [sharedTranscript, setSharedTranscript] = useState<Turn[] | null>(null);
   const [logStatus, setLogStatus] = useState<
-    { kind: "success" } | { kind: "no_contact"; email: string } | { kind: "api_error" } | null
+    | { kind: "success"; contactUrl?: string | null; contactName?: string | null }
+    | { kind: "no_contact"; email: string }
+    | { kind: "api_error" }
+    | null
   >(null);
 
   const viewConfig = id ? sharedConfig : config;
@@ -177,7 +180,11 @@ const Report = () => {
         return;
       }
       if (data?.logged) {
-        setLogStatus({ kind: "success" });
+        setLogStatus({
+          kind: "success",
+          contactUrl: data.contactUrl ?? null,
+          contactName: data.contactName ?? null,
+        });
       } else if (data?.reason === "no_contact") {
         setLogStatus({ kind: "no_contact", email: repEmail });
       } else {
@@ -224,7 +231,22 @@ const Report = () => {
           {!id && logStatus && (
             <p className="mt-3 text-sm text-muted-foreground">
               {logStatus.kind === "success" && (
-                <span className="text-primary">✓ Session logged to your HubSpot record.</span>
+                <span className="text-primary">
+                  ✓ Session logged to your HubSpot record.
+                  {logStatus.contactUrl && (
+                    <>
+                      {" "}
+                      <a
+                        href={logStatus.contactUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-2 hover:text-primary/80"
+                      >
+                        View contact in HubSpot →
+                      </a>
+                    </>
+                  )}
+                </span>
               )}
               {logStatus.kind === "no_contact" && (
                 <>Session complete. No HubSpot contact found for {logStatus.email} — session was not logged.</>
