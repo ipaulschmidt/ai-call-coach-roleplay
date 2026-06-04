@@ -71,6 +71,7 @@ export type Database = {
           created_by_hint: string | null
           difficulty: string
           duration_minutes: number
+          goal: string | null
           id: string
           name: string
           persona: string
@@ -84,6 +85,7 @@ export type Database = {
           created_by_hint?: string | null
           difficulty: string
           duration_minutes: number
+          goal?: string | null
           id?: string
           name: string
           persona: string
@@ -97,6 +99,7 @@ export type Database = {
           created_by_hint?: string | null
           difficulty?: string
           duration_minutes?: number
+          goal?: string | null
           id?: string
           name?: string
           persona?: string
