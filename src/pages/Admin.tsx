@@ -24,6 +24,102 @@ interface Row {
 
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
 
+const scoreColor = (s: number) =>
+  s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
+
+const ScoreTile = ({ label, score, notes }: { label: string; score: number; notes: string }) => (
+  <div className="rounded-md border border-border/60 bg-background/40 p-3">
+    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+    <div className={`mt-1 text-2xl font-bold ${scoreColor(score)}`}>
+      {score}
+      <span className="text-sm text-muted-foreground">/100</span>
+    </div>
+    {notes && <p className="mt-1.5 text-xs text-muted-foreground">{notes}</p>}
+  </div>
+);
+
+const ScoresGrid = ({ ev, callType }: { ev: Evaluation; callType: string }) => {
+  const isTough = callType === "tough";
+  const labels = isTough
+    ? {
+        sales_strategy: "Empathy",
+        technical_delivery: "Options Offered",
+        consultant_confidence: "Firmness",
+        agenda_setting: "Scope & Money",
+        next_steps: "Next Step",
+      }
+    : {
+        sales_strategy: "Sales Strategy",
+        technical_delivery: "Technical Delivery",
+        consultant_confidence: "Consultant Confidence",
+        agenda_setting: "Agenda Setting",
+        active_listening: "Active Listening",
+        next_steps: "Next Steps",
+      };
+  return (
+    <div>
+      <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Scores</div>
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
+        <ScoreTile label={labels.sales_strategy} score={ev.sales_strategy.score} notes={ev.sales_strategy.notes} />
+        <ScoreTile label={labels.technical_delivery} score={ev.technical_delivery.score} notes={ev.technical_delivery.notes} />
+        <ScoreTile label={labels.consultant_confidence} score={ev.consultant_confidence.score} notes={ev.consultant_confidence.notes} />
+        {ev.agenda_setting && <ScoreTile label={labels.agenda_setting} score={ev.agenda_setting.score} notes={ev.agenda_setting.notes} />}
+        {!isTough && ev.active_listening && <ScoreTile label={(labels as any).active_listening} score={ev.active_listening.score} notes={ev.active_listening.notes} />}
+        {ev.next_steps && <ScoreTile label={labels.next_steps} score={ev.next_steps.score} notes={ev.next_steps.notes} />}
+      </div>
+    </div>
+  );
+};
+
+const SignalsBlock = ({ ev }: { ev: Evaluation }) => {
+  const tc = ev.technical_delivery.topics_covered ?? [];
+  const tm = ev.technical_delivery.topics_missed ?? [];
+  const fillers = ev.consultant_confidence.filler_words ?? [];
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <div className="rounded-md border border-border/60 bg-background/40 p-3">
+        <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Topic coverage</div>
+        {tc.length > 0 && (
+          <div className="mb-2">
+            <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Covered</div>
+            <div className="flex flex-wrap gap-1.5">
+              {tc.map((t) => (
+                <span key={t} className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {tm.length > 0 && (
+          <div>
+            <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Missed</div>
+            <div className="flex flex-wrap gap-1.5">
+              {tm.map((t) => (
+                <span key={t} className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs text-destructive">{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {tc.length === 0 && tm.length === 0 && (
+          <div className="text-xs text-muted-foreground">No topic coverage data.</div>
+        )}
+      </div>
+      <div className="rounded-md border border-border/60 bg-background/40 p-3 text-sm">
+        <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Delivery signals</div>
+        <div><span className="text-muted-foreground">Pacing: </span><span className="font-medium capitalize">{ev.consultant_confidence.pacing}</span></div>
+        <div><span className="text-muted-foreground">Filler words: </span>{fillers.length ? <span className="font-mono text-xs">{fillers.join(", ")}</span> : <span className="text-muted-foreground">none detected</span>}</div>
+        {ev.next_steps && (
+          <div className="mt-1">
+            <span className="text-muted-foreground">Times offered: </span>
+            <span className="font-medium">{ev.next_steps.offered_times ? "Yes" : "No"}</span>
+            <span className="text-muted-foreground"> · Meeting booked: </span>
+            <span className="font-medium">{ev.next_steps.secured_meeting ? "Yes" : "No"}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const Admin = () => {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
@@ -187,6 +283,8 @@ const Admin = () => {
                           <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Summary</div>
                           <p className="text-sm">{r.evaluation.summary}</p>
                         </div>
+                        <ScoresGrid ev={r.evaluation} callType={r.call_type} />
+                        {r.call_type !== "tough" && <SignalsBlock ev={r.evaluation} />}
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>
                             <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Wins</div>
