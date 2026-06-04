@@ -24,6 +24,7 @@ interface Scenario {
   topics: string | null;
   topics_distilled?: string | null;
   goal?: string | null;
+  scenario?: string | null;
   created_by_hint: string | null;
 }
 
@@ -302,6 +303,7 @@ function ScenarioForm({
   );
   const [duration, setDuration] = useState<number>(initial?.duration_minutes ?? 10);
   const [topics, setTopics] = useState(initial?.topics ?? "");
+  const [backstory, setBackstory] = useState<string>(initial?.scenario ?? "");
   const [name, setName] = useState(initial?.name ?? "");
   const [goal, setGoal] = useState<string>(
     initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
@@ -368,6 +370,7 @@ function ScenarioForm({
         duration_minutes: duration,
         topics: topics.trim() || null,
         goal: goal.trim() || null,
+        scenario: backstory.trim() || null,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
