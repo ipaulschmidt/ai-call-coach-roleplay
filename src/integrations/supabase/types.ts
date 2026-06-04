@@ -76,6 +76,7 @@ export type Database = {
           persona: string
           practice_area: string
           topics: string | null
+          topics_distilled: string | null
         }
         Insert: {
           call_type: string
@@ -88,6 +89,7 @@ export type Database = {
           persona: string
           practice_area: string
           topics?: string | null
+          topics_distilled?: string | null
         }
         Update: {
           call_type?: string
@@ -100,6 +102,7 @@ export type Database = {
           persona?: string
           practice_area?: string
           topics?: string | null
+          topics_distilled?: string | null
         }
         Relationships: []
       }
