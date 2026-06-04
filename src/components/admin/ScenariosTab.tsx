@@ -617,16 +617,24 @@ function ScenarioForm({
           <Label htmlFor="backstory" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
             Scenario backstory
           </Label>
-          <Textarea
-            id="backstory"
-            value={backstory}
-            onChange={(e) => setBackstory(e.target.value)}
-            placeholder="Short 1–3 sentence setup shown in the SCENARIO block on the call screen. Leave blank to hide that block."
-            rows={3}
-            className="bg-background/50"
-          />
+          <div className="relative">
+            <Textarea
+              id="backstory"
+              value={backstory}
+              onChange={(e) => {
+                setBackstory(e.target.value);
+                setBackstoryEdited(true);
+              }}
+              placeholder="Why the prospect is on this call — auto-generated from your service brief."
+              rows={3}
+              className="bg-background/50 pr-9"
+            />
+            {backstoryLoading && (
+              <Sparkles className="absolute right-3 top-3 h-4 w-4 animate-pulse text-primary" />
+            )}
+          </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Displayed verbatim to the rep. Never sent to the AI as topic content.
+            Auto-generated from your service brief. Edit freely — once edited it stops auto-updating.
           </p>
         </section>
 
