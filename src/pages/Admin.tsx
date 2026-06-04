@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import logo from "@/assets/smartbug-logo.png";
 import type { Evaluation, Turn } from "@/lib/session";
+import ScenariosTab from "@/components/admin/ScenariosTab";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Row {
   id: string;
@@ -213,13 +215,10 @@ const Admin = () => {
             <img src={logo} alt="SmartBug" className="h-7" />
             <div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground">Admin</div>
-              <h1 className="text-2xl font-bold">Past coaching calls</h1>
+              <h1 className="text-2xl font-bold">SmartBug Coach admin</h1>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => load(password)} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
-            </Button>
             <Button
               variant="ghost"
               onClick={() => {
@@ -234,13 +233,27 @@ const Admin = () => {
           </div>
         </div>
 
-        {rows.length === 0 && !loading && (
-          <Card className="border-border/60 bg-card/60 p-8 text-center text-sm text-muted-foreground">
-            No coaching calls saved yet.
-          </Card>
-        )}
+        <Tabs defaultValue="sessions" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
+          </TabsList>
 
-        <div className="space-y-3">
+          <TabsContent value="sessions">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                {rows.length} session{rows.length === 1 ? "" : "s"}
+              </div>
+              <Button variant="secondary" onClick={() => load(password)} disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
+              </Button>
+            </div>
+            {rows.length === 0 && !loading && (
+              <Card className="border-border/60 bg-card/60 p-8 text-center text-sm text-muted-foreground">
+                No coaching calls saved yet.
+              </Card>
+            )}
+            <div className="space-y-3">
           {rows.map((r) => {
             const open = openId === r.id;
             return (
@@ -340,7 +353,13 @@ const Admin = () => {
               </Card>
             );
           })}
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="scenarios">
+            <ScenariosTab password={password} />
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
   );
