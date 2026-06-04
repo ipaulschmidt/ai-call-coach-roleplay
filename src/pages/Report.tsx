@@ -46,6 +46,7 @@ const Report = () => {
 
   const viewConfig = id ? sharedConfig : config;
   const viewTranscript = id ? (sharedTranscript ?? []) : transcript;
+  const scenarioName = viewConfig?.scenarioName?.trim() || null;
   const isTough = viewConfig?.callType === "tough";
   const labels = isTough
     ? {
@@ -99,6 +100,7 @@ const Report = () => {
         topics: data.topics ?? "",
         durationMin: 10,
         goal: "",
+        scenarioName: data.scenario_name ?? undefined,
       });
       setSharedTranscript((data.transcript as unknown as Turn[]) ?? []);
       setEvaluation((data.evaluation as unknown as Evaluation) ?? null);
@@ -138,6 +140,8 @@ const Report = () => {
             transcript,
             evaluation: ev,
             scenario_id: sessionStorage.getItem("scenarioId") || undefined,
+            scenario_name:
+              config.scenarioName || sessionStorage.getItem("scenarioName") || undefined,
           },
         });
         if (insertErr) throw insertErr;
@@ -173,6 +177,8 @@ const Report = () => {
           difficulty: config.difficulty,
           durationMinutes: config.durationMin,
           quizTopics: config.topics,
+          scenarioName:
+            config.scenarioName || sessionStorage.getItem("scenarioName") || undefined,
           transcript,
           evaluation: _ev,
         },
