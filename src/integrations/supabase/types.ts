@@ -24,6 +24,7 @@ export type Database = {
           id: string
           persona: string
           practice_area: string
+          scenario_id: string | null
           topics: string | null
           transcript: Json
         }
@@ -36,6 +37,7 @@ export type Database = {
           id?: string
           persona: string
           practice_area: string
+          scenario_id?: string | null
           topics?: string | null
           transcript: Json
         }
@@ -48,8 +50,56 @@ export type Database = {
           id?: string
           persona?: string
           practice_area?: string
+          scenario_id?: string | null
           topics?: string | null
           transcript?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_sessions_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scenarios: {
+        Row: {
+          call_type: string
+          created_at: string
+          created_by_hint: string | null
+          difficulty: string
+          duration_minutes: number
+          id: string
+          name: string
+          persona: string
+          practice_area: string
+          topics: string | null
+        }
+        Insert: {
+          call_type: string
+          created_at?: string
+          created_by_hint?: string | null
+          difficulty: string
+          duration_minutes: number
+          id?: string
+          name: string
+          persona: string
+          practice_area: string
+          topics?: string | null
+        }
+        Update: {
+          call_type?: string
+          created_at?: string
+          created_by_hint?: string | null
+          difficulty?: string
+          duration_minutes?: number
+          id?: string
+          name?: string
+          persona?: string
+          practice_area?: string
+          topics?: string | null
         }
         Relationships: []
       }
