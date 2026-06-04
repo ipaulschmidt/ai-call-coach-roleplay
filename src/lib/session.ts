@@ -19,6 +19,7 @@ export interface SimConfig {
   situationLabel?: string;
   variantId?: string;
   internalPlaybook?: string;
+  repEmail?: string;
 }
 
 export interface Turn {

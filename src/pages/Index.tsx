@@ -84,6 +84,7 @@ const Index = () => {
   const personas = useMemo(() => PERSONAS_BY_AREA[practiceArea], [practiceArea]);
   const [topics, setTopics] = useState("");
   const [consultantName, setConsultantName] = useState("");
+  const [repEmail, setRepEmail] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty>("realistic");
   const [personaId, setPersonaId] = useState<string>(personas[0].id);
   const [callType, setCallType] = useState<CallType>("discovery");
@@ -97,6 +98,8 @@ const Index = () => {
   };
 
   const start = () => {
+    const email = repEmail.trim();
+    if (!email) return;
     const persona = personas.find((p) => p.id === personaId)!;
     reset();
     const finalTopics = topics.trim();
@@ -122,9 +125,11 @@ const Index = () => {
       situationLabel: isTough ? sit?.label : undefined,
       variantId: isTough ? variant?.id : undefined,
       internalPlaybook: isTough ? variant?.internalPlaybook : undefined,
+      repEmail: email,
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
+    sessionStorage.setItem("repEmail", email);
     navigate("/call");
   };
 
@@ -365,6 +370,16 @@ const Index = () => {
                 </p>
               </div>
               <div>
+                <Label htmlFor="email" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">Your work email <span className="text-destructive">*</span></Label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={repEmail}
+                  onChange={(e) => setRepEmail(e.target.value)}
+                  placeholder="Used to log this session to your HubSpot record"
+                  className="mb-4 bg-background/50"
+                />
                 <Label htmlFor="name" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">Your name (optional)</Label>
                 <Input
                   id="name"
@@ -390,6 +405,7 @@ const Index = () => {
             <Button
               onClick={start}
               size="lg"
+              disabled={!repEmail.trim()}
               className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 glow"
             >
               Start the roleplay
