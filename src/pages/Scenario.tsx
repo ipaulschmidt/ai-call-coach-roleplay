@@ -29,6 +29,7 @@ interface ScenarioRow {
   persona: string;
   duration_minutes: number;
   topics: string | null;
+  topics_distilled?: string | null;
 }
 
 const CALL_TYPE_LABELS: Record<CallType, string> = {
@@ -96,7 +97,7 @@ export default function Scenario() {
     if (!email) return;
     reset();
     const isTough = scenario.call_type === "tough";
-    const finalTopics = scenario.topics ?? "";
+    const finalTopics = (scenario.topics_distilled ?? scenario.topics ?? "");
     setConfig({
       topics: finalTopics,
       difficulty: scenario.difficulty,

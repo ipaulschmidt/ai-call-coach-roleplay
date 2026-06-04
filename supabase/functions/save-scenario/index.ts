@@ -10,6 +10,50 @@ const corsHeaders = {
 const str = (v: unknown, max: number) =>
   typeof v === "string" ? v.slice(0, max) : null;
 
+const DISTILL_PROMPT = `You are preparing a briefing for an AI that will roleplay as a realistic prospect or client being pitched or introduced to a service. Extract only what that AI needs to respond accurately and naturally. From the content below, extract and rewrite in plain language:
+
+1. What the service is — one short paragraph, plain language only
+2. Who it's for — the ideal customer profile, firmographics, and pain points
+3. How prospects typically talk about the problem this solves — specific language and phrases if present
+4. Pricing and investment — if mentioned
+5. Common objections or concerns — if mentioned
+6. Who it is NOT a good fit for — if mentioned
+
+Ignore everything else: internal staffing models, delivery processes, SOW language, escalation paths, tool comparison tables, links, and anything written for internal teams rather than for understanding the service itself.
+
+Return only the extracted content as clean plain text with the six section headers above. No preamble, no commentary.
+
+Content to process:
+`;
+
+async function distillTopics(raw: string): Promise<string | null> {
+  try {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return null;
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [{ role: "user", content: DISTILL_PROMPT + raw }],
+      }),
+    });
+    if (!resp.ok) {
+      console.error("distill error:", resp.status, await resp.text());
+      return null;
+    }
+    const data = await resp.json();
+    const out = String(data.choices?.[0]?.message?.content ?? "").trim();
+    return out || null;
+  } catch (e) {
+    console.error("distill exception:", e);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -33,7 +77,7 @@ serve(async (req) => {
       }
     }
 
-    const row = {
+    const row: Record<string, unknown> = {
       name: str(body.name, 200),
       practice_area: str(body.practice_area, 64),
       call_type: str(body.call_type, 64),
@@ -50,6 +94,20 @@ serve(async (req) => {
     );
 
     if (typeof body.id === "string" && body.id) {
+      // On update: only re-distill if topics changed.
+      const { data: existing } = await supabase
+        .from("scenarios")
+        .select("topics, topics_distilled")
+        .eq("id", body.id)
+        .maybeSingle();
+      const newTopics = typeof row.topics === "string" ? row.topics : null;
+      if (newTopics) {
+        if (!existing || existing.topics !== newTopics || !existing.topics_distilled) {
+          row.topics_distilled = await distillTopics(newTopics);
+        }
+      } else {
+        row.topics_distilled = null;
+      }
       const { data, error } = await supabase
         .from("scenarios")
         .update(row)
@@ -60,6 +118,10 @@ serve(async (req) => {
       return new Response(JSON.stringify({ scenario: data }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (typeof row.topics === "string" && row.topics) {
+      row.topics_distilled = await distillTopics(row.topics);
     }
 
     const { data, error } = await supabase
