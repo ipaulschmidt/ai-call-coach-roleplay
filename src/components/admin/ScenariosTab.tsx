@@ -576,6 +576,26 @@ function ScenarioForm({
           </p>
         </section>
 
+        {/* Goal */}
+        <section>
+          <Label htmlFor="goal" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+            Goal
+          </Label>
+          <Input
+            id="goal"
+            value={goal}
+            onChange={(e) => {
+              setGoal(e.target.value);
+              setGoalEdited(true);
+            }}
+            placeholder="Shown to the rep on the live call screen"
+            className="bg-background/50"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Auto-generated from the scenario name and call type. Edit freely — once edited it stops auto-updating.
+          </p>
+        </section>
+
         <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-5">
           <Button variant="ghost" onClick={onCancel} disabled={saving}>
             Cancel
