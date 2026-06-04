@@ -10,6 +10,17 @@ const corsHeaders = {
 const str = (v: unknown, max: number) =>
   typeof v === "string" ? v.slice(0, max) : null;
 
+function buildGoal(callType: string, name: string): string {
+  const n = name || "this scenario";
+  if (callType === "discovery") {
+    return `Pitch ${n} to this prospect, uncover their top 1–2 pains, do a light qualification (budget, timeline, or decision process — pick what matters most), and earn a clear next step.`;
+  }
+  if (callType === "tough") {
+    return `Navigate this conversation around ${n}, address the client's concerns directly, protect scope where needed, and close with a concrete next step.`;
+  }
+  return `Introduce ${n} to this client, confirm their goals and current situation, walk them through what this engagement delivers, and align on a clear path forward.`;
+}
+
 const DISTILL_PROMPT = `You are preparing a briefing for an AI that will roleplay as a realistic prospect or client being pitched or introduced to a service. Extract only what that AI needs to respond accurately and naturally. From the content below, extract and rewrite in plain language:
 
 1. What the service is — one short paragraph, plain language only
@@ -87,6 +98,11 @@ serve(async (req) => {
       topics: body.topics ? str(body.topics, 8000) : null,
       created_by_hint: body.created_by_hint ? str(body.created_by_hint, 200) : null,
     };
+
+    const providedGoal = typeof body.goal === "string" ? body.goal.trim() : "";
+    row.goal = providedGoal
+      ? str(providedGoal, 2000)
+      : buildGoal(row.call_type as string, row.name as string);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,

@@ -23,6 +23,7 @@ interface Scenario {
   duration_minutes: number;
   topics: string | null;
   topics_distilled?: string | null;
+  goal?: string | null;
   created_by_hint: string | null;
 }
 
@@ -46,6 +47,17 @@ const personaFirstName = (persona: string) =>
 
 const callTypeLabel = (c: string) =>
   CALL_TYPES.find((x) => x.id === c)?.label ?? c;
+
+function buildGoalTemplate(callType: CallType, name: string): string {
+  const n = (name || "").trim() || "this scenario";
+  if (callType === "discovery") {
+    return `Pitch ${n} to this prospect, uncover their top 1–2 pains, do a light qualification (budget, timeline, or decision process — pick what matters most), and earn a clear next step.`;
+  }
+  if (callType === "tough") {
+    return `Navigate this conversation around ${n}, address the client's concerns directly, protect scope where needed, and close with a concrete next step.`;
+  }
+  return `Introduce ${n} to this client, confirm their goals and current situation, walk them through what this engagement delivers, and align on a clear path forward.`;
+}
 
 const difficultyLabel = (d: string) =>
   DIFFICULTIES.find((x) => x.id === d)?.label.split(" — ")[0] ?? d;
@@ -291,6 +303,10 @@ function ScenarioForm({
   const [duration, setDuration] = useState<number>(initial?.duration_minutes ?? 10);
   const [topics, setTopics] = useState(initial?.topics ?? "");
   const [name, setName] = useState(initial?.name ?? "");
+  const [goal, setGoal] = useState<string>(
+    initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
+  );
+  const [goalEdited, setGoalEdited] = useState<boolean>(!!initial?.goal);
   const [saving, setSaving] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [distillStatus, setDistillStatus] = useState<"idle" | "processing" | "ok" | "failed">(
@@ -305,6 +321,12 @@ function ScenarioForm({
     setPracticeArea(id);
     setPersonaId(PERSONAS_BY_AREA[id][0].id);
   };
+
+  // Auto-regenerate goal when name or callType changes, unless admin has edited it.
+  useEffect(() => {
+    if (goalEdited) return;
+    setGoal(buildGoalTemplate(callType, name));
+  }, [callType, name, goalEdited]);
 
   const handleTopicsBlur = async () => {
     const t = topics.trim();
@@ -345,6 +367,7 @@ function ScenarioForm({
         persona: personaString,
         duration_minutes: duration,
         topics: topics.trim() || null,
+        goal: goal.trim() || null,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
@@ -550,6 +573,26 @@ function ScenarioForm({
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
             Auto-suggested from the focus content above when you click out of that field. Edit freely.
+          </p>
+        </section>
+
+        {/* Goal */}
+        <section>
+          <Label htmlFor="goal" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+            Goal
+          </Label>
+          <Input
+            id="goal"
+            value={goal}
+            onChange={(e) => {
+              setGoal(e.target.value);
+              setGoalEdited(true);
+            }}
+            placeholder="Shown to the rep on the live call screen"
+            className="bg-background/50"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Auto-generated from the scenario name and call type. Edit freely — once edited it stops auto-updating.
           </p>
         </section>
 

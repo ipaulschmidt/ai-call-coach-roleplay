@@ -30,6 +30,7 @@ interface ScenarioRow {
   duration_minutes: number;
   topics: string | null;
   topics_distilled?: string | null;
+  goal?: string | null;
 }
 
 const CALL_TYPE_LABELS: Record<CallType, string> = {
@@ -105,12 +106,14 @@ export default function Scenario() {
       callType: scenario.call_type,
       practiceArea: scenario.practice_area,
       durationMin: scenario.duration_minutes,
-      goal: buildGoal(
-        scenario.practice_area,
-        isTough ? "service" : scenario.call_type,
-        finalTopics,
-        scenario.duration_minutes,
-      ),
+      goal: scenario.goal?.trim()
+        ? scenario.goal.trim()
+        : buildGoal(
+            scenario.practice_area,
+            isTough ? "service" : scenario.call_type,
+            finalTopics,
+            scenario.duration_minutes,
+          ),
       scenario: pickScenario(
         scenario.practice_area,
         isTough ? "service" : scenario.call_type,
