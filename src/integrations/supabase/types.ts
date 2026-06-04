@@ -79,6 +79,7 @@ export type Database = {
           name: string
           persona: string
           practice_area: string
+          scenario: string | null
           topics: string | null
           topics_distilled: string | null
         }
@@ -93,6 +94,7 @@ export type Database = {
           name: string
           persona: string
           practice_area: string
+          scenario?: string | null
           topics?: string | null
           topics_distilled?: string | null
         }
@@ -107,6 +109,7 @@ export type Database = {
           name?: string
           persona?: string
           practice_area?: string
+          scenario?: string | null
           topics?: string | null
           topics_distilled?: string | null
         }
