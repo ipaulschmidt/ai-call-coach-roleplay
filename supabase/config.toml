@@ -19,3 +19,18 @@ verify_jwt = false
 
 [functions.log-session]
 verify_jwt = false
+
+[functions.list-scenarios]
+verify_jwt = false
+
+[functions.save-scenario]
+verify_jwt = false
+
+[functions.delete-scenario]
+verify_jwt = false
+
+[functions.get-scenario]
+verify_jwt = false
+
+[functions.generate-scenario-name]
+verify_jwt = false
