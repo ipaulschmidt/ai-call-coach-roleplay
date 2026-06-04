@@ -34,3 +34,6 @@ verify_jwt = false
 
 [functions.generate-scenario-name]
 verify_jwt = false
+
+[functions.generate-scenario-backstory]
+verify_jwt = false
