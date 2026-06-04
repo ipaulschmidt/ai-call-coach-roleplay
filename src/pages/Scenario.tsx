@@ -11,7 +11,6 @@ import {
   PERSONAS_BY_AREA,
   PRACTICE_AREAS,
   buildGoal,
-  pickScenario,
   useSession,
   type CallType,
   type Difficulty,
