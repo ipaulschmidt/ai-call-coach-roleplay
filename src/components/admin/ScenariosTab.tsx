@@ -303,6 +303,10 @@ function ScenarioForm({
   const [duration, setDuration] = useState<number>(initial?.duration_minutes ?? 10);
   const [topics, setTopics] = useState(initial?.topics ?? "");
   const [name, setName] = useState(initial?.name ?? "");
+  const [goal, setGoal] = useState<string>(
+    initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
+  );
+  const [goalEdited, setGoalEdited] = useState<boolean>(!!initial?.goal);
   const [saving, setSaving] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [distillStatus, setDistillStatus] = useState<"idle" | "processing" | "ok" | "failed">(
@@ -317,6 +321,12 @@ function ScenarioForm({
     setPracticeArea(id);
     setPersonaId(PERSONAS_BY_AREA[id][0].id);
   };
+
+  // Auto-regenerate goal when name or callType changes, unless admin has edited it.
+  useEffect(() => {
+    if (goalEdited) return;
+    setGoal(buildGoalTemplate(callType, name));
+  }, [callType, name, goalEdited]);
 
   const handleTopicsBlur = async () => {
     const t = topics.trim();
@@ -357,6 +367,7 @@ function ScenarioForm({
         persona: personaString,
         duration_minutes: duration,
         topics: topics.trim() || null,
+        goal: goal.trim() || null,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
