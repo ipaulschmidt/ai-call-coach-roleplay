@@ -304,6 +304,8 @@ function ScenarioForm({
   const [duration, setDuration] = useState<number>(initial?.duration_minutes ?? 10);
   const [topics, setTopics] = useState(initial?.topics ?? "");
   const [backstory, setBackstory] = useState<string>(initial?.scenario ?? "");
+  const [backstoryEdited, setBackstoryEdited] = useState<boolean>(!!initial?.scenario);
+  const [backstoryLoading, setBackstoryLoading] = useState(false);
   const [name, setName] = useState(initial?.name ?? "");
   const [goal, setGoal] = useState<string>(
     initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
@@ -336,17 +338,28 @@ function ScenarioForm({
       setName("");
       return;
     }
-    if (name.trim() && initial) return; // don't overwrite existing name when editing
-    setGenLoading(true);
-    try {
-      const d = await callFn("generate-scenario-name", password, { topics: t });
-      if (d?.name) setName(d.name);
-    } catch (e: any) {
-      // Soft fail — admin can type a name themselves.
-      console.error(e);
-    } finally {
-      setGenLoading(false);
-    }
+    const skipName = !!(name.trim() && initial);
+    const skipBackstory = backstoryEdited;
+    if (!skipName) setGenLoading(true);
+    if (!skipBackstory) setBackstoryLoading(true);
+    await Promise.all([
+      skipName
+        ? Promise.resolve()
+        : callFn("generate-scenario-name", password, { topics: t })
+            .then((d) => {
+              if (d?.name) setName(d.name);
+            })
+            .catch((e) => console.error(e))
+            .finally(() => setGenLoading(false)),
+      skipBackstory
+        ? Promise.resolve()
+        : callFn("generate-scenario-backstory", password, { topics: t })
+            .then((d) => {
+              if (d?.backstory) setBackstory(d.backstory);
+            })
+            .catch((e) => console.error(e))
+            .finally(() => setBackstoryLoading(false)),
+    ]);
   };
 
   const handleSave = async () => {
@@ -604,16 +617,24 @@ function ScenarioForm({
           <Label htmlFor="backstory" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
             Scenario backstory
           </Label>
-          <Textarea
-            id="backstory"
-            value={backstory}
-            onChange={(e) => setBackstory(e.target.value)}
-            placeholder="Short 1–3 sentence setup shown in the SCENARIO block on the call screen. Leave blank to hide that block."
-            rows={3}
-            className="bg-background/50"
-          />
+          <div className="relative">
+            <Textarea
+              id="backstory"
+              value={backstory}
+              onChange={(e) => {
+                setBackstory(e.target.value);
+                setBackstoryEdited(true);
+              }}
+              placeholder="Why the prospect is on this call — auto-generated from your service brief."
+              rows={3}
+              className="bg-background/50 pr-9"
+            />
+            {backstoryLoading && (
+              <Sparkles className="absolute right-3 top-3 h-4 w-4 animate-pulse text-primary" />
+            )}
+          </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Displayed verbatim to the rep. Never sent to the AI as topic content.
+            Auto-generated from your service brief. Edit freely — once edited it stops auto-updating.
           </p>
         </section>
 
