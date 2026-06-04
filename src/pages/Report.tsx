@@ -37,6 +37,9 @@ const Report = () => {
   const [showTranscript, setShowTranscript] = useState(false);
   const [sharedConfig, setSharedConfig] = useState<SimConfig | null>(null);
   const [sharedTranscript, setSharedTranscript] = useState<Turn[] | null>(null);
+  const [logStatus, setLogStatus] = useState<
+    { kind: "success" } | { kind: "no_contact"; email: string } | { kind: "api_error" } | null
+  >(null);
 
   const viewConfig = id ? sharedConfig : config;
   const viewTranscript = id ? (sharedTranscript ?? []) : transcript;
@@ -117,6 +120,8 @@ const Report = () => {
       if (data?.error) throw new Error(data.error);
       const ev = data.evaluation as Evaluation;
       setEvaluation(ev);
+      // Fire HubSpot logging in the background — do not block the report.
+      void logToHubSpot(ev);
       // Persist this coaching session and route to its unique URL
       try {
         const { data: inserted, error: insertErr } = await supabase.functions.invoke("save-session", {
@@ -144,6 +149,43 @@ const Report = () => {
       toast.error(e.message || "Could not generate report");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const logToHubSpot = async (_ev: Evaluation) => {
+    if (!config) return;
+    const repEmail = (config.repEmail || sessionStorage.getItem("repEmail") || "").trim();
+    if (!repEmail) return;
+    const repName = (sessionStorage.getItem("consultantName") || "").trim();
+    const personaName = config.persona.split(" — ")[0] ?? "";
+    try {
+      const { data, error } = await supabase.functions.invoke("log-session", {
+        body: {
+          repEmail,
+          repName,
+          practiceArea: config.practiceArea,
+          callType: config.callType,
+          personaName,
+          difficulty: config.difficulty,
+          durationMinutes: config.durationMin,
+          quizTopics: config.topics,
+          transcript,
+        },
+      });
+      if (error) {
+        setLogStatus({ kind: "api_error" });
+        return;
+      }
+      if (data?.logged) {
+        setLogStatus({ kind: "success" });
+      } else if (data?.reason === "no_contact") {
+        setLogStatus({ kind: "no_contact", email: repEmail });
+      } else {
+        setLogStatus({ kind: "api_error" });
+      }
+    } catch (e) {
+      console.error("log-session failed", e);
+      setLogStatus({ kind: "api_error" });
     }
   };
 
@@ -177,6 +219,19 @@ const Report = () => {
           {evaluation && (
             <p className="mt-3 max-w-3xl text-balance text-base text-muted-foreground">
               {evaluation.summary}
+            </p>
+          )}
+          {!id && logStatus && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {logStatus.kind === "success" && (
+                <span className="text-primary">✓ Session logged to your HubSpot record.</span>
+              )}
+              {logStatus.kind === "no_contact" && (
+                <>Session complete. No HubSpot contact found for {logStatus.email} — session was not logged.</>
+              )}
+              {logStatus.kind === "api_error" && (
+                <>Session complete. HubSpot logging failed — contact your admin.</>
+              )}
             </p>
           )}
         </header>
