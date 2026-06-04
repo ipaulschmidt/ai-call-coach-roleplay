@@ -756,6 +756,11 @@ const Call = () => {
         <Card className="mb-6 border-primary/30 bg-primary/5 p-4 backdrop-blur">
           <div className="flex items-start gap-3">
             <div className="flex-1 space-y-3">
+              {config.scenarioName?.trim() && (
+                <h1 className="text-xl font-bold text-foreground">
+                  {config.scenarioName.trim()}
+                </h1>
+              )}
               {config.scenario?.trim() && (
                 <div>
                   <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
