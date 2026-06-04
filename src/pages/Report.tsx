@@ -137,6 +137,7 @@ const Report = () => {
             consultant_name: sessionStorage.getItem("consultantName") || undefined,
             transcript,
             evaluation: ev,
+            scenario_id: sessionStorage.getItem("scenarioId") || undefined,
           },
         });
         if (insertErr) throw insertErr;

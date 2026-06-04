@@ -31,6 +31,7 @@ serve(async (req) => {
       consultant_name: body.consultant_name ? str(body.consultant_name, 200) : null,
       transcript: body.transcript,
       evaluation: body.evaluation ?? null,
+      scenario_id: typeof body.scenario_id === "string" ? body.scenario_id : null,
     };
 
     const supabase = createClient(
