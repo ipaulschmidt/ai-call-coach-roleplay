@@ -231,6 +231,18 @@ const Report = () => {
               </Button>
             )}
           </div>
+          {viewConfig && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {viewConfig.persona?.split(" — ")[0]} · <span className="capitalize">{viewConfig.difficulty}</span> · <span className="capitalize">{viewConfig.callType}</span>
+              {scenarioName && <> · Scenario: <span className="text-foreground">{scenarioName}</span></>}
+            </div>
+          )}
+          {scenarioName && (
+            <div className="mt-4 inline-flex flex-col gap-1 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">📋 Scenario</span>
+              <span className="text-base font-semibold text-foreground">{scenarioName}</span>
+            </div>
+          )}
           {evaluation && (
             <p className="mt-3 max-w-3xl text-balance text-base text-muted-foreground">
               {evaluation.summary}
