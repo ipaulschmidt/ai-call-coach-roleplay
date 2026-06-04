@@ -11,7 +11,6 @@ import {
   PERSONAS_BY_AREA,
   PRACTICE_AREAS,
   buildGoal,
-  pickScenario,
   useSession,
   type CallType,
   type Difficulty,
@@ -31,6 +30,7 @@ interface ScenarioRow {
   topics: string | null;
   topics_distilled?: string | null;
   goal?: string | null;
+  scenario?: string | null;
 }
 
 const CALL_TYPE_LABELS: Record<CallType, string> = {
@@ -98,7 +98,14 @@ export default function Scenario() {
     if (!email) return;
     reset();
     const isTough = scenario.call_type === "tough";
-    const finalTopics = (scenario.topics_distilled ?? scenario.topics ?? "");
+    const distilled = scenario.topics_distilled?.trim() ?? "";
+    const raw = scenario.topics?.trim() ?? "";
+    const finalTopics = distilled || raw;
+    if (distilled) {
+      console.log(`TOPICS FEED: using topics_distilled (${distilled.length} chars)`);
+    } else {
+      console.log(`TOPICS FEED: falling back to topics (${raw.length} chars)`);
+    }
     setConfig({
       topics: finalTopics,
       difficulty: scenario.difficulty,
@@ -114,11 +121,7 @@ export default function Scenario() {
             finalTopics,
             scenario.duration_minutes,
           ),
-      scenario: pickScenario(
-        scenario.practice_area,
-        isTough ? "service" : scenario.call_type,
-        finalTopics,
-      ),
+      scenario: scenario.scenario?.trim() || "",
       personaId: persona?.id,
       personaAvatar: persona ? PERSONA_AVATARS[persona.id] : undefined,
       repEmail: email,

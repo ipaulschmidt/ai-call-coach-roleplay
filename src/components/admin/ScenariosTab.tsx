@@ -24,6 +24,7 @@ interface Scenario {
   topics: string | null;
   topics_distilled?: string | null;
   goal?: string | null;
+  scenario?: string | null;
   created_by_hint: string | null;
 }
 
@@ -302,6 +303,7 @@ function ScenarioForm({
   );
   const [duration, setDuration] = useState<number>(initial?.duration_minutes ?? 10);
   const [topics, setTopics] = useState(initial?.topics ?? "");
+  const [backstory, setBackstory] = useState<string>(initial?.scenario ?? "");
   const [name, setName] = useState(initial?.name ?? "");
   const [goal, setGoal] = useState<string>(
     initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
@@ -368,6 +370,7 @@ function ScenarioForm({
         duration_minutes: duration,
         topics: topics.trim() || null,
         goal: goal.trim() || null,
+        scenario: backstory.trim() || null,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
@@ -593,6 +596,24 @@ function ScenarioForm({
           />
           <p className="mt-1.5 text-xs text-muted-foreground">
             Auto-generated from the scenario name and call type. Edit freely — once edited it stops auto-updating.
+          </p>
+        </section>
+
+        {/* Scenario backstory */}
+        <section>
+          <Label htmlFor="backstory" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+            Scenario backstory
+          </Label>
+          <Textarea
+            id="backstory"
+            value={backstory}
+            onChange={(e) => setBackstory(e.target.value)}
+            placeholder="Short 1–3 sentence setup shown in the SCENARIO block on the call screen. Leave blank to hide that block."
+            rows={3}
+            className="bg-background/50"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Displayed verbatim to the rep. Never sent to the AI as topic content.
           </p>
         </section>
 

@@ -96,6 +96,7 @@ serve(async (req) => {
       persona: str(body.persona, 2000),
       duration_minutes: Number(body.duration_minutes) || 10,
       topics: body.topics ? str(body.topics, 8000) : null,
+      scenario: body.scenario ? str(body.scenario, 2000) : null,
       created_by_hint: body.created_by_hint ? str(body.created_by_hint, 200) : null,
     };
 
