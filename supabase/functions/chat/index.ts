@@ -228,9 +228,7 @@ ${isTough
 ${c.topics || "(none provided — pick reasonable, realistic context for the situation and stay consistent)"}`
   : `WHAT TO FOCUS ON:
 ${c.topics
-  ? c.topics.length > 150
-    ? `The consultant has provided the following service or topic brief. Use it to inform how you respond throughout this call. If the content contains ICP, language indicators, pricing, or common objections sections, prioritize those when shaping your reactions. Draw on the pain points, concerns, and context described to respond as a realistic ${role} being introduced to or pitched on this service. Do not recite the content back — weave it into your questions, objections, and reactions naturally:\n\n${c.topics}`
-    : `The consultant wants to be tested on the following topics. Probe their knowledge of these through realistic questions and objections throughout the call:\n\n${c.topics}`
+  ? `The consultant has provided the following content to focus on. It may be a few keywords, a bulleted list, or a full service brief — read it and use your judgment. If it describes a service, draw on the ICP, pain points, pricing context, and objections naturally throughout the call as a realistic ${role}. If it's a list of topics, probe the consultant's knowledge of those topics through questions and pushback. Either way, do not recite the content back — weave it into the conversation:\n\n${c.topics}`
   : "(None specified — probe general knowledge across the domain above.)"
 }`}
 
