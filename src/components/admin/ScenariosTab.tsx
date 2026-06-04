@@ -22,6 +22,7 @@ interface Scenario {
   persona: string;
   duration_minutes: number;
   topics: string | null;
+  topics_distilled?: string | null;
   created_by_hint: string | null;
 }
 
@@ -292,6 +293,13 @@ function ScenarioForm({
   const [name, setName] = useState(initial?.name ?? "");
   const [saving, setSaving] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
+  const [distillStatus, setDistillStatus] = useState<"idle" | "processing" | "ok" | "failed">(
+    initial?.topics
+      ? initial.topics_distilled
+        ? "ok"
+        : "failed"
+      : "idle",
+  );
 
   const onAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -325,8 +333,10 @@ function ScenarioForm({
       return;
     }
     setSaving(true);
+    const hasTopics = !!topics.trim();
+    if (hasTopics) setDistillStatus("processing");
     try {
-      await callFn("save-scenario", password, {
+      const result = await callFn("save-scenario", password, {
         id: initial?.id,
         name: name.trim(),
         practice_area: practiceArea,
@@ -336,10 +346,16 @@ function ScenarioForm({
         duration_minutes: duration,
         topics: topics.trim() || null,
       });
+      if (hasTopics) {
+        setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
+      } else {
+        setDistillStatus("idle");
+      }
       toast.success(initial ? "Scenario updated" : "Scenario created");
       onSaved();
     } catch (e: any) {
       toast.error(e.message || "Save failed");
+      if (hasTopics) setDistillStatus("failed");
     } finally {
       setSaving(false);
     }
@@ -498,6 +514,21 @@ function ScenarioForm({
             placeholder="Paste a service brief, Tettra excerpt, or bullet points. The AI will use this to respond as a realistic prospect or client being pitched this service."
             className="min-h-[200px] resize-y border-border/70 bg-background/50 text-sm"
           />
+          {topics.trim() && distillStatus !== "idle" && (
+            <p className="mt-2 text-xs">
+              {distillStatus === "processing" && (
+                <span className="text-muted-foreground">⏳ Processing service brief...</span>
+              )}
+              {distillStatus === "ok" && (
+                <span className="text-primary">✓ Brief processed and ready</span>
+              )}
+              {distillStatus === "failed" && (
+                <span className="text-destructive">
+                  ⚠️ Auto-processing failed — raw content will be used
+                </span>
+              )}
+            </p>
+          )}
         </section>
 
         {/* Name */}
