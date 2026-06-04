@@ -23,6 +23,7 @@ interface Scenario {
   duration_minutes: number;
   topics: string | null;
   topics_distilled?: string | null;
+  goal?: string | null;
   created_by_hint: string | null;
 }
 
@@ -46,6 +47,17 @@ const personaFirstName = (persona: string) =>
 
 const callTypeLabel = (c: string) =>
   CALL_TYPES.find((x) => x.id === c)?.label ?? c;
+
+function buildGoalTemplate(callType: CallType, name: string): string {
+  const n = (name || "").trim() || "this scenario";
+  if (callType === "discovery") {
+    return `Pitch ${n} to this prospect, uncover their top 1–2 pains, do a light qualification (budget, timeline, or decision process — pick what matters most), and earn a clear next step.`;
+  }
+  if (callType === "tough") {
+    return `Navigate this conversation around ${n}, address the client's concerns directly, protect scope where needed, and close with a concrete next step.`;
+  }
+  return `Introduce ${n} to this client, confirm their goals and current situation, walk them through what this engagement delivers, and align on a clear path forward.`;
+}
 
 const difficultyLabel = (d: string) =>
   DIFFICULTIES.find((x) => x.id === d)?.label.split(" — ")[0] ?? d;
