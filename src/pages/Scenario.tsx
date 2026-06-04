@@ -122,10 +122,12 @@ export default function Scenario() {
       personaId: persona?.id,
       personaAvatar: persona ? PERSONA_AVATARS[persona.id] : undefined,
       repEmail: email,
+      scenarioName: scenario.name,
     });
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.setItem("repEmail", email);
     sessionStorage.setItem("scenarioId", scenario.id);
+    sessionStorage.setItem("scenarioName", scenario.name);
     navigate("/call");
   };
 

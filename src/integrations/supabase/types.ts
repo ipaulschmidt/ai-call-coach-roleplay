@@ -25,6 +25,7 @@ export type Database = {
           persona: string
           practice_area: string
           scenario_id: string | null
+          scenario_name: string | null
           topics: string | null
           transcript: Json
         }
@@ -38,6 +39,7 @@ export type Database = {
           persona: string
           practice_area: string
           scenario_id?: string | null
+          scenario_name?: string | null
           topics?: string | null
           transcript: Json
         }
@@ -51,6 +53,7 @@ export type Database = {
           persona?: string
           practice_area?: string
           scenario_id?: string | null
+          scenario_name?: string | null
           topics?: string | null
           transcript?: Json
         }

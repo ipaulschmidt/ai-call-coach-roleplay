@@ -9,6 +9,7 @@ interface Body {
   difficulty?: string;
   durationMinutes?: number;
   quizTopics?: string;
+  scenarioName?: string;
   transcript?: Array<{ role: string; content: string }>;
   evaluation?: any;
 }
@@ -61,6 +62,7 @@ function buildNote(b: Body, when: Date): string {
     row("Date", fmtDate(when)),
     row("Rep", rep),
     row("Practice Area", b.practiceArea ?? ""),
+    row("Scenario", b.scenarioName?.trim() || "Custom session"),
     row("Call Type", b.callType ?? ""),
     row("Persona", b.personaName ?? ""),
     row("Difficulty", b.difficulty ?? ""),

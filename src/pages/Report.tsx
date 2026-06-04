@@ -46,6 +46,7 @@ const Report = () => {
 
   const viewConfig = id ? sharedConfig : config;
   const viewTranscript = id ? (sharedTranscript ?? []) : transcript;
+  const scenarioName = viewConfig?.scenarioName?.trim() || null;
   const isTough = viewConfig?.callType === "tough";
   const labels = isTough
     ? {
@@ -99,6 +100,7 @@ const Report = () => {
         topics: data.topics ?? "",
         durationMin: 10,
         goal: "",
+        scenarioName: data.scenario_name ?? undefined,
       });
       setSharedTranscript((data.transcript as unknown as Turn[]) ?? []);
       setEvaluation((data.evaluation as unknown as Evaluation) ?? null);
@@ -138,6 +140,8 @@ const Report = () => {
             transcript,
             evaluation: ev,
             scenario_id: sessionStorage.getItem("scenarioId") || undefined,
+            scenario_name:
+              config.scenarioName || sessionStorage.getItem("scenarioName") || undefined,
           },
         });
         if (insertErr) throw insertErr;
@@ -173,6 +177,8 @@ const Report = () => {
           difficulty: config.difficulty,
           durationMinutes: config.durationMin,
           quizTopics: config.topics,
+          scenarioName:
+            config.scenarioName || sessionStorage.getItem("scenarioName") || undefined,
           transcript,
           evaluation: _ev,
         },
@@ -225,6 +231,18 @@ const Report = () => {
               </Button>
             )}
           </div>
+          {viewConfig && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {viewConfig.persona?.split(" — ")[0]} · <span className="capitalize">{viewConfig.difficulty}</span> · <span className="capitalize">{viewConfig.callType}</span>
+              {scenarioName && <> · Scenario: <span className="text-foreground">{scenarioName}</span></>}
+            </div>
+          )}
+          {scenarioName && (
+            <div className="mt-4 inline-flex flex-col gap-1 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">📋 Scenario</span>
+              <span className="text-base font-semibold text-foreground">{scenarioName}</span>
+            </div>
+          )}
           {evaluation && (
             <p className="mt-3 max-w-3xl text-balance text-base text-muted-foreground">
               {evaluation.summary}
