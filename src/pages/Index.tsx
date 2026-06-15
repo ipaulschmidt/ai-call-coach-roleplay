@@ -277,6 +277,16 @@ const Index = () => {
           </section>
         )}
 
+        {featured.length > 0 && (
+          <div className="my-10 flex items-center gap-4">
+            <Separator className="flex-1" />
+            <span className="shrink-0 text-sm text-muted-foreground">
+              Or build your own session
+            </span>
+            <Separator className="flex-1" />
+          </div>
+        )}
+
         <Card className="space-y-10 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-10">
           {/* Step 01 */}
           <section>
