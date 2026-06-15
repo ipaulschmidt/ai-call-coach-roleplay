@@ -642,6 +642,19 @@ function ScenarioForm({
           </p>
         </section>
 
+        {/* Featured toggle */}
+        <section className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-background/40 p-4">
+          <div className="min-w-0">
+            <Label htmlFor="featured" className="text-sm font-semibold">
+              Feature on homepage
+            </Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Featured scenarios appear at the top of the homepage for all reps to launch in one click.
+            </p>
+          </div>
+          <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
+        </section>
+
         <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-5">
           <Button variant="ghost" onClick={onCancel} disabled={saving}>
             Cancel
