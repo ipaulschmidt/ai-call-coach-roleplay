@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mic, Sparkles, Target, Lock, ArrowRight, Check } from "lucide-react";
+import { Mic, Sparkles, Target, Lock, ArrowRight, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -29,6 +29,38 @@ import {
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
+
+const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+const ANON = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
+
+interface FeaturedScenario {
+  id: string;
+  name: string;
+  persona: string;
+  call_type: string;
+  difficulty: string;
+  duration_minutes: number;
+  practice_area: string;
+}
+
+const CALL_TYPE_LABELS: Record<string, string> = {
+  discovery: "Sales Discovery",
+  service: "Service / Onboarding",
+  tough: "Tough Conversation",
+};
+
+const DIFFICULTY_LABELS: Record<string, string> = {
+  easy: "Easy",
+  realistic: "Realistic",
+  hard: "Hard",
+};
+
+function findPersonaForScenario(area: string, persona: string): { id: string; name: string } | null {
+  const list = PERSONAS_BY_AREA[area as PracticeArea];
+  if (!list) return null;
+  const match = list.find((p) => persona.startsWith(p.name));
+  return match ? { id: match.id, name: match.name } : null;
+}
 
 const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
   { id: "easy", label: "Easy", desc: "Friendly, curious prospect" },
