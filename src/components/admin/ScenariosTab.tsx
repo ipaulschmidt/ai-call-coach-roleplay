@@ -313,6 +313,7 @@ function ScenarioForm({
     initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
   );
   const [goalEdited, setGoalEdited] = useState<boolean>(!!initial?.goal);
+  const [featured, setFeatured] = useState<boolean>(!!initial?.featured);
   const [saving, setSaving] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [distillStatus, setDistillStatus] = useState<"idle" | "processing" | "ok" | "failed">(
