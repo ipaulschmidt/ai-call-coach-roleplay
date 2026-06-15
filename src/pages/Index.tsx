@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Mic, Sparkles, Target, Lock, ArrowRight, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
   AccordionContent,
