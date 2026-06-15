@@ -387,6 +387,7 @@ function ScenarioForm({
         topics: topics.trim() || null,
         goal: goal.trim() || null,
         scenario: backstory.trim() || null,
+        featured,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
