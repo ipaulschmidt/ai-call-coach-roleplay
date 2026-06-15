@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Mic, Sparkles, Target, Lock, ArrowRight, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
   AccordionContent,
@@ -274,6 +275,16 @@ const Index = () => {
               })}
             </div>
           </section>
+        )}
+
+        {featured.length > 0 && (
+          <div className="my-10 flex items-center gap-4">
+            <Separator className="flex-1" />
+            <span className="shrink-0 text-sm text-muted-foreground">
+              Or build your own session
+            </span>
+            <Separator className="flex-1" />
+          </div>
         )}
 
         <Card className="space-y-10 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-10">
