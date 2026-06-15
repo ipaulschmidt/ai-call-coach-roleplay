@@ -122,6 +122,23 @@ const Index = () => {
   const [callType, setCallType] = useState<CallType>("discovery");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [situationId, setSituationId] = useState<string>(TOUGH_SITUATIONS[0].id);
+  const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BASE}/get-featured-scenarios`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: ANON },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && Array.isArray(d?.scenarios)) setFeatured(d.scenarios);
+      })
+      .catch((e) => console.error("featured fetch failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
