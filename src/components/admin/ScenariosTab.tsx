@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, type PracticeArea, type CallType, type Difficulty } from "@/lib/session";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
@@ -26,6 +27,7 @@ interface Scenario {
   goal?: string | null;
   scenario?: string | null;
   created_by_hint: string | null;
+  featured?: boolean;
 }
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
@@ -311,6 +313,7 @@ function ScenarioForm({
     initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
   );
   const [goalEdited, setGoalEdited] = useState<boolean>(!!initial?.goal);
+  const [featured, setFeatured] = useState<boolean>(!!initial?.featured);
   const [saving, setSaving] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [distillStatus, setDistillStatus] = useState<"idle" | "processing" | "ok" | "failed">(
@@ -384,6 +387,7 @@ function ScenarioForm({
         topics: topics.trim() || null,
         goal: goal.trim() || null,
         scenario: backstory.trim() || null,
+        featured,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
@@ -636,6 +640,19 @@ function ScenarioForm({
           <p className="mt-1.5 text-xs text-muted-foreground">
             Auto-generated from your service brief. Edit freely — once edited it stops auto-updating.
           </p>
+        </section>
+
+        {/* Featured toggle */}
+        <section className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-background/40 p-4">
+          <div className="min-w-0">
+            <Label htmlFor="featured" className="text-sm font-semibold">
+              Feature on homepage
+            </Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Featured scenarios appear at the top of the homepage for all reps to launch in one click.
+            </p>
+          </div>
+          <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
         </section>
 
         <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-5">

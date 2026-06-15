@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mic, Sparkles, Target, Lock, ArrowRight, Check } from "lucide-react";
+import { Mic, Sparkles, Target, Lock, ArrowRight, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -29,6 +29,38 @@ import {
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
+
+const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+const ANON = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
+
+interface FeaturedScenario {
+  id: string;
+  name: string;
+  persona: string;
+  call_type: string;
+  difficulty: string;
+  duration_minutes: number;
+  practice_area: string;
+}
+
+const CALL_TYPE_LABELS: Record<string, string> = {
+  discovery: "Sales Discovery",
+  service: "Service / Onboarding",
+  tough: "Tough Conversation",
+};
+
+const DIFFICULTY_LABELS: Record<string, string> = {
+  easy: "Easy",
+  realistic: "Realistic",
+  hard: "Hard",
+};
+
+function findPersonaForScenario(area: string, persona: string): { id: string; name: string } | null {
+  const list = PERSONAS_BY_AREA[area as PracticeArea];
+  if (!list) return null;
+  const match = list.find((p) => persona.startsWith(p.name));
+  return match ? { id: match.id, name: match.name } : null;
+}
 
 const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
   { id: "easy", label: "Easy", desc: "Friendly, curious prospect" },
@@ -90,6 +122,23 @@ const Index = () => {
   const [callType, setCallType] = useState<CallType>("discovery");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [situationId, setSituationId] = useState<string>(TOUGH_SITUATIONS[0].id);
+  const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BASE}/get-featured-scenarios`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: ANON },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && Array.isArray(d?.scenarios)) setFeatured(d.scenarios);
+      })
+      .catch((e) => console.error("featured fetch failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -166,6 +215,66 @@ const Index = () => {
             Roleplay SmartBug, Point Success, and Globalia discovery & delivery conversations against an AI client. Get coached on strategy, technical accuracy, and confidence.
           </p>
         </header>
+
+        {featured.length > 0 && (
+          <section className="mb-12">
+            <div className="mb-5">
+              <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl" style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
+                <Star className="h-6 w-6 fill-primary text-primary" />
+                Featured practice scenarios
+              </h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Curated sessions your team is focused on right now. Click to start.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((s) => {
+                const personaInfo = findPersonaForScenario(s.practice_area, s.persona);
+                const avatar = personaInfo ? PERSONA_AVATARS[personaInfo.id] : undefined;
+                const personaName = personaInfo?.name ?? s.persona.split(" — ")[0];
+                return (
+                  <Card
+                    key={s.id}
+                    className="flex flex-col gap-4 border-border/60 bg-card/70 p-5 backdrop-blur transition-all hover:border-primary/60 hover:shadow-elevated"
+                  >
+                    <div className="text-base font-semibold leading-snug">{s.name}</div>
+                    <div className="flex items-center gap-3">
+                      {avatar && (
+                        <img
+                          src={avatar}
+                          alt={personaName}
+                          className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-border"
+                        />
+                      )}
+                      <div className="min-w-0 text-sm">
+                        <div className="truncate font-medium">{personaName}</div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {CALL_TYPE_LABELS[s.call_type] ?? s.call_type}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span className="rounded-full border border-border/60 bg-background/40 px-2 py-0.5">
+                        {DIFFICULTY_LABELS[s.difficulty] ?? s.difficulty}
+                      </span>
+                      <span className="rounded-full border border-border/60 bg-background/40 px-2 py-0.5">
+                        {s.duration_minutes} min
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => navigate(`/scenario/${s.id}`)}
+                      className="mt-auto gap-1.5"
+                      size="sm"
+                    >
+                      Start this scenario
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <Card className="space-y-10 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-10">
           {/* Step 01 */}
