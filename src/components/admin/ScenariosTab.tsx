@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, type PracticeArea, type CallType, type Difficulty } from "@/lib/session";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
@@ -26,6 +27,7 @@ interface Scenario {
   goal?: string | null;
   scenario?: string | null;
   created_by_hint: string | null;
+  featured?: boolean;
 }
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
