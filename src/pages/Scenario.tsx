@@ -32,6 +32,7 @@ interface ScenarioRow {
   topics_distilled?: string | null;
   goal?: string | null;
   scenario?: string | null;
+  rubric?: string | null;
 }
 
 const CALL_TYPE_LABELS: Record<CallType, string> = {
