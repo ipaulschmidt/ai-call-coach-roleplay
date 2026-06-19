@@ -279,7 +279,16 @@ export interface ToughSituation {
   variants: ToughVariant[];
 }
 
+export interface LibrarySituation {
+  id: string;
+  label: string;
+  subtitle: string;
+  rubric: Rubric;
+  variants: ToughVariant[];
+}
+
 const PB = (lines: string[]) => lines.map((l) => `- ${l}`).join("\n");
+
 
 export const TOUGH_SITUATIONS: ToughSituation[] = [
   {
