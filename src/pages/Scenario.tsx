@@ -12,6 +12,7 @@ import {
   PRACTICE_AREAS,
   buildGoal,
   useSession,
+  deriveDefaultRubric,
   type CallType,
   type Difficulty,
   type PracticeArea,
@@ -126,6 +127,7 @@ export default function Scenario() {
       personaAvatar: persona ? PERSONA_AVATARS[persona.id] : undefined,
       repEmail: email,
       scenarioName: scenario.name,
+      rubric: deriveDefaultRubric(scenario.call_type),
     });
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.setItem("repEmail", email);

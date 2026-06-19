@@ -3,6 +3,25 @@ import { create } from "zustand";
 export type Difficulty = "easy" | "realistic" | "hard";
 export type CallType = "discovery" | "service" | "tough";
 export type PracticeArea = "hubspot" | "paid_media" | "globalia";
+export type Rubric =
+  | "sales_discovery"
+  | "service_kickoff"
+  | "scope_expansion"
+  | "tough_recovery";
+
+export const RUBRIC_LABELS: Record<Rubric, string> = {
+  sales_discovery: "Sales Discovery",
+  service_kickoff: "Service Kickoff",
+  scope_expansion: "Scope & Expansion",
+  tough_recovery: "Tough Recovery",
+};
+
+/** Default rubric for legacy sessions/scenarios that have no rubric set. */
+export function deriveDefaultRubric(callType: CallType | string | undefined): Rubric {
+  if (callType === "tough") return "tough_recovery";
+  if (callType === "service") return "service_kickoff";
+  return "sales_discovery";
+}
 
 export interface SimConfig {
   topics: string;
@@ -21,6 +40,7 @@ export interface SimConfig {
   internalPlaybook?: string;
   repEmail?: string;
   scenarioName?: string;
+  rubric?: Rubric;
 }
 
 export interface Turn {
