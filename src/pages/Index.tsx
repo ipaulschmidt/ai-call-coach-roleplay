@@ -27,6 +27,9 @@ import {
   getToughSituation,
   pickToughVariant,
   buildToughGoal,
+  RUBRIC_LABELS,
+  deriveDefaultRubric,
+  type Rubric,
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
@@ -124,6 +127,9 @@ const Index = () => {
   const [durationMin, setDurationMin] = useState<number>(10);
   const [situationId, setSituationId] = useState<string>(TOUGH_SITUATIONS[0].id);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+  const [rubric, setRubric] = useState<Rubric>("sales_discovery");
+  const [rubricLoading, setRubricLoading] = useState(false);
+  const [rubricOverridden, setRubricOverridden] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +146,46 @@ const Index = () => {
       cancelled = true;
     };
   }, []);
+
+  // For tough calls the rubric is always tough_recovery — no AI classification.
+  // For custom (build-your-own) discovery/service calls, debounce-call
+  // classify-rubric whenever the goal-relevant inputs change, unless the rep
+  // has manually overridden the rubric.
+  useEffect(() => {
+    if (callType === "tough") {
+      setRubric("tough_recovery");
+      setRubricOverridden(false);
+      return;
+    }
+    if (rubricOverridden) return;
+    const goal = buildGoal(practiceArea, callType, topics.trim(), durationMin);
+    let cancelled = false;
+    setRubricLoading(true);
+    const t = window.setTimeout(() => {
+      fetch(`${BASE}/classify-rubric`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: ANON },
+        body: JSON.stringify({ goal, callType }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled) return;
+          const next = (d?.rubric as Rubric | undefined) ?? deriveDefaultRubric(callType);
+          setRubric(next);
+        })
+        .catch((e) => {
+          console.error("classify-rubric failed", e);
+          if (!cancelled) setRubric(deriveDefaultRubric(callType));
+        })
+        .finally(() => {
+          if (!cancelled) setRubricLoading(false);
+        });
+    }, 500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, [callType, practiceArea, topics, durationMin, rubricOverridden]);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -176,6 +222,7 @@ const Index = () => {
       variantId: isTough ? variant?.id : undefined,
       internalPlaybook: isTough ? variant?.internalPlaybook : undefined,
       repEmail: email,
+      rubric: isTough ? "tough_recovery" : rubric,
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
