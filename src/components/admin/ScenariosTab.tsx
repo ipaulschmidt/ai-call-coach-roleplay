@@ -629,6 +629,16 @@ function ScenarioForm({
           </p>
         </section>
 
+        {/* Scoring rubric */}
+        <RubricSection
+          rubric={rubric}
+          onChange={(r) => {
+            setRubric(r);
+            setRubricEdited(true);
+          }}
+          edited={rubricEdited}
+        />
+
         {/* Scenario backstory */}
         <section>
           <Label htmlFor="backstory" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
