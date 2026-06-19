@@ -10,6 +10,13 @@ const corsHeaders = {
 const str = (v: unknown, max: number) =>
   typeof v === "string" ? v.slice(0, max) : null;
 
+const ALLOWED_RUBRICS = new Set([
+  "sales_discovery",
+  "service_kickoff",
+  "scope_expansion",
+  "tough_recovery",
+]);
+
 function buildGoal(callType: string, name: string): string {
   const n = name || "this scenario";
   if (callType === "discovery") {
@@ -100,6 +107,11 @@ serve(async (req) => {
       created_by_hint: body.created_by_hint ? str(body.created_by_hint, 200) : null,
       featured: typeof body.featured === "boolean" ? body.featured : false,
     };
+
+    row.rubric =
+      typeof body.rubric === "string" && ALLOWED_RUBRICS.has(body.rubric)
+        ? str(body.rubric, 64)
+        : null;
 
     const providedGoal = typeof body.goal === "string" ? body.goal.trim() : "";
     row.goal = providedGoal
