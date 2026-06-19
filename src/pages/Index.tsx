@@ -98,8 +98,6 @@ const Index = () => {
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
   const [rubric, setRubric] = useState<Rubric>("sales_discovery");
-  const [rubricLoading, setRubricLoading] = useState(false);
-  const [rubricOverridden, setRubricOverridden] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,12 +116,10 @@ const Index = () => {
   }, []);
 
   // For build-your-own discovery/service calls, debounce-call classify-rubric
-  // whenever the goal-relevant inputs change, unless the rep has manually overridden.
+  // whenever the goal-relevant inputs change. The result is used silently — no UI picker.
   useEffect(() => {
-    if (rubricOverridden) return;
     const goal = buildGoal(practiceArea, callType, topics.trim(), durationMin);
     let cancelled = false;
-    setRubricLoading(true);
     const t = window.setTimeout(() => {
       fetch(`${BASE}/classify-rubric`, {
         method: "POST",
@@ -139,16 +135,13 @@ const Index = () => {
         .catch((e) => {
           console.error("classify-rubric failed", e);
           if (!cancelled) setRubric(deriveDefaultRubric(callType));
-        })
-        .finally(() => {
-          if (!cancelled) setRubricLoading(false);
         });
     }, 500);
     return () => {
       cancelled = true;
       window.clearTimeout(t);
     };
-  }, [callType, practiceArea, topics, durationMin, rubricOverridden]);
+  }, [callType, practiceArea, topics, durationMin]);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -158,7 +151,6 @@ const Index = () => {
 
   const handleAudienceChange = (a: Audience) => {
     setAudience(a);
-    setRubricOverridden(false);
   };
 
   // Start the build-your-own custom call (Sales=discovery, Service=service)
@@ -190,7 +182,7 @@ const Index = () => {
 
   // Start a library bucket from the Service tab.
   // kind: "kickoff" | "scope" | "tough"
-  const startLibrary = (kind: "kickoff" | "scope" | "tough", situationId?: string) => {
+  const startLibrary = (kind: "kickoff" | "scope" | "tough" | "sales", situationId?: string) => {
     const email = repEmail.trim();
     if (!email) {
       alert("Please enter your work email above before starting a library scenario.");
@@ -215,18 +207,21 @@ const Index = () => {
         repEmail: email,
         rubric: "service_kickoff",
       };
-    } else if (kind === "scope") {
+    } else if (kind === "scope" || kind === "sales") {
       const sit = getLibrarySituation(situationId);
       const variant = situationId ? pickLibraryVariant(situationId) : undefined;
       if (!sit || !variant || !situationId) return;
+      const isSales = kind === "sales";
       cfg = {
         topics: "",
         difficulty: "realistic",
         persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
-        callType: "service",
+        callType: isSales ? "discovery" : "service",
         practiceArea,
         durationMin,
-        goal: buildScopeExpansionGoal(situationId, variant.label, durationMin),
+        goal: isSales
+          ? buildSalesLibraryGoal(situationId, variant.label, durationMin)
+          : buildScopeExpansionGoal(situationId, variant.label, durationMin),
         scenario: variant.scenario,
         personaId: persona.id,
         personaAvatar: PERSONA_AVATARS[persona.id],
