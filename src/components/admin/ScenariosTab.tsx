@@ -367,6 +367,13 @@ function ScenarioForm({
             })
             .catch((e) => console.error(e))
             .finally(() => setBackstoryLoading(false)),
+      rubricEdited
+        ? Promise.resolve()
+        : callFn("classify-rubric", password, { goal: goal, callType: callType })
+            .then((d) => {
+              if (d?.rubric && !rubricEdited) setRubric(d.rubric as Rubric);
+            })
+            .catch((e) => console.error(e)),
     ]);
   };
 
