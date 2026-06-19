@@ -1143,6 +1143,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
         ]),
       },
     ],
+  },
 ];
 
 export const SALES_SITUATIONS: LibrarySituation[] = [
