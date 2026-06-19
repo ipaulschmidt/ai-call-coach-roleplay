@@ -400,6 +400,7 @@ function ScenarioForm({
         goal: goal.trim() || null,
         scenario: backstory.trim() || null,
         featured,
+        rubric,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
