@@ -558,6 +558,39 @@ const Index = () => {
           </section>
 
           {/* Sticky-feeling CTA bar */}
+          {!isTough && (
+            <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  This call will be scored on
+                </div>
+                <div className="mt-0.5 font-semibold text-foreground">
+                  {RUBRIC_LABELS[rubric]}
+                  {rubricLoading && !rubricOverridden && (
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">picking…</span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  AI picked this rubric based on your goal. Override if it's wrong.
+                </div>
+              </div>
+              <select
+                value={rubric}
+                onChange={(e) => {
+                  setRubric(e.target.value as Rubric);
+                  setRubricOverridden(true);
+                }}
+                className="rounded-md border border-border/60 bg-background/60 px-3 py-2 text-sm"
+              >
+                {(Object.keys(RUBRIC_LABELS) as Rubric[]).map((r) => (
+                  <option key={r} value={r}>
+                    {RUBRIC_LABELS[r]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm">
               <div className="font-semibold">
