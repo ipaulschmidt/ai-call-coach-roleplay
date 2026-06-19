@@ -27,6 +27,9 @@ import {
   getToughSituation,
   pickToughVariant,
   buildToughGoal,
+  RUBRIC_LABELS,
+  deriveDefaultRubric,
+  type Rubric,
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
@@ -124,6 +127,9 @@ const Index = () => {
   const [durationMin, setDurationMin] = useState<number>(10);
   const [situationId, setSituationId] = useState<string>(TOUGH_SITUATIONS[0].id);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+  const [rubric, setRubric] = useState<Rubric>("sales_discovery");
+  const [rubricLoading, setRubricLoading] = useState(false);
+  const [rubricOverridden, setRubricOverridden] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +146,46 @@ const Index = () => {
       cancelled = true;
     };
   }, []);
+
+  // For tough calls the rubric is always tough_recovery — no AI classification.
+  // For custom (build-your-own) discovery/service calls, debounce-call
+  // classify-rubric whenever the goal-relevant inputs change, unless the rep
+  // has manually overridden the rubric.
+  useEffect(() => {
+    if (callType === "tough") {
+      setRubric("tough_recovery");
+      setRubricOverridden(false);
+      return;
+    }
+    if (rubricOverridden) return;
+    const goal = buildGoal(practiceArea, callType, topics.trim(), durationMin);
+    let cancelled = false;
+    setRubricLoading(true);
+    const t = window.setTimeout(() => {
+      fetch(`${BASE}/classify-rubric`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: ANON },
+        body: JSON.stringify({ goal, callType }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled) return;
+          const next = (d?.rubric as Rubric | undefined) ?? deriveDefaultRubric(callType);
+          setRubric(next);
+        })
+        .catch((e) => {
+          console.error("classify-rubric failed", e);
+          if (!cancelled) setRubric(deriveDefaultRubric(callType));
+        })
+        .finally(() => {
+          if (!cancelled) setRubricLoading(false);
+        });
+    }, 500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, [callType, practiceArea, topics, durationMin, rubricOverridden]);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -176,6 +222,7 @@ const Index = () => {
       variantId: isTough ? variant?.id : undefined,
       internalPlaybook: isTough ? variant?.internalPlaybook : undefined,
       repEmail: email,
+      rubric: isTough ? "tough_recovery" : rubric,
     });
     // Stash consultant name for Report to persist
     sessionStorage.setItem("consultantName", consultantName.trim());
@@ -511,6 +558,39 @@ const Index = () => {
           </section>
 
           {/* Sticky-feeling CTA bar */}
+          {!isTough && (
+            <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  This call will be scored on
+                </div>
+                <div className="mt-0.5 font-semibold text-foreground">
+                  {RUBRIC_LABELS[rubric]}
+                  {rubricLoading && !rubricOverridden && (
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">picking…</span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  AI picked this rubric based on your goal. Override if it's wrong.
+                </div>
+              </div>
+              <select
+                value={rubric}
+                onChange={(e) => {
+                  setRubric(e.target.value as Rubric);
+                  setRubricOverridden(true);
+                }}
+                className="rounded-md border border-border/60 bg-background/60 px-3 py-2 text-sm"
+              >
+                {(Object.keys(RUBRIC_LABELS) as Rubric[]).map((r) => (
+                  <option key={r} value={r}>
+                    {RUBRIC_LABELS[r]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm">
               <div className="font-semibold">

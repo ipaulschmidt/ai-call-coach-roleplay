@@ -14,11 +14,26 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const isTough = config.callType === "tough";
+    // Resolve the rubric. Prefer the explicit rubric on the session config;
+    // fall back to the legacy callType-based default so older sessions/scenarios
+    // still score correctly.
+    const rubric: "sales_discovery" | "service_kickoff" | "scope_expansion" | "tough_recovery" =
+      config.rubric ??
+      (config.callType === "tough"
+        ? "tough_recovery"
+        : config.callType === "service"
+        ? "service_kickoff"
+        : "sales_discovery");
+    const isSalesDiscovery = rubric === "sales_discovery";
+    const isTough = rubric === "tough_recovery";
 
-    const systemPrompt = isTough
-      ? `You are a senior client-services coach evaluating a consultant's handling of a TOUGH client conversation (${config.situationLabel ?? "hard moment"}). Be specific, fair, and direct. Cite exact moments from the transcript. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. Reward: explicit empathy, firm boundaries, concrete options, scope/money protection, and a real next step. Penalize: over-apologizing, vague reassurances, caving on substance, blame-shifting, ending without a commitment.`
-      : `You are a senior HubSpot sales coach evaluating a SmartBug consultant's roleplay call. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter.`;
+    const systemPromptByRubric: Record<typeof rubric, string> = {
+      sales_discovery: `You are a senior HubSpot sales coach evaluating a SmartBug consultant's roleplay call. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter.`,
+      service_kickoff: `You are a senior client-services coach evaluating a delivery KICKOFF or status call with a healthy, cooperative client — NOT a hard moment. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: realistic expectations, clear in/out of scope, value translated to business outcomes, calm assured delivery, and a concrete next step. Penalize: over-promising to please the client, vague scope, task-listing without business value, and ending without a real commitment.`,
+      scope_expansion: `You are a senior client-services coach evaluating how the consultant handled a SCOPE-PROTECTION or EXPANSION moment with a friendly, satisfied client. The hard part is doing something slightly uncomfortable without damaging warmth. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: protecting the SOW/hours/rate, naming the scope-creep pattern or the expansion signal, converting the moment into something real (change order, properly scoped next engagement, paid path), and staying warm and consultative throughout. Penalize: caving to be liked, giving away free strategy, vague "let's talk later" closes, and a rigid/nickel-and-diming tone.`,
+      tough_recovery: `You are a senior client-services coach evaluating a consultant's handling of a TOUGH client conversation (${config.situationLabel ?? "hard moment"}). Be specific, fair, and direct. Cite exact moments from the transcript. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. Reward: explicit empathy, firm boundaries, concrete options, scope/money protection, and a real next step. Penalize: over-apologizing, vague reassurances, caving on substance, blame-shifting, ending without a commitment.`,
+    };
+    const systemPrompt = systemPromptByRubric[rubric];
 
     const userPrompt = `CALL CONFIG:
 - Persona: ${config.persona}
@@ -63,62 +78,95 @@ Then provide:
 - wins: 2–4 things they did well, with quotes.
 - summary: 2–3 sentence overall read.`;
 
-    const toughTool = {
-      type: "function",
-      function: {
-        name: "submit_tough_evaluation",
-        description: "Return the structured evaluation of a tough client conversation.",
-        parameters: {
-          type: "object",
-          properties: {
-            empathy: {
-              type: "object",
-              properties: { score: { type: "number" }, notes: { type: "string" } },
-              required: ["score", "notes"],
-              additionalProperties: false,
-            },
-            firmness: {
-              type: "object",
-              properties: { score: { type: "number" }, notes: { type: "string" } },
-              required: ["score", "notes"],
-              additionalProperties: false,
-            },
-            options_offered: {
-              type: "object",
-              properties: { score: { type: "number" }, notes: { type: "string" } },
-              required: ["score", "notes"],
-              additionalProperties: false,
-            },
-            scope_money_protected: {
-              type: "object",
-              properties: { score: { type: "number" }, notes: { type: "string" } },
-              required: ["score", "notes"],
-              additionalProperties: false,
-            },
-            next_step: {
-              type: "object",
-              properties: { score: { type: "number" }, notes: { type: "string" } },
-              required: ["score", "notes"],
-              additionalProperties: false,
-            },
-            corrective_feedback: { type: "array", items: { type: "string" } },
-            wins: { type: "array", items: { type: "string" } },
-            summary: { type: "string" },
+    const serviceKickoffUserPrompt = `CALL CONFIG:
+- Persona: ${config.persona}
+- Practice area: ${config.practiceArea}
+- Target call length: ${config.durationMin} min
+- Topics in focus: ${config.topics || "(none)"}
+
+TRANSCRIPT (consultant = the firm's rep, client = the AI):
+${transcript}
+
+Score the consultant on these five service-kickoff metrics. For each, 0–100 score and direct notes with cited moments:
+- expectation_setting: Did the rep set clear, realistic expectations about what happens, by when, and what success looks like? Penalize over-promising to please the client.
+- scope_clarity: Did the rep clearly establish what is in and out of scope without sounding defensive?
+- value_translation: Did the rep translate the work into business value the client can repeat to their own leadership, rather than describing tasks?
+- delivery_confidence: Did the rep sound assured and in control of the engagement? Infer from filler words and hedging — note this is transcript-based.
+- next_step: Did the rep land a specific, concrete next step with an owner and timeframe? Vague = 30–50, concrete = 85+.
+
+Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence summary.`;
+
+    const scopeExpansionUserPrompt = `CALL CONFIG:
+- Persona: ${config.persona}
+- Practice area: ${config.practiceArea}
+- Target call length: ${config.durationMin} min
+- Topics in focus: ${config.topics || "(none)"}
+
+TRANSCRIPT (consultant = the firm's rep, client = the AI):
+${transcript}
+
+Score the consultant on these five scope-protection / expansion metrics. For each, 0–100 score and direct notes with cited moments:
+- holding_scope: Did the rep protect the SOW/hours/rate without caving and without going cold? For expansion scenarios where scope-holding doesn't apply, score whether they avoided giving away free work or strategy.
+- spotting_the_opportunity: Did the rep recognize the moment — either the scope-creep pattern that needed naming, or the expansion signal that opened a door?
+- materializing_it: Did the rep convert the moment into something real — a scoped change order, a properly scoped next engagement, or a clear paid path — rather than a vague "let's talk later" or a freebie?
+- relationship_warmth: Did the rep stay warm and consultative while doing the uncomfortable thing? Penalize rigidity, nickel-and-diming tone, or transactional coldness.
+- next_step: Did the rep land a specific, concrete next step? Vague = 30–50, concrete = 85+.
+
+Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence summary.`;
+
+    // Helper: build a 5-dimension tool whose dimensions map in fixed order
+    // to the standard Evaluation slots (sales_strategy, technical_delivery,
+    // consultant_confidence, agenda_setting, next_steps).
+    const buildFiveDimensionTool = (toolName: string, dims: string[]) => {
+      const scoreNotes = {
+        type: "object",
+        properties: { score: { type: "number" }, notes: { type: "string" } },
+        required: ["score", "notes"],
+        additionalProperties: false,
+      } as const;
+      const properties: Record<string, unknown> = {};
+      for (const d of dims) properties[d] = scoreNotes;
+      properties.corrective_feedback = { type: "array", items: { type: "string" } };
+      properties.wins = { type: "array", items: { type: "string" } };
+      properties.summary = { type: "string" };
+      return {
+        type: "function",
+        function: {
+          name: toolName,
+          description: "Return the structured five-dimension evaluation.",
+          parameters: {
+            type: "object",
+            properties,
+            required: [...dims, "corrective_feedback", "wins", "summary"],
+            additionalProperties: false,
           },
-          required: [
-            "empathy",
-            "firmness",
-            "options_offered",
-            "scope_money_protected",
-            "next_step",
-            "corrective_feedback",
-            "wins",
-            "summary",
-          ],
-          additionalProperties: false,
         },
-      },
+      };
     };
+
+    const FIVE_DIM_RUBRICS = {
+      service_kickoff: [
+        "expectation_setting",
+        "scope_clarity",
+        "value_translation",
+        "delivery_confidence",
+        "next_step",
+      ],
+      scope_expansion: [
+        "holding_scope",
+        "spotting_the_opportunity",
+        "materializing_it",
+        "relationship_warmth",
+        "next_step",
+      ],
+      tough_recovery: [
+        "empathy",
+        "options_offered",
+        "firmness",
+        "scope_money_protected",
+        "next_step",
+      ],
+    } as const;
 
     const tool = {
       type: "function",
@@ -209,6 +257,18 @@ Then provide:
       },
     };
 
+    const isFiveDim = !isSalesDiscovery;
+    const fiveDimDims = isFiveDim ? FIVE_DIM_RUBRICS[rubric as keyof typeof FIVE_DIM_RUBRICS] : null;
+    const fiveDimTool = isFiveDim
+      ? buildFiveDimensionTool(`submit_${rubric}_evaluation`, fiveDimDims as unknown as string[])
+      : null;
+    const fiveDimUserPrompt =
+      rubric === "service_kickoff"
+        ? serviceKickoffUserPrompt
+        : rubric === "scope_expansion"
+        ? scopeExpansionUserPrompt
+        : toughUserPrompt;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -219,12 +279,14 @@ Then provide:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: isTough ? toughUserPrompt : userPromptWithExtras },
+          { role: "user", content: isSalesDiscovery ? userPromptWithExtras : fiveDimUserPrompt },
         ],
-        tools: [isTough ? toughTool : tool],
+        tools: [isSalesDiscovery ? tool : (fiveDimTool as unknown)],
         tool_choice: {
           type: "function",
-          function: { name: isTough ? "submit_tough_evaluation" : "submit_evaluation" },
+          function: {
+            name: isSalesDiscovery ? "submit_evaluation" : `submit_${rubric}_evaluation`,
+          },
         },
       }),
     });
@@ -255,35 +317,38 @@ Then provide:
     if (!call) throw new Error("No tool call in response");
     const raw = JSON.parse(call.function.arguments);
 
-    // For tough mode, map the 5 tough metrics into the standard Evaluation
-    // shape so the existing Report renders. Report will relabel by callType.
-    const evaluation = isTough
-      ? {
-          sales_strategy: raw.empathy,
-          technical_delivery: {
-            score: raw.options_offered.score,
-            notes: raw.options_offered.notes,
-            topics_covered: [],
-            topics_missed: [],
-          },
-          consultant_confidence: {
-            score: raw.firmness.score,
-            notes: raw.firmness.notes,
-            filler_words: [],
-            pacing: "good",
-          },
-          agenda_setting: raw.scope_money_protected,
-          next_steps: {
-            score: raw.next_step.score,
-            notes: raw.next_step.notes,
-            offered_times: false,
-            secured_meeting: false,
-          },
-          corrective_feedback: raw.corrective_feedback,
-          wins: raw.wins,
-          summary: raw.summary,
-        }
-      : raw;
+    // For five-dimension rubrics, map the dimensions in fixed order into the
+    // standard Evaluation shape so the existing Report renders. Report uses
+    // config.rubric to relabel the slots.
+    let evaluation: unknown = raw;
+    if (isFiveDim && fiveDimDims) {
+      const [d1, d2, d3, d4, d5] = fiveDimDims;
+      evaluation = {
+        sales_strategy: raw[d1],
+        technical_delivery: {
+          score: raw[d2].score,
+          notes: raw[d2].notes,
+          topics_covered: [],
+          topics_missed: [],
+        },
+        consultant_confidence: {
+          score: raw[d3].score,
+          notes: raw[d3].notes,
+          filler_words: [],
+          pacing: "good",
+        },
+        agenda_setting: raw[d4],
+        next_steps: {
+          score: raw[d5].score,
+          notes: raw[d5].notes,
+          offered_times: false,
+          secured_meeting: false,
+        },
+        corrective_feedback: raw.corrective_feedback,
+        wins: raw.wins,
+        summary: raw.summary,
+      };
+    }
 
     return new Response(JSON.stringify({ evaluation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

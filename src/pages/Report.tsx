@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useSession, type Evaluation, type Turn, type SimConfig } from "@/lib/session";
+import { useSession, deriveDefaultRubric, type Evaluation, type Rubric, type Turn, type SimConfig } from "@/lib/session";
 
 const scoreColor = (s: number) =>
   s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
@@ -47,22 +47,45 @@ const Report = () => {
   const viewConfig = id ? sharedConfig : config;
   const viewTranscript = id ? (sharedTranscript ?? []) : transcript;
   const scenarioName = viewConfig?.scenarioName?.trim() || null;
-  const isTough = viewConfig?.callType === "tough";
-  const labels = isTough
-    ? {
-        sales_strategy: "Empathy & Acknowledgement",
-        technical_delivery: "Options Offered",
-        consultant_confidence: "Firmness / Boundaries",
-        agenda_setting: "Scope & Money Protected",
-        next_steps: "Concrete Next Step",
-      }
-    : {
-        sales_strategy: "Sales Strategy",
-        technical_delivery: "Technical Delivery",
-        consultant_confidence: "Consultant Confidence",
-        agenda_setting: "Agenda Setting",
-        next_steps: "Next Steps",
-      };
+  const rubric: Rubric = viewConfig?.rubric ?? deriveDefaultRubric(viewConfig?.callType);
+  const isSalesDiscovery = rubric === "sales_discovery";
+  const LABEL_SETS: Record<Rubric, {
+    sales_strategy: string;
+    technical_delivery: string;
+    consultant_confidence: string;
+    agenda_setting: string;
+    next_steps: string;
+  }> = {
+    sales_discovery: {
+      sales_strategy: "Sales Strategy",
+      technical_delivery: "Technical Delivery",
+      consultant_confidence: "Consultant Confidence",
+      agenda_setting: "Agenda Setting",
+      next_steps: "Next Steps",
+    },
+    service_kickoff: {
+      sales_strategy: "Expectation Setting",
+      technical_delivery: "Scope Clarity",
+      consultant_confidence: "Value Translation",
+      agenda_setting: "Delivery Confidence",
+      next_steps: "Concrete Next Step",
+    },
+    scope_expansion: {
+      sales_strategy: "Holding Scope",
+      technical_delivery: "Spotting the Opportunity",
+      consultant_confidence: "Materializing It",
+      agenda_setting: "Relationship Warmth",
+      next_steps: "Concrete Next Step",
+    },
+    tough_recovery: {
+      sales_strategy: "Empathy & Acknowledgement",
+      technical_delivery: "Options Offered",
+      consultant_confidence: "Firmness & Boundaries",
+      agenda_setting: "Scope & Money Protected",
+      next_steps: "Concrete Next Step",
+    },
+  };
+  const labels = LABEL_SETS[rubric];
 
   useEffect(() => {
     if (id) {
@@ -101,6 +124,7 @@ const Report = () => {
         durationMin: 10,
         goal: "",
         scenarioName: data.scenario_name ?? undefined,
+        rubric: (data.rubric as Rubric | undefined) ?? deriveDefaultRubric(data.call_type),
       });
       setSharedTranscript((data.transcript as unknown as Turn[]) ?? []);
       setEvaluation((data.evaluation as unknown as Evaluation) ?? null);
@@ -314,7 +338,7 @@ const Report = () => {
                     notes={evaluation.agenda_setting.notes}
                   />
                 )}
-                {!isTough && evaluation.active_listening && (
+                {isSalesDiscovery && evaluation.active_listening && (
                   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
                     <div className="text-xs uppercase tracking-widest text-muted-foreground">Active Listening</div>
                     <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -342,7 +366,7 @@ const Report = () => {
                       <span className="text-xl text-muted-foreground">/100</span>
                     </div>
                     <p className="mt-3 text-sm text-muted-foreground">{evaluation.next_steps.notes}</p>
-                    {!isTough && (
+                    {isSalesDiscovery && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.offered_times ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
                           {evaluation.next_steps.offered_times ? "Offered specific times" : "No times offered"}
@@ -357,7 +381,7 @@ const Report = () => {
               </div>
             )}
 
-            {!isTough && <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {isSalesDiscovery && <div className="mt-8 grid gap-6 md:grid-cols-2">
               <Card className="border-border/60 bg-card/60 p-5">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                   <Target className="h-4 w-4 text-primary" /> Topic coverage
