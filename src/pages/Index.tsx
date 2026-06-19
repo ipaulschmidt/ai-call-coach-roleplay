@@ -497,35 +497,33 @@ const Index = () => {
       {SessionBasics}
 
       <Card className="space-y-6 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
-        {audience === "sales" && (
-          <section>
-            <div className="mb-3 flex items-baseline gap-3">
-              <span className="text-xs font-mono text-primary">05</span>
-              <Label className="text-base font-semibold">Difficulty</Label>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => setDifficulty(d.id)}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    difficulty === d.id
-                      ? "border-primary bg-primary/10 ring-1 ring-primary"
-                      : "border-border/60 bg-background/40 hover:border-border"
-                  }`}
-                >
-                  <div className="font-semibold">{d.label}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        <section>
+          <div className="mb-3 flex items-baseline gap-3">
+            <span className="text-xs font-mono text-primary">05</span>
+            <Label className="text-base font-semibold">Difficulty</Label>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {DIFFICULTIES.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDifficulty(d.id)}
+                className={`rounded-lg border p-4 text-left transition-all ${
+                  difficulty === d.id
+                    ? "border-primary bg-primary/10 ring-1 ring-primary"
+                    : "border-border/60 bg-background/40 hover:border-border"
+                }`}
+              >
+                <div className="font-semibold">{d.label}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
+              </button>
+            ))}
+          </div>
+        </section>
 
         <section>
           <div className="mb-3 flex items-baseline gap-3">
-            <span className="text-xs font-mono text-primary">{audience === "sales" ? "06" : "05"}</span>
+            <span className="text-xs font-mono text-primary">06</span>
             <Label htmlFor="topics" className="text-base font-semibold">
               Personalize the conversation
             </Label>
