@@ -417,7 +417,7 @@ const Index = () => {
     </div>
   );
 
-  const FeaturedSection = featuredForAudience.length > 0 && (
+  const FeaturedSection = featured.length > 0 && (
     <section className="mb-10">
       <div className="mb-5">
         <h2
@@ -432,7 +432,7 @@ const Index = () => {
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {featuredForAudience.map((s) => {
+        {featured.map((s) => {
           const personaInfo = findPersonaForScenario(s.practice_area, s.persona);
           const avatar = personaInfo ? PERSONA_AVATARS[personaInfo.id] : undefined;
           const personaName = personaInfo?.name ?? s.persona.split(" — ")[0];
