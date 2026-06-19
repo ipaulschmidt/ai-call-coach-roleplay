@@ -1346,3 +1346,13 @@ export function buildScopeExpansionGoal(
   const label = sit?.label ?? "scope and expansion conversation";
   return `Scope and expansion conversation (${durationMin} min) — ${label}: ${variantLabel}. Stay warm and consultative. If this is a scope-protection scenario, hold the existing SOW with clear, kind boundaries and land a concrete next step. If this is an expansion scenario, spot the real signal, connect it to the client's goals, and materialize a specific next step. Either way, don't give work away to be liked, don't pitch before diagnosing, and end with a clear commitment.`;
 }
+
+export function buildSalesLibraryGoal(
+  situationId: string,
+  variantLabel: string,
+  durationMin: number,
+): string {
+  const sit = getLibrarySituation(situationId);
+  const label = sit?.label ?? "discovery conversation";
+  return `Sales discovery roleplay (${durationMin} min) — ${label}: ${variantLabel}. This is a pre-sale discovery conversation. Set a clear agenda, uncover the real business pain behind the surface ask, qualify fit appropriately (budget, timeline, decision process, and priorities), and earn a concrete next step. Stay consultative: diagnose before you pitch, and make sure the next step is specific and mutually agreed.`;
+}
