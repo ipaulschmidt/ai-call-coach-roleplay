@@ -649,6 +649,89 @@ const Index = () => {
     </Card>
   );
 
+  const SalesLibrary = (
+    <Card className="border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
+      <div className="mb-4">
+        <h2
+          className="text-xl font-bold tracking-tight md:text-2xl"
+          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+        >
+          Self-serve scenario library
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Pick a discovery bucket and start. A variant is rolled when you hit Start, so each run feels fresh.
+          Uses the persona, length, and email you set below.
+        </p>
+        {!repEmail.trim() && (
+          <p className="mt-2 text-xs text-destructive">
+            Enter your work email in the builder below to enable Start buttons.
+          </p>
+        )}
+      </div>
+      <Accordion type="multiple" defaultValue={["sales"]} className="w-full">
+        <AccordionItem value="sales">
+          <AccordionTrigger className="text-left">
+            Discovery scenarios
+            <span className="ml-auto mr-2 text-xs font-normal text-muted-foreground">
+              Pre-sale conversations with prospects
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              {SALES_SITUATIONS.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-background/30 px-3 py-2.5 transition-colors hover:border-border"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{s.label}</div>
+                    <div className="truncate text-xs text-muted-foreground">{s.subtitle}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => startLibrary("sales", s.id)}
+                    disabled={!repEmail.trim()}
+                    className="shrink-0 gap-1"
+                  >
+                    Start
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
+  );
+
+  const OrPickPathSeparator = (
+    <div className="my-10 flex items-center gap-4">
+      <Separator className="flex-1" />
+      <span className="shrink-0 text-sm text-muted-foreground">Or pick a practice path</span>
+      <Separator className="flex-1" />
+    </div>
+  );
+
+  const CollapsedBuilder = (
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="builder" className="rounded-xl border border-border/60 bg-card/40 px-4 backdrop-blur">
+        <AccordionTrigger className="text-left">
+          <div>
+            <div className="text-base font-semibold">Build your own session</div>
+            <div className="text-xs font-normal text-muted-foreground">
+              Set up a custom roleplay from scratch.
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="pt-2">{BuildYourOwn}</div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+
   return (
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-5xl">
