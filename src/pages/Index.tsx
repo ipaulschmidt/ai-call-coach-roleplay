@@ -269,10 +269,6 @@ const Index = () => {
   const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
   const selectedDuration = DURATION_OPTIONS.find((d) => d.value === durationMin)!;
 
-  const featuredForAudience = featured.filter((s) =>
-    audience === "sales" ? s.call_type === "discovery" : s.call_type === "service",
-  );
-
   // Shared "session basics" block used by both tabs (and library rows on Service tab).
   const SessionBasics = (
     <Card className="space-y-6 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
