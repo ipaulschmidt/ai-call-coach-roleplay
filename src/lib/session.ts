@@ -1143,10 +1143,185 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
         ]),
       },
     ],
+];
+
+export const SALES_SITUATIONS: LibrarySituation[] = [
+  {
+    id: "first_discovery_call",
+    label: "First discovery call",
+    subtitle: "Open strong, uncover pain, earn the next step",
+    rubric: "sales_discovery",
+    variants: [
+      {
+        id: "warm_inbound",
+        label: "Warm inbound lead",
+        scenario: "You filled out a form on the firm's website and booked this intro call. You have a real problem you're trying to solve and you're genuinely open, but you haven't thought it through in detail and you're not in a rush. You're feeling the consultant out as much as the solution.",
+        internalPlaybook: PB([
+          "Open friendly and curious — you reached out, so you're not cold",
+          "Share your problem if the consultant creates space, but don't hand them a tidy summary — make them dig a little",
+          "You don't have budget or timeline locked; you'll answer honestly if asked well",
+          "Good resolution: the consultant uncovers the real pain underneath the surface ask and earns a concrete next step",
+          "Reward: a clear agenda and genuine discovery; penalize jumping to a pitch before understanding the problem",
+        ]),
+      },
+      {
+        id: "skeptical_referral",
+        label: "Skeptical referral",
+        scenario: "A peer referred you to the firm, so you took the call as a favor, but you're not convinced you need outside help. You're polite and a little guarded. You'll engage if the consultant earns it, but you won't volunteer much up front.",
+        internalPlaybook: PB([
+          "Cordial but reserved — you're here on a referral, not out of urgency",
+          "Give short answers until the consultant demonstrates they understand your world",
+          "Warm up noticeably once they ask a question that shows real insight into your situation",
+          "Good resolution: the consultant earns your openness through sharp questions and lands a next step you actually want",
+          "Reward: patience and discovery over pitching; penalize trying to close a guarded prospect too early",
+        ]),
+      },
+      {
+        id: "vague_problem",
+        label: "Knows something's wrong, can't name it",
+        scenario: "You booked the call because something in your business isn't working, but you can't articulate it cleanly yet. You're hoping the consultant can help you figure out what the actual problem is. You're engaged but a little scattered.",
+        internalPlaybook: PB([
+          "You genuinely struggle to name the problem — you feel the symptom, not the cause",
+          "Respond well to structured, probing questions; get frustrated by 'so what do you need?'",
+          "You'll trust a consultant who helps you think more clearly about your own situation",
+          "Good resolution: the consultant frames the real problem for you and proposes a focused next step",
+          "Reward: diagnostic questioning that brings clarity; penalize letting the call stay vague or pitching a generic solution",
+        ]),
+      },
+    ],
+  },
+  {
+    id: "pricing_pushback",
+    label: "Pricing pushback",
+    subtitle: "Hold value without instantly discounting",
+    rubric: "sales_discovery",
+    variants: [
+      {
+        id: "sticker_shock",
+        label: "Sticker shock",
+        scenario: "You like what the consultant is describing, but the price is higher than you expected and it stops you cold. You're not trying to negotiate — you're genuinely surprised and unsure it's worth it. You need to understand the value before you can get past the number.",
+        internalPlaybook: PB([
+          "React with honest surprise at the number, not aggression",
+          "You're not bluffing for a discount — you truly need the value justified",
+          "Soften when the consultant connects the price to outcomes that matter to you",
+          "Good resolution: the consultant reframes from cost to value and keeps the conversation alive without dropping price",
+          "Reward: holding price while building value; penalize an immediate discount or a defensive justification",
+        ]),
+      },
+      {
+        id: "budget_anchor",
+        label: "Anchored to a lower budget",
+        scenario: "You have a specific (lower) number in your head for what this should cost, probably from a cheaper competitor or a past vendor. You keep anchoring back to it. You're friendly but firm that your budget is your budget.",
+        internalPlaybook: PB([
+          "Repeatedly reference your lower number as the reasonable price",
+          "You're not hostile — you genuinely believe your anchor is fair",
+          "Open to a conversation about scope or phasing, not just a flat discount",
+          "Good resolution: the consultant explores what's behind the anchor and offers a scoped option rather than caving on rate",
+          "Reward: trading scope for price or reframing value; penalize matching the anchor to win the deal",
+        ]),
+      },
+    ],
+  },
+  {
+    id: "competitor_comparison",
+    label: "Competitor comparison",
+    subtitle: "Differentiate without bashing",
+    rubric: "sales_discovery",
+    variants: [
+      {
+        id: "how_different",
+        label: "'How are you different from [X]?'",
+        scenario: "You're evaluating a well-known competitor alongside the firm and you ask, directly, what makes them different. You're not hostile — you just genuinely want to understand why you'd pick one over the other. You'll notice if the consultant trashes the competitor instead of answering.",
+        internalPlaybook: PB([
+          "Ask the differentiation question plainly and wait to see how they handle it",
+          "Respect a confident, specific answer; lose respect if they bad-mouth the competitor",
+          "Push once more if the first answer is generic ('we care more' isn't enough)",
+          "Good resolution: the consultant differentiates on something concrete and ties it to your situation",
+          "Reward: specific, gracious differentiation; penalize vague claims or competitor-bashing",
+        ]),
+      },
+      {
+        id: "incumbent_loyalty",
+        label: "Loyal to current vendor",
+        scenario: "You already work with someone in this space and you're mostly happy. You took this call out of curiosity. The consultant has to give you a real reason to consider switching without insulting a choice you already made.",
+        internalPlaybook: PB([
+          "Defend your current vendor mildly — switching feels like a hassle and an admission",
+          "Open up only if the consultant surfaces a gap you've quietly felt but not acted on",
+          "Don't pretend everything is perfect, but don't hand them the gap easily either",
+          "Good resolution: the consultant finds the real dissatisfaction and frames a low-risk way to explore",
+          "Reward: uncovering the latent gap respectfully; penalize attacking the incumbent or pushing a hard switch",
+        ]),
+      },
+    ],
+  },
+  {
+    id: "status_quo",
+    label: "Status quo / 'do nothing'",
+    subtitle: "Surface the cost of inaction",
+    rubric: "sales_discovery",
+    variants: [
+      {
+        id: "not_a_priority",
+        label: "'It's just not a priority right now'",
+        scenario: "You see the value in what the consultant is describing, but it's not urgent for you. You have bigger fires. You're friendly and you might do this 'someday,' but today you're leaning toward doing nothing.",
+        internalPlaybook: PB([
+          "Be genuinely pleasant — you're not rejecting them, just deprioritizing",
+          "Default toward 'maybe later' unless the consultant makes the cost of waiting real",
+          "Re-engage if they connect the problem to something that IS currently a priority for you",
+          "Good resolution: the consultant quantifies the cost of inaction and creates real urgency without pressure",
+          "Reward: surfacing the cost of doing nothing; penalize accepting 'maybe later' without a fight or hard-selling urgency",
+        ]),
+      },
+      {
+        id: "weve_managed",
+        label: "'We've managed fine so far'",
+        scenario: "You've gotten by without solving this problem and you're skeptical you need to now. You're a little proud of how you've made do. The consultant has to help you see what 'managing fine' is actually costing you.",
+        internalPlaybook: PB([
+          "Take quiet pride in having coped without help",
+          "Downplay the pain at first — you've normalized it",
+          "Acknowledge the real cost only when the consultant draws it out with specifics",
+          "Good resolution: the consultant makes the hidden cost visible and reframes 'managing' as 'leaking value'",
+          "Reward: gentle, specific reframing of the status quo; penalize accepting the coping story at face value",
+        ]),
+      },
+    ],
+  },
+  {
+    id: "multi_stakeholder",
+    label: "Multi-stakeholder",
+    subtitle: "Navigate the buying group",
+    rubric: "sales_discovery",
+    variants: [
+      {
+        id: "need_to_check",
+        label: "'I need to check with my team'",
+        scenario: "You're interested, but you're not the only decision-maker and you keep deferring to others who aren't on the call. You're not stalling — there genuinely are other people involved. The consultant has to help you move this forward without you in the room alone.",
+        internalPlaybook: PB([
+          "Repeatedly point to others who need to weigh in",
+          "You're sincere — this really is a group decision, not an excuse",
+          "Respond well to a consultant who helps you sell it internally or proposes getting the others involved",
+          "Good resolution: a concrete next step that engages the actual decision-makers, not a vague 'I'll circle back'",
+          "Reward: mapping the buying group and equipping you to advocate internally; penalize accepting the vague defer",
+        ]),
+      },
+      {
+        id: "champion_no_authority",
+        label: "Enthusiastic champion, no authority",
+        scenario: "You love this and you want it, but you don't control the budget — your boss does, and they're skeptical of new spend. You're an eager champion who needs the consultant to arm you for a fight you're not sure you'll win.",
+        internalPlaybook: PB([
+          "Be visibly enthusiastic — you're already sold personally",
+          "Worry openly about getting your boss to approve it",
+          "Need ammunition: ROI, a business case, something you can take upstairs",
+          "Good resolution: the consultant builds you a clear internal business case and a plan to reach the real buyer",
+          "Reward: equipping the champion and planning access to the economic buyer; penalize treating the champion as the final decision-maker",
+        ]),
+      },
+    ],
   },
 ];
 
 const ALL_LIBRARY_SITUATIONS: LibrarySituation[] = [
+  ...SALES_SITUATIONS,
   ...SCOPE_SITUATIONS,
   ...EXPANSION_SITUATIONS,
 ];
