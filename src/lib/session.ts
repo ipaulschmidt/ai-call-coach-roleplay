@@ -975,3 +975,198 @@ export function buildToughGoal(
   const label = sit?.label ?? "tough conversation";
   return `Tough client conversation (${durationMin} min) — ${label}: ${variantLabel}. Lead with empathy and acknowledgement, then hold a firm boundary, offer concrete options, protect scope and money, and land a specific next step. Do not over-apologize, do not cave on the substance, and do not let the conversation end without a concrete commitment.`;
 }
+
+export const SCOPE_SITUATIONS: LibrarySituation[] = [
+  {
+    id: "scope_creep",
+    label: "Scope creep",
+    subtitle: "Protect the SOW without going cold",
+    rubric: "scope_expansion",
+    variants: [
+      {
+        id: "just_add_quick",
+        label: "'Can you just add this real quick'",
+        scenario: "You're a happy client, three weeks into an engagement that's going well. On today's check-in you casually ask the consultant to fold in a 'small' new piece of work you assume is already covered. You're relaxed and friendly about it — to you it genuinely feels minor.",
+        internalPlaybook: PB([
+          "Frame the ask as tiny, reasonable, and obviously included — stay warm, never demanding",
+          "If the consultant says yes immediately, happily accept and the moment passes (they failed the drill)",
+          "If they name it as out of scope, be a little surprised but not offended — you're easy to work with",
+          "Good resolution: a clearly named change order with hours/cost, OR an explicit trade-off against current scope, delivered warmly",
+          "Reward: holding the line while keeping the relationship light; penalize 'sure, no problem' to be liked",
+        ]),
+      },
+      {
+        id: "stacking_small",
+        label: "Stacking small asks",
+        scenario: "Over the last few weeks you've slipped four or five small requests into Slack — each one tiny on its own. You have no idea they've added up to real hours. The consultant has brought it up gently on this call. You're not defensive, just genuinely unaware.",
+        internalPlaybook: PB([
+          "You truly don't see the pattern at first — each ask felt trivial to you",
+          "React with mild, friendly surprise when shown the stack with hours attached ('oh — I didn't realize that added up')",
+          "You're reasonable and want to do the right thing once you understand",
+          "Good resolution: agree on a simple triage process for new requests going forward, and a true-up for hours already burned",
+          "Reward: naming the pattern kindly without making you feel scolded; penalize fighting over each individual ask",
+        ]),
+      },
+      {
+        id: "major_add_assumed",
+        label: "Assuming a big add is included",
+        scenario: "You're treating a genuinely new initiative — a second brand, a new platform, a new region — as if it was always part of the original engagement. You're not trying to get one over on anyone; you honestly believe it was implied at kickoff.",
+        internalPlaybook: PB([
+          "Sincerely believe this was always in scope — reference vague phrases from kickoff to support it",
+          "Stay collaborative, not combative — you like this team and assume good faith",
+          "Soften when the consultant revisits the actual SOW language with you, side by side, without making you wrong",
+          "Good resolution: agree to scope this as a new, properly sized engagement — you're open to that once it's clear",
+          "Reward: anchoring on the written SOW warmly; penalize arguing about intent or caving to absorb a major add",
+        ]),
+      },
+      {
+        id: "free_strategy",
+        label: "Pushing for free strategy work",
+        scenario: "You keep asking the consultant for 'just a quick recommendation' or 'a quick strategy doc' on areas outside the current engagement. You genuinely value their brain — that's why you keep asking. You don't think of it as billable work.",
+        internalPlaybook: PB([
+          "Flatter the consultant's expertise — your asks come from real admiration, not manipulation",
+          "Push back lightly on the idea that thinking/strategy is billable ('it's just your opinion')",
+          "Stay warm; you're not trying to take advantage, you just don't see the line",
+          "Good resolution: accept a scoped paid strategy block with a clear deliverable — you'll say yes if it's framed as worth it",
+          "Reward: protecting strategy as real work while keeping the flattery from working; penalize giving it away to prove value",
+        ]),
+      },
+    ],
+  },
+];
+
+export const EXPANSION_SITUATIONS: LibrarySituation[] = [
+  {
+    id: "post_project_next",
+    label: "Post-project next step",
+    subtitle: "Convert a finished project into the next one",
+    rubric: "scope_expansion",
+    variants: [
+      {
+        id: "happy_wrap_open",
+        label: "Happy wrap-up, obvious next project",
+        scenario: "A fixed-fee project just wrapped and you're genuinely pleased with the result. There's an obvious logical next piece of work, but you haven't thought about it yet — the project is 'done' in your mind and you're about to move on to other things.",
+        internalPlaybook: PB([
+          "Warm and satisfied — you'd happily recommend the firm",
+          "Don't volunteer a next project; mentally you've closed this out",
+          "Respond well if the consultant connects the finished work to a clear, valuable next step",
+          "Good resolution: agree to scope the next project or hour block while the momentum and goodwill are high",
+          "Reward: surfacing the next step as a natural continuation, not a pitch; penalize ending with a vague 'let us know if you need anything'",
+        ]),
+      },
+      {
+        id: "results_then_quiet",
+        label: "Good results, then going quiet",
+        scenario: "The project delivered real results and you're happy, but you're busy and about to let the relationship go quiet — not because anything's wrong, just because there's no active work. The consultant has one call to keep the momentum alive.",
+        internalPlaybook: PB([
+          "Friendly but distracted — other priorities are pulling at you",
+          "You won't initiate more work; inertia is toward going quiet",
+          "Re-engage if the consultant ties a concrete next opportunity to the results you just saw",
+          "Good resolution: a specific, scoped next step with a timeframe — not 'sometime down the road'",
+          "Reward: creating a reason to keep going now; penalize letting the call end on a polite goodbye",
+        ]),
+      },
+      {
+        id: "budget_uncertain",
+        label: "Interested but budget-uncertain",
+        scenario: "You can see there's more valuable work to do after this project, and you're interested — but you're not sure you have budget approved for it, and you're hesitant to commit. You're friendly and open, just cautious about money.",
+        internalPlaybook: PB([
+          "Genuinely interested in the next step but anchored on budget uncertainty",
+          "Open to options if the consultant helps you build the internal case rather than just quoting a price",
+          "Don't pretend the budget concern is a hard no — it's a 'help me figure this out'",
+          "Good resolution: a right-sized next step and a clear value story you can take to your own leadership",
+          "Reward: helping materialize the path despite budget friction; penalize dropping it the moment money comes up",
+        ]),
+      },
+    ],
+  },
+  {
+    id: "mid_engagement_signal",
+    label: "Mid-engagement signal",
+    subtitle: "Catch a pain that maps to another service",
+    rubric: "scope_expansion",
+    variants: [
+      {
+        id: "offhand_pain",
+        label: "Offhand mention of a real pain",
+        scenario: "You're on a routine check-in for the current work, which is going fine. Partway through, you mention — offhand, almost in passing — a frustration in another part of your business that happens to map to something the firm could help with. You're not asking for help; you're just venting for a second.",
+        internalPlaybook: PB([
+          "Drop the pain casually and move on — you're not expecting them to act on it",
+          "If the consultant catches it and connects it thoughtfully, engage with genuine interest",
+          "Stay relationship-first — this is a check-in, not a sales call, so a heavy pivot would feel off",
+          "Good resolution: the consultant names the connection, confirms the pain is real, and earns the right to scope it separately",
+          "Reward: catching the signal and connecting it without bait-and-switch energy; penalize either missing it entirely or pouncing too hard",
+        ]),
+      },
+      {
+        id: "complaining_about_tool",
+        label: "Complaining about a gap the firm could fill",
+        scenario: "Mid-call you complain about a tool, process, or vendor that isn't working for you — something adjacent to what the firm does. You're just blowing off steam about it; you haven't connected it to the firm as a possible solution.",
+        internalPlaybook: PB([
+          "Frame it as a complaint, not a request — you're not hinting, you're just frustrated",
+          "Be pleasantly surprised if the consultant connects your complaint to something they could actually help with",
+          "Stay grounded — you'll only bite if it feels like genuine advice, not an opportunistic upsell",
+          "Good resolution: agree to explore the firm helping here, scoped as its own conversation",
+          "Reward: turning a complaint into a credible, low-pressure opportunity; penalize ignoring the opening or over-pitching",
+        ]),
+      },
+    ],
+  },
+  {
+    id: "qbr_opening",
+    label: "QBR / relationship opening",
+    subtitle: "Propose the next chapter as advice, not a pitch",
+    rubric: "scope_expansion",
+    variants: [
+      {
+        id: "things_going_well",
+        label: "Everything's going well — now what?",
+        scenario: "You're in a quarterly business review and you're happy with the relationship. You ask, sincerely, 'so what do you think we should be focused on next?' You're genuinely open to the firm's point of view on where the relationship goes from here.",
+        internalPlaybook: PB([
+          "Warm, trusting, and open — you're inviting their strategic opinion",
+          "You'll respect a real point of view far more than a menu of services",
+          "Push back gently if the answer feels like an upsell rather than advice tied to your goals",
+          "Good resolution: a clear, prioritized recommendation for the next chapter that maps to your business goals, with a concrete first step",
+          "Reward: leading with strategic judgment and materializing it into a next step; penalize a vague 'we could do a lot of things' answer",
+        ]),
+      },
+      {
+        id: "leadership_pressure",
+        label: "Under pressure to show bigger impact",
+        scenario: "In the QBR you mention your own leadership is asking you to show bigger results from this investment. You're not unhappy with the firm — you just have pressure from above and you're hoping they can help you tell a stronger story or go bigger.",
+        internalPlaybook: PB([
+          "Friendly but carrying real internal pressure — you need ammunition for your own bosses",
+          "Open to expanding scope IF it clearly maps to the impact your leadership wants to see",
+          "Respond well to a consultant who helps you build the internal business case, not just sells more",
+          "Good resolution: a bigger, well-justified next step you can confidently take to your leadership",
+          "Reward: connecting expansion to the client's own internal narrative; penalize a self-serving pitch that ignores their pressure",
+        ]),
+      },
+    ],
+  },
+];
+
+const ALL_LIBRARY_SITUATIONS: LibrarySituation[] = [
+  ...SCOPE_SITUATIONS,
+  ...EXPANSION_SITUATIONS,
+];
+
+export function getLibrarySituation(id: string | undefined): LibrarySituation | undefined {
+  return ALL_LIBRARY_SITUATIONS.find((s) => s.id === id);
+}
+
+export function pickLibraryVariant(situationId: string): ToughVariant | undefined {
+  const sit = getLibrarySituation(situationId);
+  if (!sit) return undefined;
+  return sit.variants[Math.floor(Math.random() * sit.variants.length)];
+}
+
+export function buildScopeExpansionGoal(
+  situationId: string,
+  variantLabel: string,
+  durationMin: number,
+): string {
+  const sit = getLibrarySituation(situationId);
+  const label = sit?.label ?? "scope and expansion conversation";
+  return `Scope and expansion conversation (${durationMin} min) — ${label}: ${variantLabel}. Stay warm and consultative. If this is a scope-protection scenario, hold the existing SOW with clear, kind boundaries and land a concrete next step. If this is an expansion scenario, spot the real signal, connect it to the client's goals, and materialize a specific next step. Either way, don't give work away to be liked, don't pitch before diagnosing, and end with a clear commitment.`;
+}
