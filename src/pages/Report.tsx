@@ -49,7 +49,6 @@ const Report = () => {
   const scenarioName = viewConfig?.scenarioName?.trim() || null;
   const rubric: Rubric = viewConfig?.rubric ?? deriveDefaultRubric(viewConfig?.callType);
   const isSalesDiscovery = rubric === "sales_discovery";
-  const isTough = rubric === "tough_recovery";
   const LABEL_SETS: Record<Rubric, {
     sales_strategy: string;
     technical_delivery: string;
