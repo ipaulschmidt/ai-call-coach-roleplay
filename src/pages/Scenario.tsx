@@ -16,6 +16,7 @@ import {
   type CallType,
   type Difficulty,
   type PracticeArea,
+  type Rubric,
 } from "@/lib/session";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
 import logo from "@/assets/smartbug-logo.png";
@@ -128,7 +129,7 @@ export default function Scenario() {
       personaAvatar: persona ? PERSONA_AVATARS[persona.id] : undefined,
       repEmail: email,
       scenarioName: scenario.name,
-      rubric: deriveDefaultRubric(scenario.call_type),
+      rubric: (scenario.rubric as Rubric) || deriveDefaultRubric(scenario.call_type),
     });
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.setItem("repEmail", email);
