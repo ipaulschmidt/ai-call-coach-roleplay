@@ -764,31 +764,6 @@ const Index = () => {
           </p>
         </header>
 
-        {/* Audience tabs */}
-        <div className="mb-8">
-          <div className="inline-flex rounded-full border border-border/60 bg-card/40 p-1 backdrop-blur">
-            {(["sales", "service"] as Audience[]).map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => handleAudienceChange(a)}
-                className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
-                  audience === a
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {a === "sales" ? "Sales" : "Service"}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {audience === "sales"
-              ? "Pre-sale discovery with prospects who haven't bought yet."
-              : "Post-sale: kickoffs, scope & expansion, and tough client conversations."}
-          </p>
-        </div>
-
         {FeaturedSection}
         {featured.length > 0 && OrPickPathSeparator}
 
