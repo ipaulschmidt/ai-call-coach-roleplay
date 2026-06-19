@@ -339,7 +339,7 @@ const Report = () => {
                     notes={evaluation.agenda_setting.notes}
                   />
                 )}
-                {!isTough && evaluation.active_listening && (
+                {isSalesDiscovery && evaluation.active_listening && (
                   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
                     <div className="text-xs uppercase tracking-widest text-muted-foreground">Active Listening</div>
                     <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -367,7 +367,7 @@ const Report = () => {
                       <span className="text-xl text-muted-foreground">/100</span>
                     </div>
                     <p className="mt-3 text-sm text-muted-foreground">{evaluation.next_steps.notes}</p>
-                    {!isTough && (
+                    {isSalesDiscovery && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.offered_times ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
                           {evaluation.next_steps.offered_times ? "Offered specific times" : "No times offered"}
@@ -382,7 +382,7 @@ const Report = () => {
               </div>
             )}
 
-            {!isTough && <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {isSalesDiscovery && <div className="mt-8 grid gap-6 md:grid-cols-2">
               <Card className="border-border/60 bg-card/60 p-5">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                   <Target className="h-4 w-4 text-primary" /> Topic coverage
