@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, type PracticeArea, type CallType, type Difficulty } from "@/lib/session";
+import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, deriveDefaultRubric, type PracticeArea, type CallType, type Difficulty, type Rubric } from "@/lib/session";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
 
 const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
@@ -28,6 +28,7 @@ interface Scenario {
   scenario?: string | null;
   created_by_hint: string | null;
   featured?: boolean;
+  rubric?: string | null;
 }
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
