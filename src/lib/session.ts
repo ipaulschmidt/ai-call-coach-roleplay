@@ -343,57 +343,6 @@ export const TOUGH_SITUATIONS: ToughSituation[] = [
     ],
   },
   {
-    id: "scope_creep",
-    label: "Scope creep pushback",
-    subtitle: "Protect the SOW",
-    variants: [
-      {
-        id: "just_add_quick",
-        label: "'Can you just add this real quick'",
-        scenario: "Mid-engagement, they're casually asking the consultant to add a 'small' new workstream they assume is included.",
-        internalPlaybook: PB([
-          "Frame the ask as tiny and reasonable",
-          "Get visibly disappointed if they push back, but don't escalate",
-          "Good resolution: clear named change order with hours/cost OR an explicit trade-off against current scope",
-          "Trap: consultant saying 'sure, no problem' to be liked",
-        ]),
-      },
-      {
-        id: "stacking_small",
-        label: "Stacking small free asks",
-        scenario: "Over the last few weeks they've slipped 4–5 small requests into Slack. The consultant is here to address the pattern.",
-        internalPlaybook: PB([
-          "Initially defensive ('they were tiny')",
-          "Acknowledge once they're shown as a stack with hours attached",
-          "Good resolution: agreement on a triage process for new requests + a true-up for hours already burned",
-          "Trap: getting into a fight over each individual ask",
-        ]),
-      },
-      {
-        id: "major_add_assumed",
-        label: "Expecting a major add as included",
-        scenario: "They're treating a brand-new initiative (a second brand / new platform / new region) as if it were always part of the original SOW.",
-        internalPlaybook: PB([
-          "Genuinely believe it was implied",
-          "Reference vague phrases from the original kickoff to support it",
-          "Good resolution: revisit SOW language together, scope a new SOW for the add",
-          "Trap: consultant arguing about intent vs. anchoring on the written SOW",
-        ]),
-      },
-      {
-        id: "free_strategy",
-        label: "Pushing for free strategy work",
-        scenario: "They keep asking for 'a quick strategy doc' / 'just your recommendation' on areas outside the retainer.",
-        internalPlaybook: PB([
-          "Flatter the consultant's expertise to get free thinking",
-          "Push back on the idea that strategy is billable",
-          "Good resolution: offer a paid strategy block with clear deliverable and cost",
-          "Trap: consultant giving the strategy away to prove value",
-        ]),
-      },
-    ],
-  },
-  {
     id: "missed_deadline",
     label: "Missed deadline",
     subtitle: "You're behind",
