@@ -27,14 +27,15 @@ import {
   getToughSituation,
   pickToughVariant,
   buildToughGoal,
-  RUBRIC_LABELS,
   deriveDefaultRubric,
   type Rubric,
   SCOPE_SITUATIONS,
   EXPANSION_SITUATIONS,
+  SALES_SITUATIONS,
   getLibrarySituation,
   pickLibraryVariant,
   buildScopeExpansionGoal,
+  buildSalesLibraryGoal,
   type LibrarySituation,
   type ToughSituation,
 } from "@/lib/session";
@@ -97,8 +98,6 @@ const Index = () => {
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
   const [rubric, setRubric] = useState<Rubric>("sales_discovery");
-  const [rubricLoading, setRubricLoading] = useState(false);
-  const [rubricOverridden, setRubricOverridden] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,12 +116,10 @@ const Index = () => {
   }, []);
 
   // For build-your-own discovery/service calls, debounce-call classify-rubric
-  // whenever the goal-relevant inputs change, unless the rep has manually overridden.
+  // whenever the goal-relevant inputs change. The result is used silently — no UI picker.
   useEffect(() => {
-    if (rubricOverridden) return;
     const goal = buildGoal(practiceArea, callType, topics.trim(), durationMin);
     let cancelled = false;
-    setRubricLoading(true);
     const t = window.setTimeout(() => {
       fetch(`${BASE}/classify-rubric`, {
         method: "POST",
@@ -138,16 +135,13 @@ const Index = () => {
         .catch((e) => {
           console.error("classify-rubric failed", e);
           if (!cancelled) setRubric(deriveDefaultRubric(callType));
-        })
-        .finally(() => {
-          if (!cancelled) setRubricLoading(false);
         });
     }, 500);
     return () => {
       cancelled = true;
       window.clearTimeout(t);
     };
-  }, [callType, practiceArea, topics, durationMin, rubricOverridden]);
+  }, [callType, practiceArea, topics, durationMin]);
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
@@ -157,7 +151,6 @@ const Index = () => {
 
   const handleAudienceChange = (a: Audience) => {
     setAudience(a);
-    setRubricOverridden(false);
   };
 
   // Start the build-your-own custom call (Sales=discovery, Service=service)
@@ -189,7 +182,7 @@ const Index = () => {
 
   // Start a library bucket from the Service tab.
   // kind: "kickoff" | "scope" | "tough"
-  const startLibrary = (kind: "kickoff" | "scope" | "tough", situationId?: string) => {
+  const startLibrary = (kind: "kickoff" | "scope" | "tough" | "sales", situationId?: string) => {
     const email = repEmail.trim();
     if (!email) {
       alert("Please enter your work email above before starting a library scenario.");
@@ -214,18 +207,21 @@ const Index = () => {
         repEmail: email,
         rubric: "service_kickoff",
       };
-    } else if (kind === "scope") {
+    } else if (kind === "scope" || kind === "sales") {
       const sit = getLibrarySituation(situationId);
       const variant = situationId ? pickLibraryVariant(situationId) : undefined;
       if (!sit || !variant || !situationId) return;
+      const isSales = kind === "sales";
       cfg = {
         topics: "",
         difficulty: "realistic",
         persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
-        callType: "service",
+        callType: isSales ? "discovery" : "service",
         practiceArea,
         durationMin,
-        goal: buildScopeExpansionGoal(situationId, variant.label, durationMin),
+        goal: isSales
+          ? buildSalesLibraryGoal(situationId, variant.label, durationMin)
+          : buildScopeExpansionGoal(situationId, variant.label, durationMin),
         scenario: variant.scenario,
         personaId: persona.id,
         personaAvatar: PERSONA_AVATARS[persona.id],
@@ -272,10 +268,6 @@ const Index = () => {
   const selectedPersona = personas.find((p) => p.id === personaId)!;
   const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
   const selectedDuration = DURATION_OPTIONS.find((d) => d.value === durationMin)!;
-
-  const featuredForAudience = featured.filter((s) =>
-    audience === "sales" ? s.call_type === "discovery" : s.call_type === "service",
-  );
 
   // Shared "session basics" block used by both tabs (and library rows on Service tab).
   const SessionBasics = (
@@ -425,7 +417,7 @@ const Index = () => {
     </div>
   );
 
-  const FeaturedSection = featuredForAudience.length > 0 && (
+  const FeaturedSection = featured.length > 0 && (
     <section className="mb-10">
       <div className="mb-5">
         <h2
@@ -440,7 +432,7 @@ const Index = () => {
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {featuredForAudience.map((s) => {
+        {featured.map((s) => {
           const personaInfo = findPersonaForScenario(s.practice_area, s.persona);
           const avatar = personaInfo ? PERSONA_AVATARS[personaInfo.id] : undefined;
           const personaName = personaInfo?.name ?? s.persona.split(" — ")[0];
@@ -501,35 +493,33 @@ const Index = () => {
       {SessionBasics}
 
       <Card className="space-y-6 border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
-        {audience === "sales" && (
-          <section>
-            <div className="mb-3 flex items-baseline gap-3">
-              <span className="text-xs font-mono text-primary">05</span>
-              <Label className="text-base font-semibold">Difficulty</Label>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => setDifficulty(d.id)}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    difficulty === d.id
-                      ? "border-primary bg-primary/10 ring-1 ring-primary"
-                      : "border-border/60 bg-background/40 hover:border-border"
-                  }`}
-                >
-                  <div className="font-semibold">{d.label}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        <section>
+          <div className="mb-3 flex items-baseline gap-3">
+            <span className="text-xs font-mono text-primary">05</span>
+            <Label className="text-base font-semibold">Difficulty</Label>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {DIFFICULTIES.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDifficulty(d.id)}
+                className={`rounded-lg border p-4 text-left transition-all ${
+                  difficulty === d.id
+                    ? "border-primary bg-primary/10 ring-1 ring-primary"
+                    : "border-border/60 bg-background/40 hover:border-border"
+                }`}
+              >
+                <div className="font-semibold">{d.label}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{d.desc}</div>
+              </button>
+            ))}
+          </div>
+        </section>
 
         <section>
           <div className="mb-3 flex items-baseline gap-3">
-            <span className="text-xs font-mono text-primary">{audience === "sales" ? "06" : "05"}</span>
+            <span className="text-xs font-mono text-primary">06</span>
             <Label htmlFor="topics" className="text-base font-semibold">
               Personalize the conversation
             </Label>
@@ -553,37 +543,6 @@ const Index = () => {
             Specific tactics, tools, or services. Leave blank to use defaults for {currentArea.label}.
           </p>
         </section>
-
-        <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm">
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-              This call will be scored on
-            </div>
-            <div className="mt-0.5 font-semibold text-foreground">
-              {RUBRIC_LABELS[rubric]}
-              {rubricLoading && !rubricOverridden && (
-                <span className="ml-2 text-xs font-normal text-muted-foreground">picking…</span>
-              )}
-            </div>
-            <div className="mt-0.5 text-xs text-muted-foreground">
-              AI picked this rubric based on your goal. Override if it's wrong.
-            </div>
-          </div>
-          <select
-            value={rubric}
-            onChange={(e) => {
-              setRubric(e.target.value as Rubric);
-              setRubricOverridden(true);
-            }}
-            className="rounded-md border border-border/60 bg-background/60 px-3 py-2 text-sm"
-          >
-            {(Object.keys(RUBRIC_LABELS) as Rubric[]).map((r) => (
-              <option key={r} value={r}>
-                {RUBRIC_LABELS[r]}
-              </option>
-            ))}
-          </select>
-        </div>
 
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm">
@@ -690,6 +649,89 @@ const Index = () => {
     </Card>
   );
 
+  const SalesLibrary = (
+    <Card className="border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
+      <div className="mb-4">
+        <h2
+          className="text-xl font-bold tracking-tight md:text-2xl"
+          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+        >
+          Self-serve scenario library
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Pick a discovery bucket and start. A variant is rolled when you hit Start, so each run feels fresh.
+          Uses the persona, length, and email you set below.
+        </p>
+        {!repEmail.trim() && (
+          <p className="mt-2 text-xs text-destructive">
+            Enter your work email in the builder below to enable Start buttons.
+          </p>
+        )}
+      </div>
+      <Accordion type="multiple" defaultValue={["sales"]} className="w-full">
+        <AccordionItem value="sales">
+          <AccordionTrigger className="text-left">
+            Discovery scenarios
+            <span className="ml-auto mr-2 text-xs font-normal text-muted-foreground">
+              Pre-sale conversations with prospects
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              {SALES_SITUATIONS.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-background/30 px-3 py-2.5 transition-colors hover:border-border"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{s.label}</div>
+                    <div className="truncate text-xs text-muted-foreground">{s.subtitle}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => startLibrary("sales", s.id)}
+                    disabled={!repEmail.trim()}
+                    className="shrink-0 gap-1"
+                  >
+                    Start
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
+  );
+
+  const OrPickPathSeparator = (
+    <div className="my-10 flex items-center gap-4">
+      <Separator className="flex-1" />
+      <span className="shrink-0 text-sm text-muted-foreground">Or pick a practice path</span>
+      <Separator className="flex-1" />
+    </div>
+  );
+
+  const CollapsedBuilder = (
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="builder" className="rounded-xl border border-border/60 bg-card/40 px-4 backdrop-blur">
+        <AccordionTrigger className="text-left">
+          <div>
+            <div className="text-base font-semibold">Build your own session</div>
+            <div className="text-xs font-normal text-muted-foreground">
+              Set up a custom roleplay from scratch.
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="pt-2">{BuildYourOwn}</div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+
   return (
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-5xl">
@@ -722,6 +764,9 @@ const Index = () => {
           </p>
         </header>
 
+        {FeaturedSection}
+        {featured.length > 0 && OrPickPathSeparator}
+
         {/* Audience tabs */}
         <div className="mb-8">
           <div className="inline-flex rounded-full border border-border/60 bg-card/40 p-1 backdrop-blur">
@@ -747,21 +792,9 @@ const Index = () => {
           </p>
         </div>
 
-        {audience === "sales" ? (
-          <>
-            {FeaturedSection}
-            {featuredForAudience.length > 0 && OrBuildSeparator}
-            {BuildYourOwn}
-          </>
-        ) : (
-          <>
-            {FeaturedSection}
-            {featuredForAudience.length > 0 && OrBuildSeparator}
-            {ServiceLibrary}
-            {OrBuildSeparator}
-            {BuildYourOwn}
-          </>
-        )}
+        {audience === "sales" ? SalesLibrary : ServiceLibrary}
+        {OrBuildSeparator}
+        {CollapsedBuilder}
 
         <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
           <Mic className="h-3.5 w-3.5" /> Voice powered by your browser. Best in Chrome or Edge. Mic permission required.
