@@ -620,7 +620,7 @@ const Index = () => {
   const OrPickPathSeparator = (
     <div className="my-10 flex items-center gap-4">
       <Separator className="flex-1" />
-      <span className="shrink-0 text-sm text-muted-foreground">Or pick a practice path</span>
+      <span className="shrink-0 text-sm text-muted-foreground">Or pick a curated scenario by your role</span>
       <Separator className="flex-1" />
     </div>
   );
