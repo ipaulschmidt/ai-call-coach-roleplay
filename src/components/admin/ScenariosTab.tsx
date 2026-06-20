@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, type PracticeArea, type CallType, type Difficulty } from "@/lib/session";
+import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, deriveDefaultRubric, type PracticeArea, type CallType, type Difficulty, type Rubric } from "@/lib/session";
 import { PERSONA_AVATARS } from "@/lib/personaAvatars";
 
 const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
@@ -28,6 +28,7 @@ interface Scenario {
   scenario?: string | null;
   created_by_hint: string | null;
   featured?: boolean;
+  rubric?: string | null;
 }
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
@@ -35,6 +36,75 @@ const CALL_TYPES: { id: CallType; label: string }[] = [
   { id: "service", label: "Service / Onboarding" },
   { id: "tough", label: "Tough Conversation" },
 ];
+
+const RUBRIC_OPTIONS: { id: Rubric; label: string; description: string }[] = [
+  {
+    id: "sales_discovery",
+    label: "Sales Discovery",
+    description:
+      "For pre-sale discovery calls with prospects who haven't bought yet. Scores: sales strategy, technical accuracy, consultant confidence, agenda setting, and earning a concrete next step.",
+  },
+  {
+    id: "service_kickoff",
+    label: "Service & Kickoff",
+    description:
+      "For friendly post-sale kickoff, onboarding, and status calls with signed clients. Scores: expectation setting, scope clarity, translating work into business value, delivery confidence, and a concrete next step.",
+  },
+  {
+    id: "scope_expansion",
+    label: "Scope & Expansion",
+    description:
+      "For healthy-relationship calls where the rep must protect scope or grow the account. Scores: holding scope, spotting the opportunity, materializing it, relationship warmth, and a concrete next step.",
+  },
+  {
+    id: "tough_recovery",
+    label: "Tough / Recovery",
+    description:
+      "For hard conversations where something has gone wrong. Scores: empathy and acknowledgement, firmness and boundaries, options offered, protecting scope and money, and a concrete next step.",
+  },
+];
+
+function RubricSection({
+  rubric,
+  onChange,
+  edited,
+}: {
+  rubric: Rubric;
+  onChange: (r: Rubric) => void;
+  edited: boolean;
+}) {
+  return (
+    <section>
+      <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+        Scoring rubric
+      </Label>
+      <p className="mb-3 text-xs text-muted-foreground">
+        The AI suggests a rubric based on the goal. Override it if you know this scenario should be scored differently.
+        {!edited && <span className="ml-1 text-primary">(currently AI-suggested)</span>}
+      </p>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+        {RUBRIC_OPTIONS.map((opt) => {
+          const selected = rubric === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onChange(opt.id)}
+              className={`rounded-lg border p-3 text-left transition-all ${
+                selected
+                  ? "border-primary bg-primary/10 ring-1 ring-primary"
+                  : "border-border/60 bg-background/40 hover:border-border"
+              }`}
+            >
+              <div className="text-sm font-semibold">{opt.label}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{opt.description}</div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 const DIFFICULTIES: { id: Difficulty; label: string }[] = [
   { id: "easy", label: "Easy — Friendly, curious prospect" },
@@ -313,6 +383,10 @@ function ScenarioForm({
     initial?.goal ?? buildGoalTemplate((initial?.call_type as CallType) || "discovery", initial?.name ?? ""),
   );
   const [goalEdited, setGoalEdited] = useState<boolean>(!!initial?.goal);
+  const [rubric, setRubric] = useState<Rubric>(
+    (initial?.rubric as Rubric) || deriveDefaultRubric((initial?.call_type as CallType) || "discovery"),
+  );
+  const [rubricEdited, setRubricEdited] = useState<boolean>(!!initial?.rubric);
   const [featured, setFeatured] = useState<boolean>(!!initial?.featured);
   const [saving, setSaving] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
@@ -362,6 +436,13 @@ function ScenarioForm({
             })
             .catch((e) => console.error(e))
             .finally(() => setBackstoryLoading(false)),
+      rubricEdited
+        ? Promise.resolve()
+        : callFn("classify-rubric", password, { goal: goal, callType: callType })
+            .then((d) => {
+              if (d?.rubric && !rubricEdited) setRubric(d.rubric as Rubric);
+            })
+            .catch((e) => console.error(e)),
     ]);
   };
 
@@ -388,6 +469,7 @@ function ScenarioForm({
         goal: goal.trim() || null,
         scenario: backstory.trim() || null,
         featured,
+        rubric,
       });
       if (hasTopics) {
         setDistillStatus(result?.scenario?.topics_distilled ? "ok" : "failed");
@@ -615,6 +697,16 @@ function ScenarioForm({
             Auto-generated from the scenario name and call type. Edit freely — once edited it stops auto-updating.
           </p>
         </section>
+
+        {/* Scoring rubric */}
+        <RubricSection
+          rubric={rubric}
+          onChange={(r) => {
+            setRubric(r);
+            setRubricEdited(true);
+          }}
+          edited={rubricEdited}
+        />
 
         {/* Scenario backstory */}
         <section>
