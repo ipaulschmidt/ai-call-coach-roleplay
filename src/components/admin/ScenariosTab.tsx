@@ -37,6 +37,75 @@ const CALL_TYPES: { id: CallType; label: string }[] = [
   { id: "tough", label: "Tough Conversation" },
 ];
 
+const RUBRIC_OPTIONS: { id: Rubric; label: string; description: string }[] = [
+  {
+    id: "sales_discovery",
+    label: "Sales Discovery",
+    description:
+      "For pre-sale discovery calls with prospects who haven't bought yet. Scores: sales strategy, technical accuracy, consultant confidence, agenda setting, and earning a concrete next step.",
+  },
+  {
+    id: "service_kickoff",
+    label: "Service & Kickoff",
+    description:
+      "For friendly post-sale kickoff, onboarding, and status calls with signed clients. Scores: expectation setting, scope clarity, translating work into business value, delivery confidence, and a concrete next step.",
+  },
+  {
+    id: "scope_expansion",
+    label: "Scope & Expansion",
+    description:
+      "For healthy-relationship calls where the rep must protect scope or grow the account. Scores: holding scope, spotting the opportunity, materializing it, relationship warmth, and a concrete next step.",
+  },
+  {
+    id: "tough_recovery",
+    label: "Tough / Recovery",
+    description:
+      "For hard conversations where something has gone wrong. Scores: empathy and acknowledgement, firmness and boundaries, options offered, protecting scope and money, and a concrete next step.",
+  },
+];
+
+function RubricSection({
+  rubric,
+  onChange,
+  edited,
+}: {
+  rubric: Rubric;
+  onChange: (r: Rubric) => void;
+  edited: boolean;
+}) {
+  return (
+    <section>
+      <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+        Scoring rubric
+      </Label>
+      <p className="mb-3 text-xs text-muted-foreground">
+        The AI suggests a rubric based on the goal. Override it if you know this scenario should be scored differently.
+        {!edited && <span className="ml-1 text-primary">(currently AI-suggested)</span>}
+      </p>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+        {RUBRIC_OPTIONS.map((opt) => {
+          const selected = rubric === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onChange(opt.id)}
+              className={`rounded-lg border p-3 text-left transition-all ${
+                selected
+                  ? "border-primary bg-primary/10 ring-1 ring-primary"
+                  : "border-border/60 bg-background/40 hover:border-border"
+              }`}
+            >
+              <div className="text-sm font-semibold">{opt.label}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{opt.description}</div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 const DIFFICULTIES: { id: Difficulty; label: string }[] = [
   { id: "easy", label: "Easy — Friendly, curious prospect" },
   { id: "realistic", label: "Realistic — Polite skeptic, real-world flow" },
