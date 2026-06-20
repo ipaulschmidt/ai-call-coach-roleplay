@@ -184,10 +184,6 @@ const Index = () => {
   // kind: "kickoff" | "scope" | "tough"
   const startLibrary = (kind: "kickoff" | "scope" | "tough" | "sales", situationId?: string) => {
     const email = repEmail.trim();
-    if (!email) {
-      alert("Please enter your work email above before starting a library scenario.");
-      return;
-    }
     const persona = personas.find((p) => p.id === personaId)!;
     reset();
 
@@ -408,7 +404,6 @@ const Index = () => {
         size="sm"
         variant="outline"
         onClick={() => startLibrary(kind, s.id)}
-        disabled={!repEmail.trim()}
         className="shrink-0 gap-1"
       >
         Start
@@ -575,17 +570,11 @@ const Index = () => {
           className="text-xl font-bold tracking-tight md:text-2xl"
           style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
         >
-          Self-serve scenario library
+          Pick a topic to roleplay
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Pick a bucket and start. A variant is rolled when you hit Start, so each run feels fresh. Uses the
-          persona, length, and email you set above.
+          Pick a scenario and go. Each one plays a little differently every time, so it's worth running more than once.
         </p>
-        {!repEmail.trim() && (
-          <p className="mt-2 text-xs text-destructive">
-            Enter your work email above to enable Start buttons.
-          </p>
-        )}
       </div>
 
       <Accordion type="multiple" defaultValue={["kickoff", "scope", "tough"]} className="w-full">
@@ -608,7 +597,6 @@ const Index = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => startLibrary("kickoff")}
-                disabled={!repEmail.trim()}
                 className="shrink-0 gap-1"
               >
                 Start
@@ -656,17 +644,11 @@ const Index = () => {
           className="text-xl font-bold tracking-tight md:text-2xl"
           style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
         >
-          Self-serve scenario library
+          Pick a topic to roleplay
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Pick a discovery bucket and start. A variant is rolled when you hit Start, so each run feels fresh.
-          Uses the persona, length, and email you set below.
+          Pick a scenario and go. Each one plays a little differently every time, so it's worth running more than once.
         </p>
-        {!repEmail.trim() && (
-          <p className="mt-2 text-xs text-destructive">
-            Enter your work email in the builder below to enable Start buttons.
-          </p>
-        )}
       </div>
       <Accordion type="multiple" defaultValue={["sales"]} className="w-full">
         <AccordionItem value="sales">
@@ -691,7 +673,6 @@ const Index = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => startLibrary("sales", s.id)}
-                    disabled={!repEmail.trim()}
                     className="shrink-0 gap-1"
                   >
                     Start
