@@ -170,7 +170,7 @@ export default function Scenario() {
         </div>
 
         <header className="mb-8">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">Pre-built scenario</div>
+          <div className="text-xs uppercase tracking-widest text-muted-foreground">Roleplay</div>
           <h1
             className="mt-1 text-balance text-4xl font-bold tracking-tight md:text-5xl"
             style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
@@ -178,7 +178,7 @@ export default function Scenario() {
             {scenario.name}
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            This scenario is locked. Enter your email to start the roleplay.
+            Enter your email and name to start the roleplay.
           </p>
         </header>
 

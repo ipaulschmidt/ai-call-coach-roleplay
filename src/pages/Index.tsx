@@ -180,84 +180,14 @@ const Index = () => {
     navigate("/call");
   };
 
-  // Start a library bucket from the Service tab.
-  // kind: "kickoff" | "scope" | "tough"
+  // Library Start buttons route through a per-call intake page that captures
+  // name + email, mirroring the prebuilt scenario flow.
   const startLibrary = (kind: "kickoff" | "scope" | "tough" | "sales", situationId?: string) => {
-    const email = repEmail.trim();
-    const persona = personas.find((p) => p.id === personaId)!;
-    reset();
-
-    let cfg: Parameters<typeof setConfig>[0];
     if (kind === "kickoff") {
-      cfg = {
-        topics: "",
-        difficulty: "realistic",
-        persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
-        callType: "service",
-        practiceArea,
-        durationMin,
-        goal: buildGoal(practiceArea, "service", "", durationMin),
-        scenario: pickScenario(practiceArea, "service", ""),
-        personaId: persona.id,
-        personaAvatar: PERSONA_AVATARS[persona.id],
-        repEmail: email,
-        rubric: "service_kickoff",
-      };
-    } else if (kind === "scope" || kind === "sales") {
-      const sit = getLibrarySituation(situationId);
-      const variant = situationId ? pickLibraryVariant(situationId) : undefined;
-      if (!sit || !variant || !situationId) return;
-      const isSales = kind === "sales";
-      cfg = {
-        topics: "",
-        difficulty: "realistic",
-        persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
-        callType: isSales ? "discovery" : "service",
-        practiceArea,
-        durationMin,
-        goal: isSales
-          ? buildSalesLibraryGoal(situationId, variant.label, durationMin)
-          : buildScopeExpansionGoal(situationId, variant.label, durationMin),
-        scenario: variant.scenario,
-        personaId: persona.id,
-        personaAvatar: PERSONA_AVATARS[persona.id],
-        situationId,
-        situationLabel: sit.label,
-        variantId: variant.id,
-        internalPlaybook: variant.internalPlaybook,
-        repEmail: email,
-        rubric: sit.rubric,
-      };
-    } else {
-      // tough
-      const sit = situationId ? getToughSituation(situationId) : undefined;
-      const variant = situationId ? pickToughVariant(situationId) : undefined;
-      if (!sit || !variant || !situationId) return;
-      cfg = {
-        topics: "",
-        difficulty: "realistic",
-        persona: `${persona.name} — ${persona.role}. ${persona.blurb}`,
-        callType: "tough",
-        practiceArea,
-        durationMin,
-        goal: buildToughGoal(situationId, variant.label, durationMin),
-        scenario: variant.scenario,
-        personaId: persona.id,
-        personaAvatar: PERSONA_AVATARS[persona.id],
-        situationId,
-        situationLabel: sit.label,
-        variantId: variant.id,
-        internalPlaybook: variant.internalPlaybook,
-        repEmail: email,
-        rubric: "tough_recovery",
-      };
+      navigate("/library/kickoff");
+    } else if (situationId) {
+      navigate(`/library/${kind}/${situationId}`);
     }
-
-    setConfig(cfg);
-    sessionStorage.setItem("consultantName", consultantName.trim());
-    sessionStorage.setItem("repEmail", email);
-    sessionStorage.removeItem("scenarioId");
-    navigate("/call");
   };
 
   const currentArea = PRACTICE_AREAS.find((a) => a.id === practiceArea)!;
