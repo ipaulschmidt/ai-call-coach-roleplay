@@ -161,6 +161,8 @@ const Report = () => {
             call_type: config.callType,
             topics: config.topics || undefined,
             consultant_name: sessionStorage.getItem("consultantName") || undefined,
+            rep_email:
+              (config.repEmail || sessionStorage.getItem("repEmail") || "").trim() || undefined,
             transcript,
             evaluation: ev,
             scenario_id: sessionStorage.getItem("scenarioId") || undefined,
