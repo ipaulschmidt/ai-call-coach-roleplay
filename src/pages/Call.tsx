@@ -11,6 +11,8 @@ import prospectAvatar from "@/assets/prospect-avatar.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
+const SAVE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-session`;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 type Status = "idle" | "listening" | "thinking" | "speaking";
 
