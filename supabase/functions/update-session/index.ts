@@ -32,6 +32,7 @@ serve(async (req) => {
     const trim = (v: unknown, max: number) =>
       typeof v === "string" ? v.trim().slice(0, max) : "";
     const push_only = body?.push_only === true;
+    const score_only = body?.score_only === true;
     let consultant_name = trim(body.consultant_name, 200);
     let rep_email = trim(body.rep_email, 320);
 
@@ -39,7 +40,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    if (!push_only) {
+    if (!push_only && !score_only) {
       const { error } = await supabase
         .from("coaching_sessions")
         .update({
@@ -50,6 +51,66 @@ serve(async (req) => {
       if (error) throw error;
     }
 
+    // Optionally generate an evaluation for sessions that were never finalized
+    // (i.e. the user closed the tab before hitting "End call" and reaching /report).
+    let scoring: { ok: boolean; reason?: string } | null = null;
+    if (score_only) {
+      try {
+        const { data: row } = await supabase
+          .from("coaching_sessions")
+          .select("practice_area, persona, difficulty, call_type, topics, scenario_name, transcript, evaluation")
+          .eq("id", id)
+          .single();
+        if (!row) {
+          scoring = { ok: false, reason: "not_found" };
+        } else if (row.evaluation) {
+          scoring = { ok: false, reason: "already_scored" };
+        } else if (!Array.isArray(row.transcript) || row.transcript.length === 0) {
+          scoring = { ok: false, reason: "no_transcript" };
+        } else {
+          const text = (row.transcript as any[])
+            .map((t) => `${t.role === "user" ? "Consultant" : "Prospect"}: ${t.content}`)
+            .join("\n");
+          const evalResp = await fetch(
+            `${Deno.env.get("SUPABASE_URL")}/functions/v1/evaluate`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              },
+              body: JSON.stringify({
+                transcript: text,
+                config: {
+                  persona: row.persona,
+                  difficulty: row.difficulty,
+                  callType: row.call_type,
+                  topics: row.topics ?? "",
+                },
+              }),
+            },
+          );
+          const ev = await evalResp.json().catch(() => null);
+          if (!evalResp.ok || !ev?.evaluation) {
+            scoring = { ok: false, reason: "eval_failed" };
+          } else {
+            const { error: upErr } = await supabase
+              .from("coaching_sessions")
+              .update({ evaluation: ev.evaluation })
+              .eq("id", id);
+            if (upErr) {
+              scoring = { ok: false, reason: "save_failed" };
+            } else {
+              scoring = { ok: true };
+            }
+          }
+        }
+      } catch (e) {
+        console.error("update-session: scoring failed", e);
+        scoring = { ok: false, reason: "eval_failed" };
+      }
+    }
+
     // Re-push to HubSpot if we now have an email + a finished session.
     let hubspot: { logged: boolean; reason?: string; contactUrl?: string | null; contactName?: string | null } | null = null;
       try {
@@ -58,7 +119,7 @@ serve(async (req) => {
           .select("practice_area, persona, difficulty, call_type, topics, scenario_name, transcript, evaluation, consultant_name, rep_email")
           .eq("id", id)
           .single();
-        if (push_only) {
+        if (push_only || score_only) {
           rep_email = trim(row?.rep_email, 320);
           consultant_name = trim(row?.consultant_name, 200);
         }
@@ -102,7 +163,7 @@ serve(async (req) => {
         hubspot = { logged: false, reason: "api_error" };
       }
 
-    return new Response(JSON.stringify({ ok: true, hubspot }), {
+    return new Response(JSON.stringify({ ok: true, hubspot, scoring }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
