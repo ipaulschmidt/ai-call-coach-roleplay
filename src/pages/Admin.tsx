@@ -130,6 +130,59 @@ const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const startEdit = (r: Row) => {
+    setEditId(r.id);
+    setEditName(r.consultant_name || "");
+    setEditEmail(r.rep_email || "");
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditName("");
+    setEditEmail("");
+  };
+
+  const saveEdit = async () => {
+    if (!editId) return;
+    setSavingEdit(true);
+    try {
+      const resp = await fetch(UPDATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          id: editId,
+          consultant_name: editName.trim(),
+          rep_email: editEmail.trim(),
+        }),
+      });
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        throw new Error(j?.error || `Failed (${resp.status})`);
+      }
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === editId
+            ? { ...r, consultant_name: editName.trim() || null, rep_email: editEmail.trim() || null }
+            : r,
+        ),
+      );
+      toast.success("Updated");
+      cancelEdit();
+    } catch (e: any) {
+      toast.error(e.message || "Update failed");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const load = async (pwd: string) => {
     setLoading(true);
