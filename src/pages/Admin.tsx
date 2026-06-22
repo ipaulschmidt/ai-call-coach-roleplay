@@ -168,6 +168,7 @@ const Admin = () => {
         const j = await resp.json().catch(() => ({}));
         throw new Error(j?.error || `Failed (${resp.status})`);
       }
+      const result = await resp.json().catch(() => ({}));
       setRows((prev) =>
         prev.map((r) =>
           r.id === editId
@@ -175,7 +176,17 @@ const Admin = () => {
             : r,
         ),
       );
-      toast.success("Updated");
+      if (result?.hubspot?.logged) {
+        toast.success("Updated · pushed to HubSpot");
+      } else if (result?.hubspot?.reason === "no_contact") {
+        toast.success(`Updated · no HubSpot contact for ${editEmail.trim()}`);
+      } else if (result?.hubspot?.reason === "no_transcript") {
+        toast.success("Updated · no transcript to push");
+      } else if (result?.hubspot) {
+        toast.success("Updated · HubSpot push failed");
+      } else {
+        toast.success("Updated");
+      }
       cancelEdit();
     } catch (e: any) {
       toast.error(e.message || "Update failed");
