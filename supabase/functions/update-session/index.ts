@@ -46,7 +46,56 @@ serve(async (req) => {
       })
       .eq("id", id);
     if (error) throw error;
-    return new Response(JSON.stringify({ ok: true }), {
+
+    // Re-push to HubSpot if we now have an email + a finished session.
+    let hubspot: { logged: boolean; reason?: string; contactUrl?: string | null; contactName?: string | null } | null = null;
+    if (rep_email) {
+      try {
+        const { data: row } = await supabase
+          .from("coaching_sessions")
+          .select("practice_area, persona, difficulty, call_type, topics, scenario_name, transcript, evaluation")
+          .eq("id", id)
+          .single();
+        if (row && Array.isArray(row.transcript) && row.transcript.length > 0) {
+          const personaName = String(row.persona ?? "").split(" — ")[0] ?? "";
+          const durationMinutes = Math.max(
+            1,
+            Math.round((row.transcript as any[]).length / 2),
+          );
+          const resp = await fetch(
+            `${Deno.env.get("SUPABASE_URL")}/functions/v1/log-session`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              },
+              body: JSON.stringify({
+                repEmail: rep_email,
+                repName: consultant_name,
+                practiceArea: row.practice_area,
+                callType: row.call_type,
+                personaName,
+                difficulty: row.difficulty,
+                durationMinutes,
+                quizTopics: row.topics ?? "",
+                scenarioName: row.scenario_name ?? undefined,
+                transcript: row.transcript,
+                evaluation: row.evaluation,
+              }),
+            },
+          );
+          hubspot = await resp.json().catch(() => ({ logged: false, reason: "api_error" }));
+        } else {
+          hubspot = { logged: false, reason: "no_transcript" };
+        }
+      } catch (e) {
+        console.error("update-session: HubSpot push failed", e);
+        hubspot = { logged: false, reason: "api_error" };
+      }
+    }
+
+    return new Response(JSON.stringify({ ok: true, hubspot }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
