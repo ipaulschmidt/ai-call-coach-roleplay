@@ -31,32 +31,40 @@ serve(async (req) => {
     }
     const trim = (v: unknown, max: number) =>
       typeof v === "string" ? v.trim().slice(0, max) : "";
-    const consultant_name = trim(body.consultant_name, 200);
-    const rep_email = trim(body.rep_email, 320);
+    const push_only = body?.push_only === true;
+    let consultant_name = trim(body.consultant_name, 200);
+    let rep_email = trim(body.rep_email, 320);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const { error } = await supabase
-      .from("coaching_sessions")
-      .update({
-        consultant_name: consultant_name || null,
-        rep_email: rep_email || null,
-      })
-      .eq("id", id);
-    if (error) throw error;
+    if (!push_only) {
+      const { error } = await supabase
+        .from("coaching_sessions")
+        .update({
+          consultant_name: consultant_name || null,
+          rep_email: rep_email || null,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    }
 
     // Re-push to HubSpot if we now have an email + a finished session.
     let hubspot: { logged: boolean; reason?: string; contactUrl?: string | null; contactName?: string | null } | null = null;
-    if (rep_email) {
       try {
         const { data: row } = await supabase
           .from("coaching_sessions")
-          .select("practice_area, persona, difficulty, call_type, topics, scenario_name, transcript, evaluation")
+          .select("practice_area, persona, difficulty, call_type, topics, scenario_name, transcript, evaluation, consultant_name, rep_email")
           .eq("id", id)
           .single();
-        if (row && Array.isArray(row.transcript) && row.transcript.length > 0) {
+        if (push_only) {
+          rep_email = trim(row?.rep_email, 320);
+          consultant_name = trim(row?.consultant_name, 200);
+        }
+        if (!rep_email) {
+          hubspot = { logged: false, reason: "no_email" };
+        } else if (row && Array.isArray(row.transcript) && row.transcript.length > 0) {
           const personaName = String(row.persona ?? "").split(" — ")[0] ?? "";
           const durationMinutes = Math.max(
             1,
@@ -93,7 +101,6 @@ serve(async (req) => {
         console.error("update-session: HubSpot push failed", e);
         hubspot = { logged: false, reason: "api_error" };
       }
-    }
 
     return new Response(JSON.stringify({ ok: true, hubspot }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
