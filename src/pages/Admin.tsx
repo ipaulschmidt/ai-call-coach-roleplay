@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,11 +20,13 @@ interface Row {
   call_type: string;
   topics: string | null;
   consultant_name: string | null;
+  rep_email: string | null;
   transcript: Turn[];
   evaluation: Evaluation | null;
 }
 
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
+const UPDATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-session`;
 
 const scoreColor = (s: number) =>
   s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
@@ -128,6 +130,59 @@ const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const startEdit = (r: Row) => {
+    setEditId(r.id);
+    setEditName(r.consultant_name || "");
+    setEditEmail(r.rep_email || "");
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditName("");
+    setEditEmail("");
+  };
+
+  const saveEdit = async () => {
+    if (!editId) return;
+    setSavingEdit(true);
+    try {
+      const resp = await fetch(UPDATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          id: editId,
+          consultant_name: editName.trim(),
+          rep_email: editEmail.trim(),
+        }),
+      });
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        throw new Error(j?.error || `Failed (${resp.status})`);
+      }
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === editId
+            ? { ...r, consultant_name: editName.trim() || null, rep_email: editEmail.trim() || null }
+            : r,
+        ),
+      );
+      toast.success("Updated");
+      cancelEdit();
+    } catch (e: any) {
+      toast.error(e.message || "Update failed");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const load = async (pwd: string) => {
     setLoading(true);
@@ -268,6 +323,7 @@ const Admin = () => {
                       {areaLabel(r.practice_area)}
                     </span>
                     <span className="text-sm font-medium">{r.consultant_name || "Anonymous"}</span>
+                    <span className="text-xs text-muted-foreground">{r.rep_email || "no email"}</span>
                     <span className="text-xs text-muted-foreground">{r.persona.split(" — ")[0]}</span>
                     <span className="text-xs text-muted-foreground capitalize">{r.difficulty} · {r.call_type}</span>
                     <span className="ml-auto text-xs text-muted-foreground">
@@ -282,6 +338,40 @@ const Admin = () => {
                     </div>
                   )}
                 </button>
+                <div className="flex items-center justify-end gap-2 border-t border-border/60 px-4 py-2">
+                  {editId === r.id ? (
+                    <div className="flex flex-1 flex-wrap items-center gap-2">
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Consultant name"
+                        className="h-8 max-w-[220px] bg-background/50 text-sm"
+                      />
+                      <Input
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="rep@example.com"
+                        type="email"
+                        className="h-8 max-w-[280px] bg-background/50 text-sm"
+                      />
+                      <Button size="sm" onClick={saveEdit} disabled={savingEdit} className="h-8">
+                        {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-8">
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 gap-1.5 px-2 text-xs"
+                      onClick={() => startEdit(r)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit name / email
+                    </Button>
+                  )}
+                </div>
                 {open && (
                   <div className="space-y-5 border-t border-border/60 px-5 py-5">
                     {r.topics && (
