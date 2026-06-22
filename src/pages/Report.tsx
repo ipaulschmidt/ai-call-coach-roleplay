@@ -155,6 +155,7 @@ const Report = () => {
       try {
         const { data: inserted, error: insertErr } = await supabase.functions.invoke("save-session", {
           body: {
+            id: sessionStorage.getItem("draftSessionId") || undefined,
             practice_area: config.practiceArea,
             persona: config.persona,
             difficulty: config.difficulty,
@@ -173,6 +174,7 @@ const Report = () => {
         if (insertErr) throw insertErr;
         if (inserted?.error) throw new Error(inserted.error);
         if (inserted?.id) {
+          sessionStorage.removeItem("draftSessionId");
           navigate(`/report/${inserted.id}`, { replace: true });
         }
       } catch (saveErr) {

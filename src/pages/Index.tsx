@@ -175,6 +175,7 @@ const Index = () => {
       rubric,
     });
     sessionStorage.setItem("consultantName", consultantName.trim());
+    sessionStorage.removeItem("draftSessionId");
     sessionStorage.setItem("repEmail", email);
     sessionStorage.removeItem("scenarioId");
     navigate("/call");

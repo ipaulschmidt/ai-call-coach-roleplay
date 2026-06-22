@@ -11,6 +11,8 @@ import prospectAvatar from "@/assets/prospect-avatar.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
+const SAVE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-session`;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 type Status = "idle" | "listening" | "thinking" | "speaking";
 
@@ -144,6 +146,104 @@ const Call = () => {
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [transcript, interim]);
+
+  // ---- Persist the session as soon as the call screen loads, then keep it ----
+  // in sync so we don't lose the name/email/transcript if the user closes the
+  // tab or navigates away without clicking "End call".
+  const draftIdRef = useRef<string | null>(null);
+  const lastSavedTranscriptLenRef = useRef<number>(-1);
+  const finalizedRef = useRef(false);
+
+  useEffect(() => {
+    if (!config) return;
+    let cancelled = false;
+    const existing = sessionStorage.getItem("draftSessionId");
+    if (existing) {
+      draftIdRef.current = existing;
+      return;
+    }
+    (async () => {
+      try {
+        const resp = await fetch(SAVE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            apikey: SUPABASE_KEY,
+          },
+          body: JSON.stringify({
+            practice_area: config.practiceArea,
+            persona: config.persona,
+            difficulty: config.difficulty,
+            call_type: config.callType,
+            topics: config.topics || undefined,
+            consultant_name: sessionStorage.getItem("consultantName") || undefined,
+            rep_email:
+              (config.repEmail || sessionStorage.getItem("repEmail") || "").trim() || undefined,
+            scenario_id: sessionStorage.getItem("scenarioId") || undefined,
+            scenario_name:
+              config.scenarioName || sessionStorage.getItem("scenarioName") || undefined,
+            transcript: [],
+          }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!cancelled && data?.id) {
+          draftIdRef.current = data.id;
+          sessionStorage.setItem("draftSessionId", data.id);
+        }
+      } catch (e) {
+        console.warn("Failed to create draft session:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
+
+  // Push transcript updates to the draft row. We use `keepalive: true` so the
+  // request survives page unload.
+  const flushTranscript = useCallback(
+    (final = false) => {
+      const id = draftIdRef.current;
+      if (!id || finalizedRef.current) return;
+      const turns = transcriptRef.current;
+      if (!final && turns.length === lastSavedTranscriptLenRef.current) return;
+      lastSavedTranscriptLenRef.current = turns.length;
+      try {
+        fetch(SAVE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            apikey: SUPABASE_KEY,
+          },
+          body: JSON.stringify({ id, transcript: turns }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {}
+    },
+    [],
+  );
+
+  // Debounced auto-save while the call is active.
+  useEffect(() => {
+    if (!draftIdRef.current) return;
+    const t = setTimeout(() => flushTranscript(false), 1500);
+    return () => clearTimeout(t);
+  }, [transcript, flushTranscript]);
+
+  // Final flush on tab close / navigation away.
+  useEffect(() => {
+    const onHide = () => flushTranscript(true);
+    window.addEventListener("pagehide", onHide);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") onHide();
+    });
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+    };
+  }, [flushTranscript]);
 
   // Tick the timer every second
   useEffect(() => {
@@ -694,6 +794,7 @@ const Call = () => {
   const endCall = () => {
     // Hard-stop everything: TTS voice, STT recognition, mic stream, and any pending AI work
     endedRef.current = true;
+    finalizedRef.current = true;
     shouldListenRef.current = false;
     muteSTTRef.current = true;
     // SpeechSynthesis is a global window singleton — it survives navigation, so we must
