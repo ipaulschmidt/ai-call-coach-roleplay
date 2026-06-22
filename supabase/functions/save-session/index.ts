@@ -29,6 +29,7 @@ serve(async (req) => {
       call_type: str(body.call_type, 64),
       topics: body.topics ? str(body.topics, 2000) : null,
       consultant_name: body.consultant_name ? str(body.consultant_name, 200) : null,
+      rep_email: body.rep_email ? str(body.rep_email, 320) : null,
       transcript: body.transcript,
       evaluation: body.evaluation ?? null,
       scenario_id: typeof body.scenario_id === "string" ? body.scenario_id : null,
