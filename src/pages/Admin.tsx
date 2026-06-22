@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -135,6 +135,7 @@ const Admin = () => {
   const [editEmail, setEditEmail] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [pushingId, setPushingId] = useState<string | null>(null);
+  const [scoringId, setScoringId] = useState<string | null>(null);
 
   const startEdit = (r: Row) => {
     setEditId(r.id);
@@ -177,6 +178,44 @@ const Admin = () => {
       toast.error(e.message || "Push failed");
     } finally {
       setPushingId(null);
+    }
+  };
+
+  const generateScore = async (r: Row) => {
+    setScoringId(r.id);
+    try {
+      const resp = await fetch(UPDATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ id: r.id, score_only: true }),
+      });
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        throw new Error(j?.error || `Failed (${resp.status})`);
+      }
+      const result = await resp.json().catch(() => ({}));
+      if (result?.scoring?.ok) {
+        toast.success(
+          result?.hubspot?.logged ? "Scored · pushed to HubSpot" : "Scored",
+        );
+        // Refresh to pull the new evaluation into the row.
+        await load(password);
+      } else if (result?.scoring?.reason === "no_transcript") {
+        toast.error("No transcript to score");
+      } else if (result?.scoring?.reason === "already_scored") {
+        toast.message("Already scored — refresh to view");
+        await load(password);
+      } else {
+        toast.error("Scoring failed");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Scoring failed");
+    } finally {
+      setScoringId(null);
     }
   };
 
