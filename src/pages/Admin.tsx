@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,11 +20,13 @@ interface Row {
   call_type: string;
   topics: string | null;
   consultant_name: string | null;
+  rep_email: string | null;
   transcript: Turn[];
   evaluation: Evaluation | null;
 }
 
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
+const UPDATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-session`;
 
 const scoreColor = (s: number) =>
   s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
