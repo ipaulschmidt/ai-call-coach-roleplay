@@ -132,6 +132,7 @@ export default function Scenario() {
       rubric: (scenario.rubric as Rubric) || deriveDefaultRubric(scenario.call_type),
     });
     sessionStorage.setItem("consultantName", consultantName.trim());
+    sessionStorage.removeItem("draftSessionId");
     sessionStorage.setItem("repEmail", email);
     sessionStorage.setItem("scenarioId", scenario.id);
     sessionStorage.setItem("scenarioName", scenario.name);
