@@ -138,9 +138,11 @@ const Admin = () => {
 
   const startEdit = (r: Row) => {
     setEditId(r.id);
+    setOpenId(r.id);
     setEditName(r.consultant_name || "");
     setEditEmail(r.rep_email || "");
   };
+
 
   const cancelEdit = () => {
     setEditId(null);
