@@ -1156,7 +1156,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "warm_inbound",
         label: "Warm inbound lead",
-        scenario: "You filled out a form on the firm's website and booked this intro call. You have a real problem you're trying to solve and you're genuinely open, but you haven't thought it through in detail and you're not in a rush. You're feeling the consultant out as much as the solution.",
+        scenario: "A prospect filled out the 'talk to an expert' form on the website this week. They aren't getting enough qualified leads and suspect their marketing or HubSpot setup is underperforming. They're genuinely open but haven't thought it through in detail, and they're not in a rush. They're feeling you out as much as the solution.",
         internalPlaybook: PB([
           "Open friendly and curious — you reached out, so you're not cold",
           "Share your problem if the consultant creates space, but don't hand them a tidy summary — make them dig a little",
@@ -1168,7 +1168,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "skeptical_referral",
         label: "Skeptical referral",
-        scenario: "A peer referred you to the firm, so you took the call as a favor, but you're not convinced you need outside help. You're polite and a little guarded. You'll engage if the consultant earns it, but you won't volunteer much up front.",
+        scenario: "A peer referred this prospect to the firm, so they took the call as a favor, but they aren't convinced they need an agency. They're polite and a little guarded. They'll engage if you earn it, but they won't volunteer much up front.",
         internalPlaybook: PB([
           "Cordial but reserved — you're here on a referral, not out of urgency",
           "Give short answers until the consultant demonstrates they understand your world",
@@ -1180,7 +1180,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "vague_problem",
         label: "Knows something's wrong, can't name it",
-        scenario: "You booked the call because something in your business isn't working, but you can't articulate it cleanly yet. You're hoping the consultant can help you figure out what the actual problem is. You're engaged but a little scattered.",
+        scenario: "A prospect booked this call because their marketing results have stalled and they can't pinpoint why. They're hoping you can help them figure out what's actually holding growth back. They're engaged but a little scattered.",
         internalPlaybook: PB([
           "You genuinely struggle to name the problem — you feel the symptom, not the cause",
           "Respond well to structured, probing questions; get frustrated by 'so what do you need?'",
@@ -1200,7 +1200,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "sticker_shock",
         label: "Sticker shock",
-        scenario: "You like what the consultant is describing, but the price is higher than you expected and it stops you cold. You're not trying to negotiate — you're genuinely surprised and unsure it's worth it. You need to understand the value before you can get past the number.",
+        scenario: "A prospect is sold on the engagement, but the monthly retainer is higher than they expected and it stops them cold. They aren't negotiating — they're genuinely surprised and unsure it's worth it. They need to understand the value before they can get past the number.",
         internalPlaybook: PB([
           "React with honest surprise at the number, not aggression",
           "You're not bluffing for a discount — you truly need the value justified",
@@ -1212,7 +1212,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "budget_anchor",
         label: "Anchored to a lower budget",
-        scenario: "You have a specific (lower) number in your head for what this should cost, probably from a cheaper competitor or a past vendor. You keep anchoring back to it. You're friendly but firm that your budget is your budget.",
+        scenario: "A prospect has a specific, lower number in mind for what agency help should cost, probably from a cheaper shop or a past vendor. They keep anchoring back to it. They're friendly but firm that their budget is their budget.",
         internalPlaybook: PB([
           "Repeatedly reference your lower number as the reasonable price",
           "You're not hostile — you genuinely believe your anchor is fair",
@@ -1232,7 +1232,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "how_different",
         label: "'How are you different from [X]?'",
-        scenario: "You're evaluating a well-known competitor alongside the firm and you ask, directly, what makes them different. You're not hostile — you just genuinely want to understand why you'd pick one over the other. You'll notice if the consultant trashes the competitor instead of answering.",
+        scenario: "A prospect is evaluating another agency alongside the firm and asks, directly, what makes you different. They aren't hostile — they genuinely want to understand why they'd pick one over the other. They'll notice if you trash the competitor instead of answering.",
         internalPlaybook: PB([
           "Ask the differentiation question plainly and wait to see how they handle it",
           "Respect a confident, specific answer; lose respect if they bad-mouth the competitor",
@@ -1244,7 +1244,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "incumbent_loyalty",
         label: "Loyal to current vendor",
-        scenario: "You already work with someone in this space and you're mostly happy. You took this call out of curiosity. The consultant has to give you a real reason to consider switching without insulting a choice you already made.",
+        scenario: "This prospect already works with another agency and is mostly happy. They took this call out of curiosity. You have to give them a real reason to consider switching without insulting a choice they already made.",
         internalPlaybook: PB([
           "Defend your current vendor mildly — switching feels like a hassle and an admission",
           "Open up only if the consultant surfaces a gap you've quietly felt but not acted on",
@@ -1264,7 +1264,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "not_a_priority",
         label: "'It's just not a priority right now'",
-        scenario: "You see the value in what the consultant is describing, but it's not urgent for you. You have bigger fires. You're friendly and you might do this 'someday,' but today you're leaning toward doing nothing.",
+        scenario: "A prospect sees the value in what you're describing, but it isn't urgent for them. They have bigger fires. They're friendly and might do this someday, but today they're leaning toward doing nothing.",
         internalPlaybook: PB([
           "Be genuinely pleasant — you're not rejecting them, just deprioritizing",
           "Default toward 'maybe later' unless the consultant makes the cost of waiting real",
@@ -1276,7 +1276,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "weve_managed",
         label: "'We've managed fine so far'",
-        scenario: "You've gotten by without solving this problem and you're skeptical you need to now. You're a little proud of how you've made do. The consultant has to help you see what 'managing fine' is actually costing you.",
+        scenario: "This prospect has been getting by with a junior person running their marketing or HubSpot in-house, and they're skeptical they need an agency now. They're a little proud of how they've made do. You have to help them see what 'managing fine' is actually costing them.",
         internalPlaybook: PB([
           "Take quiet pride in having coped without help",
           "Downplay the pain at first — you've normalized it",
@@ -1296,7 +1296,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "need_to_check",
         label: "'I need to check with my team'",
-        scenario: "You're interested, but you're not the only decision-maker and you keep deferring to others who aren't on the call. You're not stalling — there genuinely are other people involved. The consultant has to help you move this forward without you in the room alone.",
+        scenario: "A prospect is interested, but they aren't the only decision-maker and keep deferring to others who aren't on the call. They aren't stalling — there genuinely are other people involved. You have to help move this forward without all the deciders in the room.",
         internalPlaybook: PB([
           "Repeatedly point to others who need to weigh in",
           "You're sincere — this really is a group decision, not an excuse",
@@ -1308,7 +1308,7 @@ export const SALES_SITUATIONS: LibrarySituation[] = [
       {
         id: "champion_no_authority",
         label: "Enthusiastic champion, no authority",
-        scenario: "You love this and you want it, but you don't control the budget — your boss does, and they're skeptical of new spend. You're an eager champion who needs the consultant to arm you for a fight you're not sure you'll win.",
+        scenario: "This prospect loves what they're hearing and wants it, but they don't control the budget — a VP or owner does, and that person is skeptical of agency spend. They're an eager champion who needs you to arm them for a fight they aren't sure they'll win.",
         internalPlaybook: PB([
           "Be visibly enthusiastic — you're already sold personally",
           "Worry openly about getting your boss to approve it",

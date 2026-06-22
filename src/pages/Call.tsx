@@ -772,7 +772,9 @@ const Call = () => {
                   <p className="text-sm leading-relaxed text-foreground/90">
                     {config.callType === "tough"
                       ? `You've been working with ${config.persona.split(" — ")[0]}. Here's the situation: ${config.scenario}`
-                      : config.scenario}
+                      : config.callType === "service"
+                        ? config.scenario
+                        : `Here's the situation: ${config.scenario}`}
                   </p>
                 </div>
               )}
