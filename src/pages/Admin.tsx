@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -134,6 +134,7 @@ const Admin = () => {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+  const [pushingId, setPushingId] = useState<string | null>(null);
 
   const startEdit = (r: Row) => {
     setEditId(r.id);
@@ -145,6 +146,36 @@ const Admin = () => {
     setEditId(null);
     setEditName("");
     setEditEmail("");
+  };
+
+  const pushToHubSpot = async (r: Row) => {
+    setPushingId(r.id);
+    try {
+      const resp = await fetch(UPDATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ id: r.id, push_only: true }),
+      });
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        throw new Error(j?.error || `Failed (${resp.status})`);
+      }
+      const result = await resp.json().catch(() => ({}));
+      const hs = result?.hubspot;
+      if (hs?.logged) toast.success("Pushed to HubSpot");
+      else if (hs?.reason === "no_email") toast.error("No rep email on this session");
+      else if (hs?.reason === "no_contact") toast.error(`No HubSpot contact for ${r.rep_email ?? "this email"}`);
+      else if (hs?.reason === "no_transcript") toast.error("No transcript to push");
+      else toast.error("HubSpot push failed");
+    } catch (e: any) {
+      toast.error(e.message || "Push failed");
+    } finally {
+      setPushingId(null);
+    }
   };
 
   const saveEdit = async () => {
@@ -373,14 +404,30 @@ const Admin = () => {
                       </Button>
                     </div>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 gap-1.5 px-2 text-xs"
-                      onClick={() => startEdit(r)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" /> Edit name / email
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 gap-1.5 px-2 text-xs"
+                        onClick={() => pushToHubSpot(r)}
+                        disabled={pushingId === r.id}
+                      >
+                        {pushingId === r.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="h-3.5 w-3.5" />
+                        )}
+                        Push to HubSpot
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 gap-1.5 px-2 text-xs"
+                        onClick={() => startEdit(r)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit name / email
+                      </Button>
+                    </>
                   )}
                 </div>
                 {open && (
