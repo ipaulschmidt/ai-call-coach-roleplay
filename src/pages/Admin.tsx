@@ -323,6 +323,7 @@ const Admin = () => {
                       {areaLabel(r.practice_area)}
                     </span>
                     <span className="text-sm font-medium">{r.consultant_name || "Anonymous"}</span>
+                    <span className="text-xs text-muted-foreground">{r.rep_email || "no email"}</span>
                     <span className="text-xs text-muted-foreground">{r.persona.split(" — ")[0]}</span>
                     <span className="text-xs text-muted-foreground capitalize">{r.difficulty} · {r.call_type}</span>
                     <span className="ml-auto text-xs text-muted-foreground">
@@ -337,6 +338,40 @@ const Admin = () => {
                     </div>
                   )}
                 </button>
+                <div className="flex items-center justify-end gap-2 border-t border-border/60 px-4 py-2">
+                  {editId === r.id ? (
+                    <div className="flex flex-1 flex-wrap items-center gap-2">
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Consultant name"
+                        className="h-8 max-w-[220px] bg-background/50 text-sm"
+                      />
+                      <Input
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="rep@example.com"
+                        type="email"
+                        className="h-8 max-w-[280px] bg-background/50 text-sm"
+                      />
+                      <Button size="sm" onClick={saveEdit} disabled={savingEdit} className="h-8">
+                        {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-8">
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 gap-1.5 px-2 text-xs"
+                      onClick={() => startEdit(r)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit name / email
+                    </Button>
+                  )}
+                </div>
                 {open && (
                   <div className="space-y-5 border-t border-border/60 px-5 py-5">
                     {r.topics && (
