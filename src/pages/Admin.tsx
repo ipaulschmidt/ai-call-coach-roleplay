@@ -404,14 +404,30 @@ const Admin = () => {
                       </Button>
                     </div>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 gap-1.5 px-2 text-xs"
-                      onClick={() => startEdit(r)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" /> Edit name / email
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 gap-1.5 px-2 text-xs"
+                        onClick={() => pushToHubSpot(r)}
+                        disabled={pushingId === r.id}
+                      >
+                        {pushingId === r.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="h-3.5 w-3.5" />
+                        )}
+                        Push to HubSpot
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 gap-1.5 px-2 text-xs"
+                        onClick={() => startEdit(r)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit name / email
+                      </Button>
+                    </>
                   )}
                 </div>
                 {open && (
