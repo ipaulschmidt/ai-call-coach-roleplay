@@ -382,59 +382,60 @@ const Admin = () => {
                     </div>
                   )}
                 </button>
-                <div className="flex items-center justify-end gap-2 border-t border-border/60 px-4 py-2">
-                  {editId === r.id ? (
-                    <div className="flex flex-1 flex-wrap items-center gap-2">
-                      <Input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        placeholder="Consultant name"
-                        className="h-8 max-w-[220px] bg-background/50 text-sm"
-                      />
-                      <Input
-                        value={editEmail}
-                        onChange={(e) => setEditEmail(e.target.value)}
-                        placeholder="rep@example.com"
-                        type="email"
-                        className="h-8 max-w-[280px] bg-background/50 text-sm"
-                      />
-                      <Button size="sm" onClick={saveEdit} disabled={savingEdit} className="h-8">
-                        {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-8">
-                        Cancel
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 gap-1.5 px-2 text-xs"
-                        onClick={() => pushToHubSpot(r)}
-                        disabled={pushingId === r.id}
-                      >
-                        {pushingId === r.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Upload className="h-3.5 w-3.5" />
-                        )}
-                        Push to HubSpot
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 gap-1.5 px-2 text-xs"
-                        onClick={() => startEdit(r)}
-                      >
-                        <Pencil className="h-3.5 w-3.5" /> Edit name / email
-                      </Button>
-                    </>
-                  )}
-                </div>
                 {open && (
                   <div className="space-y-5 border-t border-border/60 px-5 py-5">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {editId === r.id ? (
+                        <div className="flex flex-1 flex-wrap items-center gap-2">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder="Consultant name"
+                            className="h-8 max-w-[220px] bg-background/50 text-sm"
+                          />
+                          <Input
+                            value={editEmail}
+                            onChange={(e) => setEditEmail(e.target.value)}
+                            placeholder="rep@example.com"
+                            type="email"
+                            className="h-8 max-w-[280px] bg-background/50 text-sm"
+                          />
+                          <Button size="sm" onClick={saveEdit} disabled={savingEdit} className="h-8">
+                            {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-8">
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 gap-1.5 px-2 text-xs"
+                            onClick={() => pushToHubSpot(r)}
+                            disabled={pushingId === r.id}
+                          >
+                            {pushingId === r.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Upload className="h-3.5 w-3.5" />
+                            )}
+                            Push to HubSpot
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 gap-1.5 px-2 text-xs"
+                            onClick={() => startEdit(r)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Edit name / email
+                          </Button>
+                        </>
+                      )}
+                    </div>
                     {r.topics && (
+
                       <div>
                         <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Topics</div>
                         <div className="text-sm">{r.topics}</div>
