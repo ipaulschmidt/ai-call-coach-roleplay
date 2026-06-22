@@ -794,6 +794,7 @@ const Call = () => {
   const endCall = () => {
     // Hard-stop everything: TTS voice, STT recognition, mic stream, and any pending AI work
     endedRef.current = true;
+    finalizedRef.current = true;
     shouldListenRef.current = false;
     muteSTTRef.current = true;
     // SpeechSynthesis is a global window singleton — it survives navigation, so we must
