@@ -448,6 +448,22 @@ const Admin = () => {
                         </div>
                       ) : (
                         <>
+                          {!r.evaluation && r.transcript.length > 0 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 gap-1.5 px-2 text-xs"
+                              onClick={() => generateScore(r)}
+                              disabled={scoringId === r.id}
+                            >
+                              {scoringId === r.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3.5 w-3.5" />
+                              )}
+                              Generate score
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
