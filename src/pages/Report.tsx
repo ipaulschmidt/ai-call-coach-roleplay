@@ -149,9 +149,12 @@ const Report = () => {
       if (data?.error) throw new Error(data.error);
       const ev = data.evaluation as Evaluation;
       setEvaluation(ev);
-      // Fire HubSpot logging in the background — do not block the report.
-      void logToHubSpot(ev);
-      // Persist this coaching session and route to its unique URL
+      // Persist the score FIRST so it shows up in the admin area, THEN push
+      // to HubSpot. Previously these ran in parallel, so HubSpot could be
+      // pushed before (or without) the DB row being updated — and if save
+      // silently failed, the admin row stayed unscored, forcing a manual
+      // "Generate score" re-run that produced a different result.
+      let savedId: string | null = null;
       try {
         const { data: inserted, error: insertErr } = await supabase.functions.invoke("save-session", {
           body: {
@@ -174,11 +177,17 @@ const Report = () => {
         if (insertErr) throw insertErr;
         if (inserted?.error) throw new Error(inserted.error);
         if (inserted?.id) {
+          savedId = inserted.id;
           sessionStorage.removeItem("draftSessionId");
-          navigate(`/report/${inserted.id}`, { replace: true });
         }
       } catch (saveErr) {
         console.error("Failed to save session:", saveErr);
+        toast.error("Score generated but failed to save. Please retry.");
+      }
+      // Only push to HubSpot AFTER the score is safely persisted.
+      if (savedId) {
+        await logToHubSpot(ev);
+        navigate(`/report/${savedId}`, { replace: true });
       }
     } catch (e: any) {
       console.error(e);
