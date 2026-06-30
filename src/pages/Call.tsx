@@ -873,9 +873,7 @@ const Call = () => {
                   <p className="text-sm leading-relaxed text-foreground/90">
                     {config.callType === "tough"
                       ? `You've been working with ${config.persona.split(" — ")[0]}. Here's the situation: ${config.scenario}`
-                      : config.callType === "service"
-                        ? config.scenario
-                        : `Here's the situation: ${config.scenario}`}
+                      : `Here's the situation: ${config.scenario}`}
                   </p>
                 </div>
               )}
@@ -884,6 +882,11 @@ const Call = () => {
                   <Target className="h-3.5 w-3.5" /> Your goal · {config.durationMin} min target
                 </div>
                 <p className="text-sm leading-relaxed text-foreground/90">{config.goal}</p>
+                {config.isLibrary && config.rubric !== "sales_discovery" && (
+                  <p className="mt-2 text-xs italic leading-relaxed text-muted-foreground">
+                    This is improvised practice. There's no real account behind this scenario, so invent reasonable specifics (rates, hours, history) as needed. You're scored on how you handle the conversation, not on real account data.
+                  </p>
+                )}
               </div>
             </div>
             {!callStarted && (

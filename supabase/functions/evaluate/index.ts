@@ -112,6 +112,11 @@ Score the consultant on these five scope-protection / expansion metrics. For eac
 - relationship_warmth: Did the rep stay warm and consultative while doing the uncomfortable thing? Penalize rigidity, nickel-and-diming tone, or transactional coldness.
 - next_step: Did the rep land a specific, concrete next step? Vague = 30–50, concrete = 85+.
 
+IMPORTANT EVALUATION RULES FOR THIS RUBRIC:
+- This is an improvised roleplay. The consultant does not have a real SOW, account history, or rates in front of them. Do NOT penalize them for not citing specific account data, real ROI figures, or documented initiatives. Reward how they handle the moment, not whether they recalled real numbers.
+- Distinguish carefully between scope protection and expansion. A client who declines to pay a premium for low-value work in order to protect budget for high-value work is a scope-protection WIN, not a missed expansion. Do not score the consultant down for "missing an expansion signal" when the client was actually choosing to protect or reprioritize their existing scope. Only flag a missed expansion when there was a genuine, unaddressed opening to grow the engagement.
+- Read the client's stated preferences accurately. If the client says they would rather NOT pay a premium for a given type of work, do not record that as the client wanting to pay a premium. Quote the client accurately in your feedback.
+
 Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence summary.`;
 
     // Helper: build a 5-dimension tool whose dimensions map in fixed order
