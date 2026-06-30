@@ -94,6 +94,7 @@ export default function LibraryIntake() {
         personaAvatar: PERSONA_AVATARS[persona.id],
         repEmail: email,
         rubric: "service_kickoff",
+        isLibrary: true,
       };
     } else if (kind === "scope" || kind === "sales") {
       const sit = getLibrarySituation(situationId);
@@ -119,6 +120,7 @@ export default function LibraryIntake() {
         internalPlaybook: variant.internalPlaybook,
         repEmail: email,
         rubric: sit.rubric,
+        isLibrary: true,
       };
     } else if (kind === "tough") {
       const sit = situationId ? getToughSituation(situationId) : undefined;
@@ -141,6 +143,7 @@ export default function LibraryIntake() {
         internalPlaybook: variant.internalPlaybook,
         repEmail: email,
         rubric: "tough_recovery",
+        isLibrary: true,
       };
     }
     if (!cfg) return;
