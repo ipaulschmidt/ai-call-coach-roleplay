@@ -41,6 +41,7 @@ export interface SimConfig {
   repEmail?: string;
   scenarioName?: string;
   rubric?: Rubric;
+  isLibrary?: boolean;
 }
 
 export interface Turn {
@@ -986,7 +987,7 @@ export const SCOPE_SITUATIONS: LibrarySituation[] = [
       {
         id: "just_add_quick",
         label: "'Can you just add this real quick'",
-        scenario: "You're a happy client, three weeks into an engagement that's going well. On today's check-in you casually ask the consultant to fold in a 'small' new piece of work you assume is already covered. You're relaxed and friendly about it — to you it genuinely feels minor.",
+        scenario: "The client is happy, three weeks into an engagement that's going well. On today's check-in they casually ask you to fold in a 'small' new piece of work they assume is already covered. They're relaxed and friendly about it — to them it genuinely feels minor.",
         internalPlaybook: PB([
           "Frame the ask as tiny, reasonable, and obviously included — stay warm, never demanding",
           "If the consultant says yes immediately, happily accept and the moment passes (they failed the drill)",
@@ -998,7 +999,7 @@ export const SCOPE_SITUATIONS: LibrarySituation[] = [
       {
         id: "stacking_small",
         label: "Stacking small asks",
-        scenario: "Over the last few weeks you've slipped four or five small requests into Slack — each one tiny on its own. You have no idea they've added up to real hours. The consultant has brought it up gently on this call. You're not defensive, just genuinely unaware.",
+        scenario: "Over the last few weeks the client has slipped four or five small requests into Slack — each one tiny on its own. They have no idea they've added up to real hours. You've brought it up gently on this call. They're not defensive, just genuinely unaware.",
         internalPlaybook: PB([
           "You truly don't see the pattern at first — each ask felt trivial to you",
           "React with mild, friendly surprise when shown the stack with hours attached ('oh — I didn't realize that added up')",
@@ -1010,7 +1011,7 @@ export const SCOPE_SITUATIONS: LibrarySituation[] = [
       {
         id: "major_add_assumed",
         label: "Assuming a big add is included",
-        scenario: "You're treating a genuinely new initiative — a second brand, a new platform, a new region — as if it was always part of the original engagement. You're not trying to get one over on anyone; you honestly believe it was implied at kickoff.",
+        scenario: "The client is treating a genuinely new initiative — a second brand, a new platform, a new region — as if it was always part of the original engagement. They're not trying to get one over on anyone; they honestly believe it was implied at kickoff.",
         internalPlaybook: PB([
           "Sincerely believe this was always in scope — reference vague phrases from kickoff to support it",
           "Stay collaborative, not combative — you like this team and assume good faith",
@@ -1022,7 +1023,7 @@ export const SCOPE_SITUATIONS: LibrarySituation[] = [
       {
         id: "free_strategy",
         label: "Pushing for free strategy work",
-        scenario: "You keep asking the consultant for 'just a quick recommendation' or 'a quick strategy doc' on areas outside the current engagement. You genuinely value their brain — that's why you keep asking. You don't think of it as billable work.",
+        scenario: "The client keeps asking you for 'just a quick recommendation' or 'a quick strategy doc' on areas outside the current engagement. They genuinely value your brain — that's why they keep asking. They don't think of it as billable work.",
         internalPlaybook: PB([
           "Flatter the consultant's expertise — your asks come from real admiration, not manipulation",
           "Push back lightly on the idea that thinking/strategy is billable ('it's just your opinion')",
@@ -1045,7 +1046,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "happy_wrap_open",
         label: "Happy wrap-up, obvious next project",
-        scenario: "A fixed-fee project just wrapped and you're genuinely pleased with the result. There's an obvious logical next piece of work, but you haven't thought about it yet — the project is 'done' in your mind and you're about to move on to other things.",
+        scenario: "A fixed-fee project just wrapped and the client is genuinely pleased with the result. There's an obvious logical next piece of work, but they haven't thought about it yet — the project is 'done' in their mind and they're about to move on to other things.",
         internalPlaybook: PB([
           "Warm and satisfied — you'd happily recommend the firm",
           "Don't volunteer a next project; mentally you've closed this out",
@@ -1057,7 +1058,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "results_then_quiet",
         label: "Good results, then going quiet",
-        scenario: "The project delivered real results and you're happy, but you're busy and about to let the relationship go quiet — not because anything's wrong, just because there's no active work. The consultant has one call to keep the momentum alive.",
+        scenario: "The project delivered real results and the client is happy, but they're busy and about to let the relationship go quiet — not because anything's wrong, just because there's no active work. You have one call to keep the momentum alive.",
         internalPlaybook: PB([
           "Friendly but distracted — other priorities are pulling at you",
           "You won't initiate more work; inertia is toward going quiet",
@@ -1069,7 +1070,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "budget_uncertain",
         label: "Interested but budget-uncertain",
-        scenario: "You can see there's more valuable work to do after this project, and you're interested — but you're not sure you have budget approved for it, and you're hesitant to commit. You're friendly and open, just cautious about money.",
+        scenario: "The client can see there's more valuable work to do after this project, and they're interested — but they're not sure they have budget approved for it, and they're hesitant to commit. They're friendly and open, just cautious about money.",
         internalPlaybook: PB([
           "Genuinely interested in the next step but anchored on budget uncertainty",
           "Open to options if the consultant helps you build the internal case rather than just quoting a price",
@@ -1089,7 +1090,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "offhand_pain",
         label: "Offhand mention of a real pain",
-        scenario: "You're on a routine check-in for the current work, which is going fine. Partway through, you mention — offhand, almost in passing — a frustration in another part of your business that happens to map to something the firm could help with. You're not asking for help; you're just venting for a second.",
+        scenario: "You're on a routine check-in for the current work, which is going fine. Partway through, the client mentions — offhand, almost in passing — a frustration in another part of their business that happens to map to something the firm could help with. They're not asking for help; they're just venting for a second.",
         internalPlaybook: PB([
           "Drop the pain casually and move on — you're not expecting them to act on it",
           "If the consultant catches it and connects it thoughtfully, engage with genuine interest",
@@ -1101,7 +1102,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "complaining_about_tool",
         label: "Complaining about a gap the firm could fill",
-        scenario: "Mid-call you complain about a tool, process, or vendor that isn't working for you — something adjacent to what the firm does. You're just blowing off steam about it; you haven't connected it to the firm as a possible solution.",
+        scenario: "Mid-call the client complains about a tool, process, or vendor that isn't working for them — something adjacent to what the firm does. They're just blowing off steam about it; they haven't connected it to the firm as a possible solution.",
         internalPlaybook: PB([
           "Frame it as a complaint, not a request — you're not hinting, you're just frustrated",
           "Be pleasantly surprised if the consultant connects your complaint to something they could actually help with",
@@ -1121,7 +1122,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "things_going_well",
         label: "Everything's going well — now what?",
-        scenario: "You're in a quarterly business review and you're happy with the relationship. You ask, sincerely, 'so what do you think we should be focused on next?' You're genuinely open to the firm's point of view on where the relationship goes from here.",
+        scenario: "You're in a quarterly business review and the client is happy with the relationship. They ask, sincerely, 'so what do you think we should be focused on next?' They're genuinely open to the firm's point of view on where the relationship goes from here.",
         internalPlaybook: PB([
           "Warm, trusting, and open — you're inviting their strategic opinion",
           "You'll respect a real point of view far more than a menu of services",
@@ -1133,7 +1134,7 @@ export const EXPANSION_SITUATIONS: LibrarySituation[] = [
       {
         id: "leadership_pressure",
         label: "Under pressure to show bigger impact",
-        scenario: "In the QBR you mention your own leadership is asking you to show bigger results from this investment. You're not unhappy with the firm — you just have pressure from above and you're hoping they can help you tell a stronger story or go bigger.",
+        scenario: "In the QBR the client mentions their own leadership is asking them to show bigger results from this investment. They're not unhappy with the firm — they just have pressure from above and they're hoping you can help them tell a stronger story or go bigger.",
         internalPlaybook: PB([
           "Friendly but carrying real internal pressure — you need ammunition for your own bosses",
           "Open to expanding scope IF it clearly maps to the impact your leadership wants to see",
