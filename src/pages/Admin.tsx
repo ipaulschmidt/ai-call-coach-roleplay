@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload, Sparkles } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import logo from "@/assets/smartbug-logo.png";
 import type { Evaluation, Rubric, Turn } from "@/lib/session";
 import { deriveDefaultRubric } from "@/lib/session";
@@ -29,6 +40,7 @@ interface Row {
 
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
 const UPDATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-session`;
+const DELETE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-session`;
 
 const scoreColor = (s: number) =>
   s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
@@ -163,6 +175,7 @@ const Admin = () => {
   const [savingEdit, setSavingEdit] = useState(false);
   const [pushingId, setPushingId] = useState<string | null>(null);
   const [scoringId, setScoringId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const startEdit = (r: Row) => {
     setEditId(r.id);
@@ -247,6 +260,36 @@ const Admin = () => {
   };
 
   const saveEdit = async () => {
+    return _saveEditImpl();
+  };
+
+  const deleteSession = async (r: Row) => {
+    setDeletingId(r.id);
+    try {
+      const resp = await fetch(DELETE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ id: r.id }),
+      });
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        throw new Error(j?.error || `Failed (${resp.status})`);
+      }
+      setRows((prev) => prev.filter((row) => row.id !== r.id));
+      if (openId === r.id) setOpenId(null);
+      toast.success("Session deleted");
+    } catch (e: any) {
+      toast.error(e.message || "Delete failed");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const _saveEditImpl = async () => {
     if (!editId) return;
     setSavingEdit(true);
     try {
@@ -513,6 +556,43 @@ const Admin = () => {
                           >
                             <Pencil className="h-3.5 w-3.5" /> Edit name / email
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 gap-1.5 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                disabled={deletingId === r.id}
+                              >
+                                {deletingId === r.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                )}
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this session?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This permanently removes the transcript, score, and metadata for{" "}
+                                  <b>{r.consultant_name || "Anonymous"}</b>
+                                  {r.rep_email ? ` (${r.rep_email})` : ""} from{" "}
+                                  {new Date(r.created_at).toLocaleString()}. This can't be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteSession(r)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete session
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </>
                       )}
                     </div>
