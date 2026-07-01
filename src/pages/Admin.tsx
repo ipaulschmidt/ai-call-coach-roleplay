@@ -556,6 +556,43 @@ const Admin = () => {
                           >
                             <Pencil className="h-3.5 w-3.5" /> Edit name / email
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 gap-1.5 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                disabled={deletingId === r.id}
+                              >
+                                {deletingId === r.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                )}
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this session?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This permanently removes the transcript, score, and metadata for{" "}
+                                  <b>{r.consultant_name || "Anonymous"}</b>
+                                  {r.rep_email ? ` (${r.rep_email})` : ""} from{" "}
+                                  {new Date(r.created_at).toLocaleString()}. This can't be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteSession(r)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete session
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </>
                       )}
                     </div>
