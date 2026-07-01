@@ -260,7 +260,7 @@ const Admin = () => {
   };
 
   const saveEdit = async () => {
-    return _saveEdit();
+    return _saveEditImpl();
   };
 
   const deleteSession = async (r: Row) => {
@@ -289,7 +289,7 @@ const Admin = () => {
     }
   };
 
-  const _saveEdit = async () => {
+  const _saveEditImpl = async () => {
     if (!editId) return;
     setSavingEdit(true);
     try {
