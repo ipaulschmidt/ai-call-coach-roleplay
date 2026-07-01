@@ -34,6 +34,8 @@ serve(async (req) => {
         patch.rep_email = body.rep_email ? str(body.rep_email, 320) : null;
       if (body.scenario_name !== undefined)
         patch.scenario_name = body.scenario_name ? str(body.scenario_name, 200) : null;
+      if (body.rubric !== undefined)
+        patch.rubric = body.rubric ? str(body.rubric, 64) : null;
       const { error } = await supabase
         .from("coaching_sessions")
         .update(patch)
@@ -67,6 +69,7 @@ serve(async (req) => {
       evaluation: body.evaluation ?? null,
       scenario_id: typeof body.scenario_id === "string" ? body.scenario_id : null,
       scenario_name: body.scenario_name ? str(body.scenario_name, 200) : null,
+      rubric: body.rubric ? str(body.rubric, 64) : null,
     };
 
     const { data, error } = await supabase
