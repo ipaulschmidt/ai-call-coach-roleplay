@@ -30,7 +30,7 @@ serve(async (req) => {
     );
     const { data, error } = await supabase
       .from("coaching_sessions")
-      .select("practice_area, persona, difficulty, call_type, topics, transcript, evaluation, scenario_name")
+      .select("practice_area, persona, difficulty, call_type, topics, transcript, evaluation, scenario_name, rubric")
       .eq("id", id)
       .maybeSingle();
     if (error) throw error;

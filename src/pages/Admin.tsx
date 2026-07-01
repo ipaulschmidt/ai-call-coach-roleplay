@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import logo from "@/assets/smartbug-logo.png";
-import type { Evaluation, Turn } from "@/lib/session";
+import type { Evaluation, Rubric, Turn } from "@/lib/session";
+import { deriveDefaultRubric } from "@/lib/session";
 import ScenariosTab from "@/components/admin/ScenariosTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -23,6 +24,7 @@ interface Row {
   rep_email: string | null;
   transcript: Turn[];
   evaluation: Evaluation | null;
+  rubric?: string | null;
 }
 
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
@@ -42,24 +44,49 @@ const ScoreTile = ({ label, score, notes }: { label: string; score: number; note
   </div>
 );
 
-const ScoresGrid = ({ ev, callType }: { ev: Evaluation; callType: string }) => {
-  const isTough = callType === "tough";
-  const labels = isTough
-    ? {
-        sales_strategy: "Empathy",
-        technical_delivery: "Options Offered",
-        consultant_confidence: "Firmness",
-        agenda_setting: "Scope & Money",
-        next_steps: "Next Step",
-      }
-    : {
-        sales_strategy: "Sales Strategy",
-        technical_delivery: "Technical Delivery",
-        consultant_confidence: "Consultant Confidence",
-        agenda_setting: "Agenda Setting",
-        active_listening: "Active Listening",
-        next_steps: "Next Steps",
-      };
+const RUBRIC_LABEL_SETS: Record<Rubric, {
+  sales_strategy: string;
+  technical_delivery: string;
+  consultant_confidence: string;
+  agenda_setting: string;
+  active_listening?: string;
+  next_steps: string;
+}> = {
+  sales_discovery: {
+    sales_strategy: "Sales Strategy",
+    technical_delivery: "Technical Delivery",
+    consultant_confidence: "Consultant Confidence",
+    agenda_setting: "Agenda Setting",
+    active_listening: "Active Listening",
+    next_steps: "Next Steps",
+  },
+  service_kickoff: {
+    sales_strategy: "Expectation Setting",
+    technical_delivery: "Scope Clarity",
+    consultant_confidence: "Value Translation",
+    agenda_setting: "Delivery Confidence",
+    next_steps: "Concrete Next Step",
+  },
+  scope_expansion: {
+    sales_strategy: "Holding Scope",
+    technical_delivery: "Spotting the Opportunity",
+    consultant_confidence: "Materializing It",
+    agenda_setting: "Relationship Warmth",
+    next_steps: "Concrete Next Step",
+  },
+  tough_recovery: {
+    sales_strategy: "Empathy & Acknowledgement",
+    technical_delivery: "Options Offered",
+    consultant_confidence: "Firmness & Boundaries",
+    agenda_setting: "Scope & Money Protected",
+    next_steps: "Concrete Next Step",
+  },
+};
+
+const ScoresGrid = ({ ev, callType, rubric }: { ev: Evaluation; callType: string; rubric?: string | null }) => {
+  const resolvedRubric: Rubric = (rubric as Rubric | undefined) ?? deriveDefaultRubric(callType);
+  const isSalesDiscovery = resolvedRubric === "sales_discovery";
+  const labels = RUBRIC_LABEL_SETS[resolvedRubric];
   return (
     <div>
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Scores</div>
@@ -68,7 +95,7 @@ const ScoresGrid = ({ ev, callType }: { ev: Evaluation; callType: string }) => {
         <ScoreTile label={labels.technical_delivery} score={ev.technical_delivery.score} notes={ev.technical_delivery.notes} />
         <ScoreTile label={labels.consultant_confidence} score={ev.consultant_confidence.score} notes={ev.consultant_confidence.notes} />
         {ev.agenda_setting && <ScoreTile label={labels.agenda_setting} score={ev.agenda_setting.score} notes={ev.agenda_setting.notes} />}
-        {!isTough && ev.active_listening && <ScoreTile label={(labels as any).active_listening} score={ev.active_listening.score} notes={ev.active_listening.notes} />}
+        {isSalesDiscovery && ev.active_listening && labels.active_listening && <ScoreTile label={labels.active_listening} score={ev.active_listening.score} notes={ev.active_listening.notes} />}
         {ev.next_steps && <ScoreTile label={labels.next_steps} score={ev.next_steps.score} notes={ev.next_steps.notes} />}
       </div>
     </div>
@@ -502,7 +529,7 @@ const Admin = () => {
                           <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Summary</div>
                           <p className="text-sm">{r.evaluation.summary}</p>
                         </div>
-                        <ScoresGrid ev={r.evaluation} callType={r.call_type} />
+                        <ScoresGrid ev={r.evaluation} callType={r.call_type} rubric={r.rubric} />
                         {r.call_type !== "tough" && <SignalsBlock ev={r.evaluation} />}
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>

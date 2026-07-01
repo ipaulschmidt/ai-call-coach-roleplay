@@ -164,6 +164,7 @@ const Report = () => {
             difficulty: config.difficulty,
             call_type: config.callType,
             topics: config.topics || undefined,
+            rubric: config.rubric || undefined,
             consultant_name: sessionStorage.getItem("consultantName") || undefined,
             rep_email:
               (config.repEmail || sessionStorage.getItem("repEmail") || "").trim() || undefined,
