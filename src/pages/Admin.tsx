@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload, Sparkles } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import logo from "@/assets/smartbug-logo.png";
 import type { Evaluation, Rubric, Turn } from "@/lib/session";
 import { deriveDefaultRubric } from "@/lib/session";
@@ -29,6 +40,7 @@ interface Row {
 
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
 const UPDATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-session`;
+const DELETE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-session`;
 
 const scoreColor = (s: number) =>
   s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
@@ -163,6 +175,7 @@ const Admin = () => {
   const [savingEdit, setSavingEdit] = useState(false);
   const [pushingId, setPushingId] = useState<string | null>(null);
   const [scoringId, setScoringId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const startEdit = (r: Row) => {
     setEditId(r.id);
