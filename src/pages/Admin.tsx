@@ -260,6 +260,36 @@ const Admin = () => {
   };
 
   const saveEdit = async () => {
+    return _saveEdit();
+  };
+
+  const deleteSession = async (r: Row) => {
+    setDeletingId(r.id);
+    try {
+      const resp = await fetch(DELETE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ id: r.id }),
+      });
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        throw new Error(j?.error || `Failed (${resp.status})`);
+      }
+      setRows((prev) => prev.filter((row) => row.id !== r.id));
+      if (openId === r.id) setOpenId(null);
+      toast.success("Session deleted");
+    } catch (e: any) {
+      toast.error(e.message || "Delete failed");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const _saveEdit = async () => {
     if (!editId) return;
     setSavingEdit(true);
     try {
