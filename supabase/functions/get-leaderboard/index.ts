@@ -61,7 +61,7 @@ serve(async (req) => {
 
     let q = supabase
       .from("coaching_sessions")
-      .select("id, created_at, consultant_name, rep_email, call_type, rubric, scenario_name, evaluation")
+      .select("id, created_at, consultant_name, rep_email, call_type, rubric, scenario_name, practice_area, difficulty, persona, evaluation")
       .order("created_at", { ascending: false });
     if (rangeStart) q = q.gte("created_at", rangeStart);
     if (rangeEnd) q = q.lte("created_at", rangeEnd);
@@ -88,7 +88,9 @@ serve(async (req) => {
 
     const groups = new Map<string, any[]>();
     for (const row of data || []) {
-      const key = ((row as any).rep_email || (row as any).consultant_name || "anon").toString().toLowerCase();
+      // Skip anonymous sessions (no email AND no consultant_name) from the leaderboard entirely.
+      if (!(row as any).rep_email && !(row as any).consultant_name) continue;
+      const key = ((row as any).rep_email || (row as any).consultant_name).toString().toLowerCase();
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(row);
     }
@@ -144,6 +146,17 @@ serve(async (req) => {
         score_trend: trend,
         distinct_scenario_types: typeKeys.size,
         last_active: sorted[0].created_at,
+        sessions: sorted.map((s) => ({
+          id: s.id,
+          created_at: s.created_at,
+          call_type: s.call_type,
+          rubric: s.rubric,
+          scenario_name: s.scenario_name,
+          practice_area: s.practice_area,
+          difficulty: s.difficulty,
+          persona: s.persona,
+          overall_score: overallScore(s.evaluation),
+        })),
       };
     });
 
