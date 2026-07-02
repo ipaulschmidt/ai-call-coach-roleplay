@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, TrendingDown, Minus, Copy } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 const LEADERBOARD_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leaderboard`;
+
+interface SessionEntry {
+  id: string;
+  created_at: string;
+  call_type: string | null;
+  rubric: string | null;
+  scenario_name: string | null;
+  practice_area: string | null;
+  difficulty: string | null;
+  persona: string | null;
+  overall_score: number | null;
+}
 
 interface LeaderboardRow {
   key: string;
@@ -28,6 +42,7 @@ interface LeaderboardRow {
   score_trend: "up" | "down" | "flat" | null;
   distinct_scenario_types: number;
   last_active: string;
+  sessions?: SessionEntry[];
 }
 
 type Preset = "all" | "7d" | "30d" | "custom";
@@ -38,7 +53,6 @@ type SortKey =
   | "sessions_last_7_days"
   | "avg_overall_score"
   | "most_recent_score"
-  | "score_trend"
   | "distinct_scenario_types"
   | "last_active";
 
@@ -69,12 +83,44 @@ function computeRange(preset: Preset, customStart: string, customEnd: string): {
 const scoreColor = (s: number | null) =>
   s === null ? "text-muted-foreground" : s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
 
-const TrendIcon = ({ trend }: { trend: LeaderboardRow["score_trend"] }) => {
-  if (trend === "up") return <TrendingUp className="h-4 w-4 text-primary" aria-label="Up" />;
-  if (trend === "down") return <TrendingDown className="h-4 w-4 text-destructive" aria-label="Down" />;
-  if (trend === "flat") return <Minus className="h-4 w-4 text-muted-foreground" aria-label="Flat" />;
-  return <span className="text-xs text-muted-foreground">—</span>;
-};
+const HeaderWithTip = ({
+  label,
+  tip,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  tip: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) => (
+  <div className="flex items-center gap-1 cursor-pointer select-none" onClick={onClick}>
+    <span>{label}</span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center text-muted-foreground/70 hover:text-foreground"
+          aria-label={`About ${label}`}
+        >
+          <Info className="h-3 w-3" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs text-xs">{tip}</TooltipContent>
+    </Tooltip>
+    {active ? (
+      dir === "asc" ? <ArrowUp className="ml-0.5 h-3 w-3" /> : <ArrowDown className="ml-0.5 h-3 w-3" />
+    ) : (
+      <ArrowUpDown className="ml-0.5 h-3 w-3 opacity-40" />
+    )}
+  </div>
+);
+
+const areaLabel = (a: string | null) =>
+  !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
 
 interface Props {
   password: string;
@@ -88,6 +134,7 @@ const LeaderboardTab = ({ password }: Props) => {
   const [loading, setLoading] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("total_sessions");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const range = computeRange(preset, customStart, customEnd);
 
@@ -125,15 +172,13 @@ const LeaderboardTab = ({ password }: Props) => {
   }, [preset, customStart, customEnd]);
 
   const sortedRows = useMemo(() => {
-    const arr = [...rows];
-    const trendRank: Record<string, number> = { up: 3, flat: 2, down: 1 };
+    // Extra defensive filter: never show anonymous rows on the leaderboard.
+    const arr = rows.filter((r) => (r.email && r.email.trim()) || (r.name && r.name.toLowerCase() !== "anonymous"));
     arr.sort((a, b) => {
       const av: any = (a as any)[sortKey];
       const bv: any = (b as any)[sortKey];
       let cmp = 0;
-      if (sortKey === "score_trend") {
-        cmp = (trendRank[av || ""] || 0) - (trendRank[bv || ""] || 0);
-      } else if (sortKey === "last_active") {
+      if (sortKey === "last_active") {
         cmp = new Date(av).getTime() - new Date(bv).getTime();
       } else if (typeof av === "number" && typeof bv === "number") {
         cmp = av - bv;
@@ -166,7 +211,9 @@ const LeaderboardTab = ({ password }: Props) => {
   };
 
   const slackText = useMemo(() => {
-    const sorted = [...rows].sort((a, b) => b.total_sessions - a.total_sessions);
+    const sorted = rows
+      .filter((r) => (r.email && r.email.trim()) || (r.name && r.name.toLowerCase() !== "anonymous"))
+      .sort((a, b) => b.total_sessions - a.total_sessions);
     const lines = sorted.map(
       (r, i) => `${i + 1}. ${r.name} — ${r.total_sessions} roleplay${r.total_sessions === 1 ? "" : "s"}`,
     );
