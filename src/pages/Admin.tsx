@@ -152,210 +152,17 @@ const Admin = () => {
               </Card>
             )}
             <div className="space-y-3">
-          {rows.map((r) => {
-            const open = openId === r.id;
-            return (
-              <Card key={r.id} className="border-border/60 bg-card/60">
-                <button
-                  className="flex w-full items-center justify-between gap-4 p-4 text-left"
-                  onClick={() => setOpenId(open ? null : r.id)}
-                >
-                  <div className="flex flex-1 flex-wrap items-center gap-3">
-                    {open ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
-                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs text-primary">
-                      {areaLabel(r.practice_area)}
-                    </span>
-                    <span className="text-sm font-medium">{r.consultant_name || "Anonymous"}</span>
-                    <span className="text-xs text-muted-foreground">{r.rep_email || "no email"}</span>
-                    <span className="text-xs text-muted-foreground">{r.persona.split(" — ")[0]}</span>
-                    <span className="text-xs text-muted-foreground capitalize">{r.difficulty} · {r.call_type}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {new Date(r.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  {r.evaluation && (
-                    <div className="hidden text-right text-xs md:block">
-                      <div>Strategy <b>{r.evaluation.sales_strategy.score}</b></div>
-                      <div>Technical <b>{r.evaluation.technical_delivery.score}</b></div>
-                      <div>Confidence <b>{r.evaluation.consultant_confidence.score}</b></div>
-                    </div>
-                  )}
-                </button>
-                {open && (
-                  <div className="space-y-5 border-t border-border/60 px-5 py-5">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      {editId === r.id ? (
-                        <div className="flex flex-1 flex-wrap items-center gap-2">
-                          <Input
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            placeholder="Consultant name"
-                            className="h-8 max-w-[220px] bg-background/50 text-sm"
-                          />
-                          <Input
-                            value={editEmail}
-                            onChange={(e) => setEditEmail(e.target.value)}
-                            placeholder="rep@example.com"
-                            type="email"
-                            className="h-8 max-w-[280px] bg-background/50 text-sm"
-                          />
-                          <Button size="sm" onClick={saveEdit} disabled={savingEdit} className="h-8">
-                            {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-8">
-                            Cancel
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          {!r.evaluation && r.transcript.length > 0 && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 gap-1.5 px-2 text-xs"
-                              onClick={() => generateScore(r)}
-                              disabled={scoringId === r.id}
-                            >
-                              {scoringId === r.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Sparkles className="h-3.5 w-3.5" />
-                              )}
-                              Generate score
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 gap-1.5 px-2 text-xs"
-                            onClick={() => pushToHubSpot(r)}
-                            disabled={pushingId === r.id}
-                          >
-                            {pushingId === r.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Upload className="h-3.5 w-3.5" />
-                            )}
-                            Push to HubSpot
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 gap-1.5 px-2 text-xs"
-                            onClick={() => startEdit(r)}
-                          >
-                            <Pencil className="h-3.5 w-3.5" /> Edit name / email
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 gap-1.5 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                disabled={deletingId === r.id}
-                              >
-                                {deletingId === r.id ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                )}
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete this session?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This permanently removes the transcript, score, and metadata for{" "}
-                                  <b>{r.consultant_name || "Anonymous"}</b>
-                                  {r.rep_email ? ` (${r.rep_email})` : ""} from{" "}
-                                  {new Date(r.created_at).toLocaleString()}. This can't be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteSession(r)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete session
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </>
-                      )}
-                    </div>
-                    {r.topics && (
-
-                      <div>
-                        <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Topics</div>
-                        <div className="text-sm">{r.topics}</div>
-                      </div>
-                    )}
-                    {r.evaluation && (
-                      <>
-                        <div>
-                          <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Summary</div>
-                          <p className="text-sm">{r.evaluation.summary}</p>
-                        </div>
-                        <ScoresGrid ev={r.evaluation} callType={r.call_type} rubric={r.rubric} />
-                        {r.call_type !== "tough" && <SignalsBlock ev={r.evaluation} />}
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Wins</div>
-                            <ul className="list-disc space-y-1 pl-5 text-sm">
-                              {r.evaluation.wins.map((w, i) => <li key={i}>{w}</li>)}
-                            </ul>
-                          </div>
-                          <div>
-                            <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Corrective feedback</div>
-                            <ul className="list-disc space-y-1 pl-5 text-sm">
-                              {r.evaluation.corrective_feedback.map((w, i) => <li key={i}>{w}</li>)}
-                            </ul>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    <div>
-                      <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Transcript</div>
-                      <div className="mb-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="h-7 gap-1.5 px-2 text-xs"
-                          onClick={async () => {
-                            const text = r.transcript
-                              .map((t) => `${t.role === "user" ? "Consultant" : "Prospect"}: ${t.content}`)
-                              .join("\n\n");
-                            try {
-                              await navigator.clipboard.writeText(text);
-                              toast.success("Transcript copied");
-                            } catch {
-                              toast.error("Couldn't copy — select and copy manually");
-                            }
-                          }}
-                          disabled={r.transcript.length === 0}
-                        >
-                          <Copy className="h-3.5 w-3.5" /> Copy transcript
-                        </Button>
-                      </div>
-                      <div className="space-y-2 rounded-md border border-border/60 bg-background/40 p-3 text-sm">
-                        {r.transcript.map((t, i) => (
-                          <div key={i}>
-                            <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                              {t.role === "user" ? "Consultant" : "Prospect"}
-                            </span>
-                            <p className="mt-0.5">{t.content}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </Card>
-            );
-          })}
+          {rows.map((r) => (
+            <SessionCard
+              key={r.id}
+              row={r}
+              password={password}
+              open={openId === r.id}
+              onToggle={() => setOpenId(openId === r.id ? null : r.id)}
+              onRowUpdate={updateRow}
+              onRowDeleted={removeRow}
+            />
+          ))}
             </div>
           </TabsContent>
 
@@ -364,7 +171,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="leaderboard">
-            <LeaderboardTab password={password} />
+            <LeaderboardTab password={password} rows={rows} onRowUpdate={updateRow} onRowDeleted={removeRow} />
           </TabsContent>
         </Tabs>
       </div>
