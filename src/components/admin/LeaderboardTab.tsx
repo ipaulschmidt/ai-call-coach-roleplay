@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, ExternalLink, Info } from "lucide-react";
+import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import SessionCard, { type Row } from "@/components/admin/SessionCard";
 
 const LEADERBOARD_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leaderboard`;
 
@@ -124,9 +124,12 @@ const areaLabel = (a: string | null) =>
 
 interface Props {
   password: string;
+  rows: Row[];
+  onRowUpdate: (row: Row) => void;
+  onRowDeleted: (id: string) => void;
 }
 
-const LeaderboardTab = ({ password }: Props) => {
+const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: Props) => {
   const [preset, setPreset] = useState<Preset>("all");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
@@ -135,6 +138,7 @@ const LeaderboardTab = ({ password }: Props) => {
   const [sortKey, setSortKey] = useState<SortKey>("total_sessions");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [openSessionId, setOpenSessionId] = useState<string | null>(null);
 
   const range = computeRange(preset, customStart, customEnd);
 
