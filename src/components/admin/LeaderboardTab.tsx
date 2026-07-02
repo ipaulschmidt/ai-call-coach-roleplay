@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, ExternalLink, Info } from "lucide-react";
+import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import SessionCard, { type Row } from "@/components/admin/SessionCard";
 
 const LEADERBOARD_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leaderboard`;
 
@@ -124,9 +124,12 @@ const areaLabel = (a: string | null) =>
 
 interface Props {
   password: string;
+  rows: Row[];
+  onRowUpdate: (row: Row) => void;
+  onRowDeleted: (id: string) => void;
 }
 
-const LeaderboardTab = ({ password }: Props) => {
+const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: Props) => {
   const [preset, setPreset] = useState<Preset>("all");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
@@ -135,6 +138,7 @@ const LeaderboardTab = ({ password }: Props) => {
   const [sortKey, setSortKey] = useState<SortKey>("total_sessions");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [openSessionId, setOpenSessionId] = useState<string | null>(null);
 
   const range = computeRange(preset, customStart, customEnd);
 
@@ -339,35 +343,40 @@ const LeaderboardTab = ({ password }: Props) => {
                           {(!r.sessions || r.sessions.length === 0) ? (
                             <div className="text-xs text-muted-foreground">No sessions.</div>
                           ) : (
-                            <div className="space-y-1.5">
-                              {r.sessions.map((s) => (
-                                <Link
-                                  key={s.id}
-                                  to={`/report/${s.id}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex flex-wrap items-center gap-3 rounded-md border border-border/50 bg-background/40 px-3 py-2 text-sm hover:border-primary/50 hover:bg-background/60"
-                                >
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(s.created_at).toLocaleString()}
-                                  </span>
-                                  {s.practice_area && (
-                                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
-                                      {areaLabel(s.practice_area)}
-                                    </span>
-                                  )}
-                                  <span className="text-xs text-muted-foreground capitalize">
-                                    {s.difficulty ? `${s.difficulty} · ` : ""}{s.call_type}
-                                  </span>
-                                  {s.scenario_name && (
-                                    <span className="text-xs">{s.scenario_name}</span>
-                                  )}
-                                  <span className={`ml-auto text-sm font-semibold ${scoreColor(s.overall_score)}`}>
-                                    {s.overall_score !== null ? `${s.overall_score}/100` : "—"}
-                                  </span>
-                                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                                </Link>
-                              ))}
+                            <div className="space-y-2">
+                              {r.sessions.map((s) => {
+                                const full = allRows.find((row) => row.id === s.id);
+                                if (!full) {
+                                  return (
+                                    <div
+                                      key={s.id}
+                                      className="rounded-md border border-border/50 bg-background/40 px-3 py-2 text-xs text-muted-foreground"
+                                    >
+                                      {new Date(s.created_at).toLocaleString()} — {s.scenario_name || s.call_type}
+                                      {s.overall_score !== null && (
+                                        <span className={`ml-2 font-semibold ${scoreColor(s.overall_score)}`}>
+                                          {s.overall_score}/100
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                }
+                                return (
+                                  <SessionCard
+                                    key={s.id}
+                                    row={full}
+                                    password={password}
+                                    open={openSessionId === s.id}
+                                    onToggle={() => setOpenSessionId(openSessionId === s.id ? null : s.id)}
+                                    onRowUpdate={onRowUpdate}
+                                    onRowDeleted={(id) => {
+                                      if (openSessionId === id) setOpenSessionId(null);
+                                      onRowDeleted(id);
+                                    }}
+                                    compact
+                                  />
+                                );
+                              })}
                             </div>
                           )}
                         </div>
