@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, TrendingDown, Minus, Copy } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 const LEADERBOARD_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leaderboard`;
+
+interface SessionEntry {
+  id: string;
+  created_at: string;
+  call_type: string | null;
+  rubric: string | null;
+  scenario_name: string | null;
+  practice_area: string | null;
+  difficulty: string | null;
+  persona: string | null;
+  overall_score: number | null;
+}
 
 interface LeaderboardRow {
   key: string;
@@ -28,6 +42,7 @@ interface LeaderboardRow {
   score_trend: "up" | "down" | "flat" | null;
   distinct_scenario_types: number;
   last_active: string;
+  sessions?: SessionEntry[];
 }
 
 type Preset = "all" | "7d" | "30d" | "custom";
@@ -38,7 +53,6 @@ type SortKey =
   | "sessions_last_7_days"
   | "avg_overall_score"
   | "most_recent_score"
-  | "score_trend"
   | "distinct_scenario_types"
   | "last_active";
 
@@ -69,12 +83,44 @@ function computeRange(preset: Preset, customStart: string, customEnd: string): {
 const scoreColor = (s: number | null) =>
   s === null ? "text-muted-foreground" : s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
 
-const TrendIcon = ({ trend }: { trend: LeaderboardRow["score_trend"] }) => {
-  if (trend === "up") return <TrendingUp className="h-4 w-4 text-primary" aria-label="Up" />;
-  if (trend === "down") return <TrendingDown className="h-4 w-4 text-destructive" aria-label="Down" />;
-  if (trend === "flat") return <Minus className="h-4 w-4 text-muted-foreground" aria-label="Flat" />;
-  return <span className="text-xs text-muted-foreground">—</span>;
-};
+const HeaderWithTip = ({
+  label,
+  tip,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  tip: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) => (
+  <div className="flex items-center gap-1 cursor-pointer select-none" onClick={onClick}>
+    <span>{label}</span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center text-muted-foreground/70 hover:text-foreground"
+          aria-label={`About ${label}`}
+        >
+          <Info className="h-3 w-3" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs text-xs">{tip}</TooltipContent>
+    </Tooltip>
+    {active ? (
+      dir === "asc" ? <ArrowUp className="ml-0.5 h-3 w-3" /> : <ArrowDown className="ml-0.5 h-3 w-3" />
+    ) : (
+      <ArrowUpDown className="ml-0.5 h-3 w-3 opacity-40" />
+    )}
+  </div>
+);
+
+const areaLabel = (a: string | null) =>
+  !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
 
 interface Props {
   password: string;
@@ -88,6 +134,7 @@ const LeaderboardTab = ({ password }: Props) => {
   const [loading, setLoading] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("total_sessions");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const range = computeRange(preset, customStart, customEnd);
 
@@ -125,15 +172,13 @@ const LeaderboardTab = ({ password }: Props) => {
   }, [preset, customStart, customEnd]);
 
   const sortedRows = useMemo(() => {
-    const arr = [...rows];
-    const trendRank: Record<string, number> = { up: 3, flat: 2, down: 1 };
+    // Extra defensive filter: never show anonymous rows on the leaderboard.
+    const arr = rows.filter((r) => (r.email && r.email.trim()) || (r.name && r.name.toLowerCase() !== "anonymous"));
     arr.sort((a, b) => {
       const av: any = (a as any)[sortKey];
       const bv: any = (b as any)[sortKey];
       let cmp = 0;
-      if (sortKey === "score_trend") {
-        cmp = (trendRank[av || ""] || 0) - (trendRank[bv || ""] || 0);
-      } else if (sortKey === "last_active") {
+      if (sortKey === "last_active") {
         cmp = new Date(av).getTime() - new Date(bv).getTime();
       } else if (typeof av === "number" && typeof bv === "number") {
         cmp = av - bv;
@@ -166,7 +211,9 @@ const LeaderboardTab = ({ password }: Props) => {
   };
 
   const slackText = useMemo(() => {
-    const sorted = [...rows].sort((a, b) => b.total_sessions - a.total_sessions);
+    const sorted = rows
+      .filter((r) => (r.email && r.email.trim()) || (r.name && r.name.toLowerCase() !== "anonymous"))
+      .sort((a, b) => b.total_sessions - a.total_sessions);
     const lines = sorted.map(
       (r, i) => `${i + 1}. ${r.name} — ${r.total_sessions} roleplay${r.total_sessions === 1 ? "" : "s"}`,
     );
@@ -183,6 +230,7 @@ const LeaderboardTab = ({ password }: Props) => {
   };
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-wrap items-end gap-2">
@@ -241,37 +289,94 @@ const LeaderboardTab = ({ password }: Props) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("name")}>Name{sortIcon("name")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("email")}>Email{sortIcon("email")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("total_sessions")}>Total{sortIcon("total_sessions")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("sessions_last_7_days")}>Last 7d{sortIcon("sessions_last_7_days")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("avg_overall_score")}>Avg{sortIcon("avg_overall_score")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("most_recent_score")}>Most recent{sortIcon("most_recent_score")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("score_trend")}>Trend{sortIcon("score_trend")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("distinct_scenario_types")}>Types{sortIcon("distinct_scenario_types")}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("last_active")}>Last active{sortIcon("last_active")}</TableHead>
+              <TableHead><HeaderWithTip label="Name" tip="Click a name to expand and see every session this rep has recorded." active={sortKey==="name"} dir={sortDir} onClick={() => toggleSort("name")} /></TableHead>
+              <TableHead><HeaderWithTip label="Email" tip="Rep email captured on the session (if provided)." active={sortKey==="email"} dir={sortDir} onClick={() => toggleSort("email")} /></TableHead>
+              <TableHead><HeaderWithTip label="Total sessions" tip="Total number of coaching sessions this rep completed within the selected date range." active={sortKey==="total_sessions"} dir={sortDir} onClick={() => toggleSort("total_sessions")} /></TableHead>
+              <TableHead><HeaderWithTip label="Last 7 days" tip="Sessions this rep completed in the last 7 days (from today), independent of the range filter above." active={sortKey==="sessions_last_7_days"} dir={sortDir} onClick={() => toggleSort("sessions_last_7_days")} /></TableHead>
+              <TableHead><HeaderWithTip label="Avg score" tip="Average overall score across all of this rep's sessions in range. Each session's overall score is the mean of its five scored dimensions (e.g. Sales Strategy, Technical Delivery, Consultant Confidence, Agenda Setting, Next Steps). Scored out of 100." active={sortKey==="avg_overall_score"} dir={sortDir} onClick={() => toggleSort("avg_overall_score")} /></TableHead>
+              <TableHead><HeaderWithTip label="Most recent score" tip="Overall score from this rep's most recent completed session. Same 0–100 scale as Avg." active={sortKey==="most_recent_score"} dir={sortDir} onClick={() => toggleSort("most_recent_score")} /></TableHead>
+              <TableHead><HeaderWithTip label="Scenario types" tip="Number of distinct scenarios / call types this rep has practiced. Higher = more range across discovery, service, scope, tough calls, etc." active={sortKey==="distinct_scenario_types"} dir={sortDir} onClick={() => toggleSort("distinct_scenario_types")} /></TableHead>
+              <TableHead><HeaderWithTip label="Last active" tip="Date of this rep's most recent session in the selected range." active={sortKey==="last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading && rows.length === 0 && (
-              <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Loading…</TableCell></TableRow>
             )}
             {!loading && sortedRows.length === 0 && (
-              <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">No sessions in this range.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">No sessions in this range.</TableCell></TableRow>
             )}
-            {sortedRows.map((r) => (
-              <TableRow key={r.key}>
-                <TableCell className="font-medium">{r.name}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.email || "—"}</TableCell>
-                <TableCell>{r.total_sessions}</TableCell>
-                <TableCell>{r.sessions_last_7_days}</TableCell>
-                <TableCell className={scoreColor(r.avg_overall_score)}>{r.avg_overall_score ?? "—"}</TableCell>
-                <TableCell className={scoreColor(r.most_recent_score)}>{r.most_recent_score ?? "—"}</TableCell>
-                <TableCell><TrendIcon trend={r.score_trend} /></TableCell>
-                <TableCell>{r.distinct_scenario_types}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{new Date(r.last_active).toLocaleDateString()}</TableCell>
-              </TableRow>
-            ))}
+            {sortedRows.map((r) => {
+              const isOpen = expandedKey === r.key;
+              return (
+                <>
+                  <TableRow
+                    key={r.key}
+                    className="cursor-pointer"
+                    onClick={() => setExpandedKey(isOpen ? null : r.key)}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-1.5">
+                        {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                        <span>{r.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{r.email || "—"}</TableCell>
+                    <TableCell>{r.total_sessions}</TableCell>
+                    <TableCell>{r.sessions_last_7_days}</TableCell>
+                    <TableCell className={scoreColor(r.avg_overall_score)}>{r.avg_overall_score ?? "—"}</TableCell>
+                    <TableCell className={scoreColor(r.most_recent_score)}>{r.most_recent_score ?? "—"}</TableCell>
+                    <TableCell>{r.distinct_scenario_types}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{new Date(r.last_active).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                  {isOpen && (
+                    <TableRow key={r.key + "-expand"} className="bg-background/30 hover:bg-background/30">
+                      <TableCell colSpan={8} className="p-0">
+                        <div className="border-t border-border/60 px-5 py-4">
+                          <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+                            Sessions ({r.sessions?.length ?? 0})
+                          </div>
+                          {(!r.sessions || r.sessions.length === 0) ? (
+                            <div className="text-xs text-muted-foreground">No sessions.</div>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {r.sessions.map((s) => (
+                                <Link
+                                  key={s.id}
+                                  to={`/report/${s.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex flex-wrap items-center gap-3 rounded-md border border-border/50 bg-background/40 px-3 py-2 text-sm hover:border-primary/50 hover:bg-background/60"
+                                >
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(s.created_at).toLocaleString()}
+                                  </span>
+                                  {s.practice_area && (
+                                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
+                                      {areaLabel(s.practice_area)}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-muted-foreground capitalize">
+                                    {s.difficulty ? `${s.difficulty} · ` : ""}{s.call_type}
+                                  </span>
+                                  {s.scenario_name && (
+                                    <span className="text-xs">{s.scenario_name}</span>
+                                  )}
+                                  <span className={`ml-auto text-sm font-semibold ${scoreColor(s.overall_score)}`}>
+                                    {s.overall_score !== null ? `${s.overall_score}/100` : "—"}
+                                  </span>
+                                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              );
+            })}
           </TableBody>
         </Table>
       </Card>
@@ -286,6 +391,7 @@ const LeaderboardTab = ({ password }: Props) => {
         <pre className="whitespace-pre-wrap rounded-md border border-border/60 bg-background/40 p-3 text-xs">{slackText}</pre>
       </Card>
     </div>
+    </TooltipProvider>
   );
 };
 
