@@ -1,168 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Loader2, ChevronDown, ChevronRight, Copy, Pencil, Upload, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import logo from "@/assets/smartbug-logo.png";
-import type { Evaluation, Rubric, Turn } from "@/lib/session";
-import { deriveDefaultRubric } from "@/lib/session";
 import ScenariosTab from "@/components/admin/ScenariosTab";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
+import SessionCard, { type Row } from "@/components/admin/SessionCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-interface Row {
-  id: string;
-  created_at: string;
-  practice_area: string;
-  persona: string;
-  difficulty: string;
-  call_type: string;
-  topics: string | null;
-  consultant_name: string | null;
-  rep_email: string | null;
-  transcript: Turn[];
-  evaluation: Evaluation | null;
-  rubric?: string | null;
-}
-
 const ADMIN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-sessions`;
-const UPDATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-session`;
-const DELETE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-session`;
-
-const scoreColor = (s: number) =>
-  s >= 85 ? "text-primary" : s >= 70 ? "text-foreground" : "text-destructive";
-
-const ScoreTile = ({ label, score, notes }: { label: string; score: number; notes: string }) => (
-  <div className="rounded-md border border-border/60 bg-background/40 p-3">
-    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-    <div className={`mt-1 text-2xl font-bold ${scoreColor(score)}`}>
-      {score}
-      <span className="text-sm text-muted-foreground">/100</span>
-    </div>
-    {notes && <p className="mt-1.5 text-xs text-muted-foreground">{notes}</p>}
-  </div>
-);
-
-const RUBRIC_LABEL_SETS: Record<Rubric, {
-  sales_strategy: string;
-  technical_delivery: string;
-  consultant_confidence: string;
-  agenda_setting: string;
-  active_listening?: string;
-  next_steps: string;
-}> = {
-  sales_discovery: {
-    sales_strategy: "Sales Strategy",
-    technical_delivery: "Technical Delivery",
-    consultant_confidence: "Consultant Confidence",
-    agenda_setting: "Agenda Setting",
-    active_listening: "Active Listening",
-    next_steps: "Next Steps",
-  },
-  service_kickoff: {
-    sales_strategy: "Expectation Setting",
-    technical_delivery: "Scope Clarity",
-    consultant_confidence: "Value Translation",
-    agenda_setting: "Delivery Confidence",
-    next_steps: "Concrete Next Step",
-  },
-  scope_expansion: {
-    sales_strategy: "Holding Scope",
-    technical_delivery: "Spotting the Opportunity",
-    consultant_confidence: "Materializing It",
-    agenda_setting: "Relationship Warmth",
-    next_steps: "Concrete Next Step",
-  },
-  tough_recovery: {
-    sales_strategy: "Empathy & Acknowledgement",
-    technical_delivery: "Options Offered",
-    consultant_confidence: "Firmness & Boundaries",
-    agenda_setting: "Scope & Money Protected",
-    next_steps: "Concrete Next Step",
-  },
-};
-
-const ScoresGrid = ({ ev, callType, rubric }: { ev: Evaluation; callType: string; rubric?: string | null }) => {
-  const resolvedRubric: Rubric = (rubric as Rubric | undefined) ?? deriveDefaultRubric(callType);
-  const isSalesDiscovery = resolvedRubric === "sales_discovery";
-  const labels = RUBRIC_LABEL_SETS[resolvedRubric];
-  return (
-    <div>
-      <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Scores</div>
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
-        <ScoreTile label={labels.sales_strategy} score={ev.sales_strategy.score} notes={ev.sales_strategy.notes} />
-        <ScoreTile label={labels.technical_delivery} score={ev.technical_delivery.score} notes={ev.technical_delivery.notes} />
-        <ScoreTile label={labels.consultant_confidence} score={ev.consultant_confidence.score} notes={ev.consultant_confidence.notes} />
-        {ev.agenda_setting && <ScoreTile label={labels.agenda_setting} score={ev.agenda_setting.score} notes={ev.agenda_setting.notes} />}
-        {isSalesDiscovery && ev.active_listening && labels.active_listening && <ScoreTile label={labels.active_listening} score={ev.active_listening.score} notes={ev.active_listening.notes} />}
-        {ev.next_steps && <ScoreTile label={labels.next_steps} score={ev.next_steps.score} notes={ev.next_steps.notes} />}
-      </div>
-    </div>
-  );
-};
-
-const SignalsBlock = ({ ev }: { ev: Evaluation }) => {
-  const tc = ev.technical_delivery.topics_covered ?? [];
-  const tm = ev.technical_delivery.topics_missed ?? [];
-  const fillers = ev.consultant_confidence.filler_words ?? [];
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <div className="rounded-md border border-border/60 bg-background/40 p-3">
-        <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Topic coverage</div>
-        {tc.length > 0 && (
-          <div className="mb-2">
-            <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Covered</div>
-            <div className="flex flex-wrap gap-1.5">
-              {tc.map((t) => (
-                <span key={t} className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">{t}</span>
-              ))}
-            </div>
-          </div>
-        )}
-        {tm.length > 0 && (
-          <div>
-            <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Missed</div>
-            <div className="flex flex-wrap gap-1.5">
-              {tm.map((t) => (
-                <span key={t} className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs text-destructive">{t}</span>
-              ))}
-            </div>
-          </div>
-        )}
-        {tc.length === 0 && tm.length === 0 && (
-          <div className="text-xs text-muted-foreground">No topic coverage data.</div>
-        )}
-      </div>
-      <div className="rounded-md border border-border/60 bg-background/40 p-3 text-sm">
-        <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Delivery signals</div>
-        <div><span className="text-muted-foreground">Pacing: </span><span className="font-medium capitalize">{ev.consultant_confidence.pacing}</span></div>
-        <div><span className="text-muted-foreground">Filler words: </span>{fillers.length ? <span className="font-mono text-xs">{fillers.join(", ")}</span> : <span className="text-muted-foreground">none detected</span>}</div>
-        {ev.next_steps && (
-          <div className="mt-1">
-            <span className="text-muted-foreground">Times offered: </span>
-            <span className="font-medium">{ev.next_steps.offered_times ? "Yes" : "No"}</span>
-            <span className="text-muted-foreground"> · Meeting booked: </span>
-            <span className="font-medium">{ev.next_steps.secured_meeting ? "Yes" : "No"}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const Admin = () => {
   const [password, setPassword] = useState("");
@@ -170,172 +20,13 @@ const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [pushingId, setPushingId] = useState<string | null>(null);
-  const [scoringId, setScoringId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const startEdit = (r: Row) => {
-    setEditId(r.id);
-    setOpenId(r.id);
-    setEditName(r.consultant_name || "");
-    setEditEmail(r.rep_email || "");
+  const updateRow = (updated: Row) => {
+    setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
-
-
-  const cancelEdit = () => {
-    setEditId(null);
-    setEditName("");
-    setEditEmail("");
-  };
-
-  const pushToHubSpot = async (r: Row) => {
-    setPushingId(r.id);
-    try {
-      const resp = await fetch(UPDATE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-password": password,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ id: r.id, push_only: true }),
-      });
-      if (!resp.ok) {
-        const j = await resp.json().catch(() => ({}));
-        throw new Error(j?.error || `Failed (${resp.status})`);
-      }
-      const result = await resp.json().catch(() => ({}));
-      const hs = result?.hubspot;
-      if (hs?.logged) toast.success("Pushed to HubSpot");
-      else if (hs?.reason === "no_email") toast.error("No rep email on this session");
-      else if (hs?.reason === "no_contact") toast.error(`No HubSpot contact for ${r.rep_email ?? "this email"}`);
-      else if (hs?.reason === "no_transcript") toast.error("No transcript to push");
-      else toast.error("HubSpot push failed");
-    } catch (e: any) {
-      toast.error(e.message || "Push failed");
-    } finally {
-      setPushingId(null);
-    }
-  };
-
-  const generateScore = async (r: Row) => {
-    setScoringId(r.id);
-    try {
-      const resp = await fetch(UPDATE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-password": password,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ id: r.id, score_only: true }),
-      });
-      if (!resp.ok) {
-        const j = await resp.json().catch(() => ({}));
-        throw new Error(j?.error || `Failed (${resp.status})`);
-      }
-      const result = await resp.json().catch(() => ({}));
-      if (result?.scoring?.ok) {
-        toast.success(
-          result?.hubspot?.logged ? "Scored · pushed to HubSpot" : "Scored",
-        );
-        // Refresh to pull the new evaluation into the row.
-        await load(password);
-      } else if (result?.scoring?.reason === "no_transcript") {
-        toast.error("No transcript to score");
-      } else if (result?.scoring?.reason === "already_scored") {
-        toast.message("Already scored — refresh to view");
-        await load(password);
-      } else {
-        toast.error("Scoring failed");
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Scoring failed");
-    } finally {
-      setScoringId(null);
-    }
-  };
-
-  const saveEdit = async () => {
-    return _saveEditImpl();
-  };
-
-  const deleteSession = async (r: Row) => {
-    setDeletingId(r.id);
-    try {
-      const resp = await fetch(DELETE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-password": password,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ id: r.id }),
-      });
-      if (!resp.ok) {
-        const j = await resp.json().catch(() => ({}));
-        throw new Error(j?.error || `Failed (${resp.status})`);
-      }
-      setRows((prev) => prev.filter((row) => row.id !== r.id));
-      if (openId === r.id) setOpenId(null);
-      toast.success("Session deleted");
-    } catch (e: any) {
-      toast.error(e.message || "Delete failed");
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const _saveEditImpl = async () => {
-    if (!editId) return;
-    setSavingEdit(true);
-    try {
-      const resp = await fetch(UPDATE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-password": password,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          id: editId,
-          consultant_name: editName.trim(),
-          rep_email: editEmail.trim(),
-        }),
-      });
-      if (!resp.ok) {
-        const j = await resp.json().catch(() => ({}));
-        throw new Error(j?.error || `Failed (${resp.status})`);
-      }
-      const result = await resp.json().catch(() => ({}));
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === editId
-            ? { ...r, consultant_name: editName.trim() || null, rep_email: editEmail.trim() || null }
-            : r,
-        ),
-      );
-      if (result?.hubspot?.logged) {
-        toast.success("Updated · pushed to HubSpot");
-      } else if (result?.hubspot?.reason === "no_contact") {
-        toast.success(`Updated · no HubSpot contact for ${editEmail.trim()}`);
-      } else if (result?.hubspot?.reason === "no_transcript") {
-        toast.success("Updated · no transcript to push");
-      } else if (result?.hubspot) {
-        toast.success("Updated · HubSpot push failed");
-      } else {
-        toast.success("Updated");
-      }
-      cancelEdit();
-    } catch (e: any) {
-      toast.error(e.message || "Update failed");
-    } finally {
-      setSavingEdit(false);
-    }
+  const removeRow = (id: string) => {
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    if (openId === id) setOpenId(null);
   };
 
   const load = async (pwd: string) => {
@@ -374,9 +65,6 @@ const Admin = () => {
       void load(saved);
     }
   }, []);
-
-  const areaLabel = (a: string) =>
-    a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
 
   if (!authed) {
     return (
