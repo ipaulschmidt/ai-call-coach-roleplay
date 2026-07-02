@@ -43,3 +43,6 @@ verify_jwt = false
 
 [functions.classify-rubric]
 verify_jwt = false
+
+[functions.get-leaderboard]
+verify_jwt = false

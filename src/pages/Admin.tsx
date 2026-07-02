@@ -21,6 +21,7 @@ import logo from "@/assets/smartbug-logo.png";
 import type { Evaluation, Rubric, Turn } from "@/lib/session";
 import { deriveDefaultRubric } from "@/lib/session";
 import ScenariosTab from "@/components/admin/ScenariosTab";
+import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Row {
@@ -445,6 +446,7 @@ const Admin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
+            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sessions">
@@ -671,6 +673,10 @@ const Admin = () => {
 
           <TabsContent value="scenarios">
             <ScenariosTab password={password} />
+          </TabsContent>
+
+          <TabsContent value="leaderboard">
+            <LeaderboardTab password={password} />
           </TabsContent>
         </Tabs>
       </div>
