@@ -81,7 +81,9 @@ serve(async (req) => {
         .select("consultant_name, rep_email, created_at")
         .gte("created_at", new Date(sevenDaysAgo).toISOString());
       for (const r of recent || []) {
-        const key = (r.rep_email || r.consultant_name || "anon").toLowerCase();
+        const key = r.rep_email
+          ? r.rep_email.toLowerCase().trim()
+          : (r.consultant_name || "anon").toLowerCase().trim();
         recentByKey.set(key, (recentByKey.get(key) || 0) + 1);
       }
     }
@@ -90,7 +92,12 @@ serve(async (req) => {
     for (const row of data || []) {
       // Skip anonymous sessions (no email AND no consultant_name) from the leaderboard entirely.
       if (!(row as any).rep_email && !(row as any).consultant_name) continue;
-      const key = ((row as any).rep_email || (row as any).consultant_name).toString().toLowerCase();
+      // Deduplicate strictly by email when present so name-spelling variants merge.
+      // Fall back to consultant_name only when there is no email at all.
+      const rawKey = (row as any).rep_email
+        ? (row as any).rep_email.toString()
+        : (row as any).consultant_name.toString();
+      const key = rawKey.toLowerCase().trim();
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(row);
     }
