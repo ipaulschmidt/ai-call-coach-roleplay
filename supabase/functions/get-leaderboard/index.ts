@@ -34,6 +34,17 @@ function overallScore(ev: Ev): number | null {
   return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
 }
 
+// Shared "counted session" rule. A session counts toward leaderboard/shoutout
+// aggregates only if the conversation actually happened AND produced a
+// meaningful (non-zero) score. Uncounted sessions are still saved and shown
+// in the admin Sessions tab — they just don't inflate rep stats.
+export function isCountedSession(session: any): boolean {
+  const messageCount = Array.isArray(session?.transcript) ? session.transcript.length : 0;
+  if (messageCount < 6) return false;
+  const score = overallScore(session?.evaluation ?? null);
+  return typeof score === "number" && score > 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -61,13 +72,17 @@ serve(async (req) => {
 
     let q = supabase
       .from("coaching_sessions")
-      .select("id, created_at, consultant_name, rep_email, call_type, rubric, scenario_name, practice_area, difficulty, persona, evaluation")
+      .select("id, created_at, consultant_name, rep_email, call_type, rubric, scenario_name, practice_area, difficulty, persona, evaluation, transcript")
       .order("created_at", { ascending: false });
     if (rangeStart) q = q.gte("created_at", rangeStart);
     if (rangeEnd) q = q.lte("created_at", rangeEnd);
 
     const { data, error } = await q;
     if (error) throw error;
+
+    // Apply the counted-session filter FIRST so all downstream aggregates
+    // (grouping, totals, averages, trends, last_active) use only real attempts.
+    const countedData = (data || []).filter(isCountedSession);
 
     const now = Date.now();
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
@@ -78,9 +93,9 @@ serve(async (req) => {
     if (rangeStart || rangeEnd) {
       const { data: recent } = await supabase
         .from("coaching_sessions")
-        .select("consultant_name, rep_email, created_at")
+        .select("consultant_name, rep_email, created_at, transcript, evaluation")
         .gte("created_at", new Date(sevenDaysAgo).toISOString());
-      for (const r of recent || []) {
+      for (const r of (recent || []).filter(isCountedSession)) {
         const key = r.rep_email
           ? r.rep_email.toLowerCase().trim()
           : (r.consultant_name || "anon").toLowerCase().trim();
@@ -89,7 +104,7 @@ serve(async (req) => {
     }
 
     const groups = new Map<string, any[]>();
-    for (const row of data || []) {
+    for (const row of countedData) {
       // Skip anonymous sessions (no email AND no consultant_name) from the leaderboard entirely.
       if (!(row as any).rep_email && !(row as any).consultant_name) continue;
       // Deduplicate strictly by email when present so name-spelling variants merge.
