@@ -46,3 +46,12 @@ verify_jwt = false
 
 [functions.get-leaderboard]
 verify_jwt = false
+
+[functions.get-personas]
+verify_jwt = false
+
+[functions.save-persona]
+verify_jwt = false
+
+[functions.delete-persona]
+verify_jwt = false
