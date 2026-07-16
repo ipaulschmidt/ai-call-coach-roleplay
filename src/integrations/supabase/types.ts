@@ -73,6 +73,57 @@ export type Database = {
           },
         ]
       }
+      personas: {
+        Row: {
+          avatar_url: string | null
+          blurb: string
+          brand_context: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          known_objections: string | null
+          name: string
+          personality_traits: string | null
+          practice_area: string
+          role: string
+          source_reference: string | null
+          source_type: string
+          voice_notes: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          blurb: string
+          brand_context?: string | null
+          created_at?: string
+          gender?: string | null
+          id: string
+          known_objections?: string | null
+          name: string
+          personality_traits?: string | null
+          practice_area: string
+          role: string
+          source_reference?: string | null
+          source_type?: string
+          voice_notes?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          blurb?: string
+          brand_context?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          known_objections?: string | null
+          name?: string
+          personality_traits?: string | null
+          practice_area?: string
+          role?: string
+          source_reference?: string | null
+          source_type?: string
+          voice_notes?: string | null
+        }
+        Relationships: []
+      }
       scenarios: {
         Row: {
           call_type: string
