@@ -34,6 +34,7 @@ export interface SimConfig {
   scenario?: string;
   personaId?: string;
   personaAvatar?: string;
+  personaGender?: "female" | "male" | null;
   situationId?: string;
   situationLabel?: string;
   variantId?: string;
@@ -117,43 +118,13 @@ export const PRACTICE_AREAS: {
   },
 ];
 
-export const PERSONAS_BY_AREA: Record<PracticeArea, ReadonlyArray<{
-  id: string;
-  name: string;
-  role: string;
-  blurb: string;
-  gender?: "female" | "male";
-}>> = {
-  hubspot: [
-    { id: "skeptical-cfo", name: "Margaret Vale", role: "Skeptical CFO", blurb: "Wants ROI numbers. Allergic to buzzwords.", gender: "female" },
-    { id: "busy-marketing", name: "Priya Shah", role: "Busy Marketing Manager", blurb: "Time-poor, juggling 3 campaigns. Cares about speed.", gender: "female" },
-    { id: "revops", name: "Jordan Kim", role: "Curious RevOps Lead", blurb: "Loves architecture. Asks about workflows and data.", gender: "male" },
-    { id: "tech-admin", name: "Sam Reyes", role: "Technical HubSpot Admin", blurb: "Knows the product. Will catch any inaccuracy.", gender: "male" },
-  ],
-  paid_media: [
-    { id: "office-owner", name: "Marcus Hale", role: "Office-Based Franchise Owner", blurb: "Multi-unit Budget Blinds owner. Runs ops, watches the leads dashboard. Talks growth, ROAS, and competitive metrics.", gender: "male" },
-    { id: "overwhelmed-owner", name: "Brittany Cole", role: "Overwhelmed Owner-Operator", blurb: "Single-location Kitchen Tune-Up owner. 1–2 person shop. Hard to reach. Marketing only matters when leads slow down.", gender: "female" },
-    { id: "seasoned-marketer", name: "Ethan Brooks", role: "Seasoned Marketing Manager", blurb: "Independent marketing lead across 4 College HUNKS franchisees. Hands-on, opinionated, holds budget authority.", gender: "male" },
-    { id: "marketing-friend", name: "Hannah Reyes", role: "'The Marketing Girl'", blurb: "Franchisee's niece, marketing student, runs their social. Limited PPC expertise. Owner is watching from behind the scenes.", gender: "female" },
-    { id: "franchisor-director", name: "Lauren Pace", role: "Franchisor Marketing Director", blurb: "Corporate side at HFC. Vets preferred vendors for 1,000+ locations. Cares about network-wide consistency and reporting.", gender: "female" },
-  ],
-  globalia: [
-    { id: "ecom-owner", name: "Carla Núñez", role: "Shopify Store Owner", blurb: "$3M GMV, conversion-obsessed, weighing headless re-platform.", gender: "female" },
-    { id: "ai-curious-coo", name: "Mira Liu", role: "Mid-market COO", blurb: "Wants a custom AI agent for ops. Worried about hallucinations and ROI.", gender: "female" },
-    { id: "product-pm", name: "Aisha Brown", role: "Product Manager", blurb: "Scoping a custom web/mobile app build. Asks about stack, timeline, QA.", gender: "female" },
-    { id: "wp-marketer", name: "Jen Becker", role: "Marketing Lead", blurb: "Owns a WordPress site that's slow and outdated. Cares about SEO + uptime.", gender: "female" },
-  ],
-};
-
 // ElevenLabs voice IDs — one stable voice per gender so the prospect's
 // voice never changes mid-call.
 export const VOICE_FEMALE = "EXAVITQu4vr4xnSDxMaL"; // Sarah
 export const VOICE_MALE = "JBFqnCBsd6RMkjVDRZzb"; // George
 
-export function voiceForPersona(area: PracticeArea, personaId: string | undefined): string {
-  if (!personaId) return VOICE_FEMALE;
-  const p = PERSONAS_BY_AREA[area]?.find((x) => x.id === personaId);
-  return p?.gender === "male" ? VOICE_MALE : VOICE_FEMALE;
+export function voiceForGender(gender: string | null | undefined): string {
+  return gender === "male" ? VOICE_MALE : VOICE_FEMALE;
 }
 
 export const DURATION_OPTIONS: { value: number; label: string; desc: string }[] = [

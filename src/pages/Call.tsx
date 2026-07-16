@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { useSession, voiceForPersona, type Turn } from "@/lib/session";
+import { useSession, voiceForGender, type Turn } from "@/lib/session";
 import prospectAvatar from "@/assets/prospect-avatar.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -337,7 +337,7 @@ const Call = () => {
     if (!text.trim() || endedRef.current) return;
     let played = false;
     try {
-      const voiceId = voiceForPersona(config!.practiceArea, config!.personaId);
+      const voiceId = voiceForGender(config!.personaGender);
       const resp = await fetch(TTS_URL, {
         method: "POST",
         headers: {
@@ -419,9 +419,7 @@ const Call = () => {
       await waitForVoices();
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
-      const isMale = config?.personaId
-        ? voiceForPersona(config.practiceArea, config.personaId).includes("JBFqnCBsd6RMkjVDRZzb")
-        : false;
+      const isMale = voiceForGender(config?.personaGender).includes("JBFqnCBsd6RMkjVDRZzb");
       const voices = window.speechSynthesis.getVoices().filter((v) => v.lang?.toLowerCase().startsWith("en"));
       const male = voices.find((v) => /male|david|mark|daniel|alex|fred|george|guy/i.test(v.name) && !/female/i.test(v.name));
       utter.voice = isMale ? male || pickBrowserVoice() : pickBrowserVoice();
