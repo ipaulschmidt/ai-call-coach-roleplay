@@ -15,6 +15,15 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import SessionCard, { type Row } from "@/components/admin/SessionCard";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RTooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const LEADERBOARD_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leaderboard`;
 
@@ -122,6 +131,49 @@ const HeaderWithTip = ({
 const areaLabel = (a: string | null) =>
   !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
 
+type Granularity = "day" | "week" | "month";
+
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function startOfWeek(d: Date) {
+  const x = startOfDay(d);
+  const day = (x.getDay() + 6) % 7; // Monday = 0
+  x.setDate(x.getDate() - day);
+  return x;
+}
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function addUnit(d: Date, g: Granularity, n = 1) {
+  const x = new Date(d);
+  if (g === "day") x.setDate(x.getDate() + n);
+  else if (g === "week") x.setDate(x.getDate() + 7 * n);
+  else x.setMonth(x.getMonth() + n);
+  return x;
+}
+function bucketStart(d: Date, g: Granularity) {
+  return g === "day" ? startOfDay(d) : g === "week" ? startOfWeek(d) : startOfMonth(d);
+}
+function formatBucket(d: Date, g: Granularity) {
+  if (g === "month") return d.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+  if (g === "week") return `Wk of ${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+function pickGranularity(preset: Preset, start: Date | null, end: Date | null): Granularity {
+  if (preset === "7d") return "day";
+  if (preset === "30d") return "week";
+  if (preset === "all") return "month";
+  if (!start) return "month";
+  const e = end ?? new Date();
+  const days = Math.max(1, Math.round((e.getTime() - start.getTime()) / 86400000));
+  if (days <= 14) return "day";
+  if (days <= 75) return "week";
+  return "month";
+}
+
 interface Props {
   password: string;
   rows: Row[];
@@ -224,6 +276,45 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
     return `🏆 Top SmartBug Coach users (${range.label})\n\n${lines.join("\n")}`;
   }, [rows, range.label]);
 
+  const chart = useMemo(() => {
+    // Flatten all sessions across reps (already range-filtered by server).
+    const dates: Date[] = [];
+    for (const r of rows) {
+      for (const s of r.sessions ?? []) dates.push(new Date(s.created_at));
+    }
+
+    const startDate = range.start ? new Date(range.start) : (dates.length ? new Date(Math.min(...dates.map((d) => d.getTime()))) : null);
+    const endDate = range.end ? new Date(range.end) : new Date();
+    const g = pickGranularity(preset, startDate, endDate);
+
+    if (!startDate || dates.length === 0) {
+      return { data: [] as { label: string; count: number }[], granularity: g };
+    }
+
+    const counts = new Map<number, number>();
+    for (const d of dates) {
+      const k = bucketStart(d, g).getTime();
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+
+    const data: { label: string; count: number }[] = [];
+    let cursor = bucketStart(startDate, g);
+    const last = bucketStart(endDate, g);
+    // Safety cap so we never render thousands of ticks.
+    let guard = 0;
+    while (cursor.getTime() <= last.getTime() && guard < 500) {
+      data.push({
+        label: formatBucket(cursor, g),
+        count: counts.get(cursor.getTime()) || 0,
+      });
+      cursor = addUnit(cursor, g);
+      guard++;
+    }
+    return { data, granularity: g };
+  }, [rows, range.start, range.end, preset]);
+
+  const granularityLabel = chart.granularity === "day" ? "day" : chart.granularity === "week" ? "week" : "month";
+
   const copySlack = async () => {
     try {
       await navigator.clipboard.writeText(slackText);
@@ -288,6 +379,51 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
           </Button>
         </div>
       </div>
+
+      <Card className="border-border/60 bg-card/60 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Roleplays over time</div>
+            <div className="text-xs text-muted-foreground/80">Per {granularityLabel} · {range.label}</div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Total: <span className="font-semibold text-foreground">{chart.data.reduce((a, b) => a + b.count, 0)}</span>
+          </div>
+        </div>
+        <div className="h-56 w-full">
+          {chart.data.length === 0 ? (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+              No sessions in this range.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                <XAxis dataKey="label" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} tickLine={false} axisLine={{ stroke: "hsl(var(--border))" }} />
+                <YAxis allowDecimals={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} tickLine={false} axisLine={{ stroke: "hsl(var(--border))" }} width={30} />
+                <RTooltip
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  labelStyle={{ color: "hsl(var(--foreground))" }}
+                  formatter={(value: number) => [`${value} roleplay${value === 1 ? "" : "s"}`, ""]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "hsl(var(--primary))" }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </Card>
 
       <Card className="border-border/60 bg-card/60 p-0">
         <Table>
