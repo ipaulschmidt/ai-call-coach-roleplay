@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -78,6 +78,13 @@ function computeRange(preset: Preset, customStart: string, customEnd: string): {
   if (preset === "custom" && customStart) {
     const startDate = new Date(customStart);
     const endDate = customEnd ? new Date(customEnd) : null;
+    // Guard against half-typed dates (e.g. year "062026") which Postgres rejects
+    // with "time zone displacement out of range". Bail out until the input is valid.
+    const validYear = (d: Date | null) =>
+      !d || (!Number.isNaN(d.getTime()) && d.getFullYear() >= 1970 && d.getFullYear() <= 9999);
+    if (!validYear(startDate) || !validYear(endDate)) {
+      return { start: null, end: null, label: "all time" };
+    }
     if (endDate) endDate.setHours(23, 59, 59, 999);
     const fmt = (d: Date) => d.toLocaleDateString();
     return {
@@ -449,9 +456,8 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
             {sortedRows.map((r) => {
               const isOpen = expandedKey === r.key;
               return (
-                <>
+                <Fragment key={r.key}>
                   <TableRow
-                    key={r.key}
                     className="cursor-pointer"
                     onClick={() => setExpandedKey(isOpen ? null : r.key)}
                   >
@@ -470,7 +476,7 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
                     <TableCell className="text-xs text-muted-foreground">{new Date(r.last_active).toLocaleDateString()}</TableCell>
                   </TableRow>
                   {isOpen && (
-                    <TableRow key={r.key + "-expand"} className="bg-background/30 hover:bg-background/30">
+                    <TableRow className="bg-background/30 hover:bg-background/30">
                       <TableCell colSpan={8} className="p-0">
                         <div className="border-t border-border/60 px-5 py-4">
                           <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -519,7 +525,7 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </TableBody>
