@@ -100,19 +100,19 @@ export const PRACTICE_AREAS: {
 }[] = [
   {
     id: "hubspot",
-    label: "HubSpot",
+    label: "SmartBug",
     tagline: "Discovery & service calls for HubSpot consulting (2026 product set: AEO Brand Visibility, Breeze AI agents, Smart CRM, Service Hub, etc.).",
     defaultTopics: "AEO Brand Visibility Dashboard, Breeze Prospecting Agents, Smart CRM, Service Hub workflows, Marketing Hub campaigns",
   },
   {
     id: "paid_media",
-    label: "Paid Media (Point Success)",
+    label: "Point Success Media",
     tagline: "Lead-gen paid media for home-service franchise brands (Budget Blinds, Kitchen Tune-Up, College HUNKS, ProLift Garage Doors, etc.) — Google Ads, Meta, Microsoft.",
     defaultTopics: "Google Search campaigns, Performance Max, Meta awareness + remarketing, Microsoft Ads, local lead-gen, CPL & lead quality, territory targeting, franchisor preferred-vendor dynamics",
   },
   {
     id: "globalia",
-    label: "Globalia (E-com / Custom AI / App Dev / WordPress)",
+    label: "Globalia",
     tagline: "E-commerce builds (Shopify/WooCommerce), custom AI solutions, custom application development, and WordPress.",
     defaultTopics: "Shopify & WooCommerce builds, headless commerce, custom AI agents & RAG, application development (web/mobile), WordPress design & maintenance, performance & SEO",
   },

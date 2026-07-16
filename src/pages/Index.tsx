@@ -105,6 +105,7 @@ const Index = () => {
   const [personaId, setPersonaId] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+  const [featuredArea, setFeaturedArea] = useState<PracticeArea | "all">("all");
   const [rubric, setRubric] = useState<Rubric>("sales_discovery");
 
   useEffect(() => {
@@ -386,22 +387,50 @@ const Index = () => {
     </div>
   );
 
+  const filteredFeatured =
+    featuredArea === "all"
+      ? featured
+      : featured.filter((s) => s.practice_area === featuredArea);
+
   const FeaturedSection = featured.length > 0 && (
     <section className="mb-10">
-      <div className="mb-5">
-        <h2
-          className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
-        >
-          <Star className="h-6 w-6 fill-primary text-primary" />
-          Featured practice scenarios
-        </h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Curated sessions your team is focused on right now. Click to start.
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2
+            className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl"
+            style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          >
+            <Star className="h-6 w-6 fill-primary text-primary" />
+            Featured practice scenarios
+          </h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Curated sessions your team is focused on right now. Click to start.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="featured-brand" className="text-xs uppercase tracking-wider text-muted-foreground">
+            Brand
+          </Label>
+          <select
+            id="featured-brand"
+            value={featuredArea}
+            onChange={(e) => setFeaturedArea(e.target.value as PracticeArea | "all")}
+            className="rounded-md border border-border/60 bg-background/60 px-3 py-1.5 text-sm focus:border-primary focus:outline-none"
+          >
+            <option value="all">All brands</option>
+            {PRACTICE_AREAS.map((a) => (
+              <option key={a.id} value={a.id}>{a.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {featured.map((s) => {
+        {filteredFeatured.length === 0 && (
+          <div className="col-span-full rounded-lg border border-dashed border-border/60 bg-background/30 p-6 text-center text-sm text-muted-foreground">
+            No featured scenarios for this brand yet.
+          </div>
+        )}
+        {filteredFeatured.map((s) => {
           const personaInfo = findPersonaForScenario(allPersonas, s.practice_area, s.persona);
           const avatar = personaInfo ? personaAvatarSrc(personaInfo.id, personaInfo.avatar_url) : undefined;
           const personaName = personaInfo?.name ?? s.persona.split(" — ")[0];
