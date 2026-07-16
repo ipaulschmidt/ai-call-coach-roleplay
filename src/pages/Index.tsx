@@ -67,6 +67,21 @@ const DIFFICULTY_LABELS: Record<string, string> = {
   hard: "Hard",
 };
 
+const BRAND_META: Record<string, { label: string; className: string }> = {
+  hubspot: {
+    label: "SmartBug",
+    className: "border-orange-500/40 bg-orange-500/15 text-orange-300",
+  },
+  paid_media: {
+    label: "Point Success",
+    className: "border-sky-500/40 bg-sky-500/15 text-sky-300",
+  },
+  globalia: {
+    label: "Globalia",
+    className: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
+  },
+};
+
 function findPersonaForScenario(
   personas: Persona[],
   area: string,
