@@ -1,12 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, Mic } from "lucide-react";
+import { ArrowRight, Loader2, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  PERSONAS_BY_AREA,
   PRACTICE_AREAS,
   DURATION_OPTIONS,
   buildGoal,
@@ -21,7 +20,8 @@ import {
   buildToughGoal,
   type PracticeArea,
 } from "@/lib/session";
-import { PERSONA_AVATARS } from "@/lib/personaAvatars";
+import { fetchPersonas, type Persona } from "@/lib/personas";
+import { personaAvatarSrc } from "@/lib/personaAvatars";
 import logo from "@/assets/smartbug-logo.png";
 
 type Kind = "kickoff" | "scope" | "sales" | "tough";
@@ -41,8 +41,19 @@ export default function LibraryIntake() {
   const situationId = params.situationId;
 
   const [practiceArea, setPracticeArea] = useState<PracticeArea>("hubspot");
-  const personas = useMemo(() => PERSONAS_BY_AREA[practiceArea], [practiceArea]);
-  const [personaId, setPersonaId] = useState<string>(personas[0].id);
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [personasLoading, setPersonasLoading] = useState(true);
+  const [personaId, setPersonaId] = useState<string>("");
+  useEffect(() => {
+    setPersonasLoading(true);
+    fetchPersonas(practiceArea)
+      .then((list) => {
+        setPersonas(list);
+        setPersonaId(list[0]?.id ?? "");
+      })
+      .catch(() => setPersonas([]))
+      .finally(() => setPersonasLoading(false));
+  }, [practiceArea]);
   const [durationMin, setDurationMin] = useState<number>(10);
   const [repEmail, setRepEmail] = useState("");
   const [consultantName, setConsultantName] = useState("");
@@ -70,13 +81,13 @@ export default function LibraryIntake() {
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
-    setPersonaId(PERSONAS_BY_AREA[id][0].id);
   };
 
   const start = () => {
     const email = repEmail.trim();
     if (!email) return;
-    const persona = personas.find((p) => p.id === personaId)!;
+    const persona = personas.find((p) => p.id === personaId);
+    if (!persona) return;
     reset();
 
     let cfg: Parameters<typeof setConfig>[0] | null = null;
@@ -91,7 +102,8 @@ export default function LibraryIntake() {
         goal: buildGoal(practiceArea, "service", "", durationMin),
         scenario: pickScenario(practiceArea, "service", ""),
         personaId: persona.id,
-        personaAvatar: PERSONA_AVATARS[persona.id],
+        personaAvatar: personaAvatarSrc(persona.id, persona.avatar_url),
+        personaGender: persona.gender ?? null,
         repEmail: email,
         rubric: "service_kickoff",
         isLibrary: true,
@@ -113,7 +125,8 @@ export default function LibraryIntake() {
           : buildScopeExpansionGoal(situationId, variant.label, durationMin),
         scenario: variant.scenario,
         personaId: persona.id,
-        personaAvatar: PERSONA_AVATARS[persona.id],
+        personaAvatar: personaAvatarSrc(persona.id, persona.avatar_url),
+        personaGender: persona.gender ?? null,
         situationId,
         situationLabel: sit.label,
         variantId: variant.id,
@@ -136,7 +149,8 @@ export default function LibraryIntake() {
         goal: buildToughGoal(situationId, variant.label, durationMin),
         scenario: variant.scenario,
         personaId: persona.id,
-        personaAvatar: PERSONA_AVATARS[persona.id],
+        personaAvatar: personaAvatarSrc(persona.id, persona.avatar_url),
+        personaGender: persona.gender ?? null,
         situationId,
         situationLabel: sit.label,
         variantId: variant.id,
@@ -169,7 +183,7 @@ export default function LibraryIntake() {
     );
   }
 
-  const selectedPersona = personas.find((p) => p.id === personaId)!;
+  const selectedPersona = personas.find((p) => p.id === personaId);
 
   return (
     <main className="min-h-screen px-4 py-8 md:py-12">
@@ -222,7 +236,17 @@ export default function LibraryIntake() {
               Prospect / client
             </Label>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {personas.map((p) => {
+              {personasLoading && (
+                <div className="col-span-full py-6 text-center text-sm text-muted-foreground">
+                  <Loader2 className="mx-auto h-5 w-5 animate-spin text-primary" />
+                </div>
+              )}
+              {!personasLoading && personas.length === 0 && (
+                <div className="col-span-full rounded-md border border-dashed border-border/60 bg-background/30 p-4 text-center text-sm text-muted-foreground">
+                  No personas yet for this practice area — add one in Admin → Personas.
+                </div>
+              )}
+              {!personasLoading && personas.map((p) => {
                 const selected = personaId === p.id;
                 return (
                   <button
@@ -236,7 +260,7 @@ export default function LibraryIntake() {
                     }`}
                   >
                     <img
-                      src={PERSONA_AVATARS[p.id]}
+                      src={personaAvatarSrc(p.id, p.avatar_url)}
                       alt={p.name}
                       className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-border"
                     />
@@ -321,7 +345,7 @@ export default function LibraryIntake() {
               <div className="font-semibold">Ready to start?</div>
               <div className="text-xs text-muted-foreground">
                 You'll be on a {durationMin}-minute call with{" "}
-                <span className="text-primary">{selectedPersona.name}</span>.
+                <span className="text-primary">{selectedPersona?.name ?? "your prospect"}</span>.
               </div>
             </div>
             <Button

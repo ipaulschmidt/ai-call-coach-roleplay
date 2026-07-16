@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  PERSONAS_BY_AREA,
   PRACTICE_AREAS,
   buildGoal,
   useSession,
@@ -18,7 +17,8 @@ import {
   type PracticeArea,
   type Rubric,
 } from "@/lib/session";
-import { PERSONA_AVATARS } from "@/lib/personaAvatars";
+import { fetchPersonas, type Persona } from "@/lib/personas";
+import { personaAvatarSrc } from "@/lib/personaAvatars";
 import logo from "@/assets/smartbug-logo.png";
 
 interface ScenarioRow {
@@ -85,11 +85,15 @@ export default function Scenario() {
     })();
   }, [id]);
 
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  useEffect(() => {
+    if (!scenario) return;
+    fetchPersonas(scenario.practice_area).then(setPersonas).catch(() => setPersonas([]));
+  }, [scenario]);
   const persona = useMemo(() => {
     if (!scenario) return null;
-    const list = PERSONAS_BY_AREA[scenario.practice_area] ?? [];
-    return list.find((p) => scenario.persona.startsWith(p.name)) ?? null;
-  }, [scenario]);
+    return personas.find((p) => scenario.persona.startsWith(p.name)) ?? null;
+  }, [scenario, personas]);
 
   const areaLabel = scenario
     ? PRACTICE_AREAS.find((a) => a.id === scenario.practice_area)?.label ?? scenario.practice_area
@@ -126,7 +130,8 @@ export default function Scenario() {
           ),
       scenario: scenario.scenario?.trim() || "",
       personaId: persona?.id,
-      personaAvatar: persona ? PERSONA_AVATARS[persona.id] : undefined,
+      personaAvatar: persona ? personaAvatarSrc(persona.id, persona.avatar_url) : undefined,
+      personaGender: persona?.gender ?? null,
       repEmail: email,
       scenarioName: scenario.name,
       rubric: (scenario.rubric as Rubric) || deriveDefaultRubric(scenario.call_type),
@@ -187,7 +192,7 @@ export default function Scenario() {
           <div className="mb-5 flex items-start gap-4">
             {persona && (
               <img
-                src={PERSONA_AVATARS[persona.id]}
+                src={personaAvatarSrc(persona.id, persona.avatar_url)}
                 alt={persona.name}
                 className="h-16 w-16 shrink-0 rounded-full object-cover ring-1 ring-border"
               />
