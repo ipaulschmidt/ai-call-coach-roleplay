@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, Copy, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -456,9 +456,8 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
             {sortedRows.map((r) => {
               const isOpen = expandedKey === r.key;
               return (
-                <>
+                <Fragment key={r.key}>
                   <TableRow
-                    key={r.key}
                     className="cursor-pointer"
                     onClick={() => setExpandedKey(isOpen ? null : r.key)}
                   >
@@ -477,7 +476,7 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
                     <TableCell className="text-xs text-muted-foreground">{new Date(r.last_active).toLocaleDateString()}</TableCell>
                   </TableRow>
                   {isOpen && (
-                    <TableRow key={r.key + "-expand"} className="bg-background/30 hover:bg-background/30">
+                    <TableRow className="bg-background/30 hover:bg-background/30">
                       <TableCell colSpan={8} className="p-0">
                         <div className="border-t border-border/60 px-5 py-4">
                           <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -526,7 +525,7 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </TableBody>
