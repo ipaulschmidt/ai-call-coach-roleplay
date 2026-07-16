@@ -78,6 +78,13 @@ function computeRange(preset: Preset, customStart: string, customEnd: string): {
   if (preset === "custom" && customStart) {
     const startDate = new Date(customStart);
     const endDate = customEnd ? new Date(customEnd) : null;
+    // Guard against half-typed dates (e.g. year "062026") which Postgres rejects
+    // with "time zone displacement out of range". Bail out until the input is valid.
+    const validYear = (d: Date | null) =>
+      !d || (!Number.isNaN(d.getTime()) && d.getFullYear() >= 1970 && d.getFullYear() <= 9999);
+    if (!validYear(startDate) || !validYear(endDate)) {
+      return { start: null, end: null, label: "all time" };
+    }
     if (endDate) endDate.setHours(23, 59, 59, 999);
     const fmt = (d: Date) => d.toLocaleDateString();
     return {
