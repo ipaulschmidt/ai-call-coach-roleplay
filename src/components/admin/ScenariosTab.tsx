@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { PERSONAS_BY_AREA, PRACTICE_AREAS, DURATION_OPTIONS, deriveDefaultRubric, type PracticeArea, type CallType, type Difficulty, type Rubric } from "@/lib/session";
-import { PERSONA_AVATARS } from "@/lib/personaAvatars";
+import { PRACTICE_AREAS, DURATION_OPTIONS, deriveDefaultRubric, type PracticeArea, type CallType, type Difficulty, type Rubric } from "@/lib/session";
+import { fetchPersonas, type Persona } from "@/lib/personas";
+import { personaAvatarSrc } from "@/lib/personaAvatars";
 
 const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
@@ -357,18 +358,26 @@ function ScenarioForm({
   const [practiceArea, setPracticeArea] = useState<PracticeArea>(
     (initial?.practice_area as PracticeArea) || "hubspot",
   );
-  const personas = useMemo(() => PERSONAS_BY_AREA[practiceArea], [practiceArea]);
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [personasLoading, setPersonasLoading] = useState(true);
+  const [personaId, setPersonaId] = useState<string>("");
 
-  const initialPersonaId = useMemo(() => {
-    if (!initial) return personas[0].id;
-    // Try to recover the persona id by matching the stored persona string against
-    // the known persona names for the area.
-    const area = (initial.practice_area as PracticeArea) || "hubspot";
-    const match = PERSONAS_BY_AREA[area].find((p) => initial.persona.startsWith(p.name));
-    return match?.id ?? PERSONAS_BY_AREA[area][0].id;
-  }, [initial, personas]);
-
-  const [personaId, setPersonaId] = useState<string>(initialPersonaId);
+  useEffect(() => {
+    setPersonasLoading(true);
+    fetchPersonas(practiceArea)
+      .then((list) => {
+        setPersonas(list);
+        if (initial && (initial.practice_area as PracticeArea) === practiceArea) {
+          const match = list.find((p) => initial.persona.startsWith(p.name));
+          setPersonaId(match?.id ?? list[0]?.id ?? "");
+        } else {
+          setPersonaId(list[0]?.id ?? "");
+        }
+      })
+      .catch(() => setPersonas([]))
+      .finally(() => setPersonasLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceArea]);
   const [callType, setCallType] = useState<CallType>((initial?.call_type as CallType) || "discovery");
   const [difficulty, setDifficulty] = useState<Difficulty>(
     (initial?.difficulty as Difficulty) || "realistic",
@@ -400,7 +409,6 @@ function ScenarioForm({
 
   const onAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
-    setPersonaId(PERSONAS_BY_AREA[id][0].id);
   };
 
   // Auto-regenerate goal when name or callType changes, unless admin has edited it.
@@ -447,7 +455,11 @@ function ScenarioForm({
   };
 
   const handleSave = async () => {
-    const persona = personas.find((p) => p.id === personaId)!;
+    const persona = personas.find((p) => p.id === personaId);
+    if (!persona) {
+      toast.error("Persona not loaded yet — please wait a moment and try again");
+      return;
+    }
     const personaString = `${persona.name} — ${persona.role}. ${persona.blurb}`;
     if (!name.trim()) {
       toast.error("Scenario name is required");
@@ -526,6 +538,17 @@ function ScenarioForm({
           <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
             Persona
           </Label>
+          {personasLoading && (
+            <div className="py-4 text-center text-sm text-muted-foreground">
+              <Loader2 className="mx-auto h-5 w-5 animate-spin text-primary" />
+            </div>
+          )}
+          {!personasLoading && personas.length === 0 && (
+            <div className="rounded-md border border-dashed border-border/60 bg-background/30 p-4 text-center text-sm text-muted-foreground">
+              No personas for this practice area yet — add one in the Personas tab.
+            </div>
+          )}
+          {!personasLoading && personas.length > 0 && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {personas.map((p) => {
               const selected = personaId === p.id;
@@ -541,7 +564,7 @@ function ScenarioForm({
                   }`}
                 >
                   <img
-                    src={PERSONA_AVATARS[p.id]}
+                    src={personaAvatarSrc(p.id, p.avatar_url)}
                     alt={p.name}
                     className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-border"
                   />
@@ -554,6 +577,7 @@ function ScenarioForm({
               );
             })}
           </div>
+          )}
         </section>
 
         {/* Call Type */}

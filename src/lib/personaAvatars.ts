@@ -27,3 +27,7 @@ export const PERSONA_AVATARS: Record<string, string> = {
   "product-pm": aishaBrown,
   "wp-marketer": jenBecker,
 };
+
+export function personaAvatarSrc(id: string, avatarUrl?: string | null): string | undefined {
+  return avatarUrl || PERSONA_AVATARS[id] || undefined;
+}

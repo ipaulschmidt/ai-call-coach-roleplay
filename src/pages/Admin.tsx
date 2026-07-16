@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import logo from "@/assets/smartbug-logo.png";
 import ScenariosTab from "@/components/admin/ScenariosTab";
+import PersonasTab from "@/components/admin/PersonasTab";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import SessionCard, { type Row } from "@/components/admin/SessionCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -134,6 +135,7 @@ const Admin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
+            <TabsTrigger value="personas">Personas</TabsTrigger>
             <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
 
@@ -168,6 +170,10 @@ const Admin = () => {
 
           <TabsContent value="scenarios">
             <ScenariosTab password={password} />
+          </TabsContent>
+
+          <TabsContent value="personas">
+            <PersonasTab password={password} />
           </TabsContent>
 
           <TabsContent value="leaderboard">

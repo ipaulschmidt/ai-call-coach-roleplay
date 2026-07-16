@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
-  PERSONAS_BY_AREA,
   PRACTICE_AREAS,
   DURATION_OPTIONS,
   buildGoal,
@@ -40,7 +39,8 @@ import {
   type ToughSituation,
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
-import { PERSONA_AVATARS } from "@/lib/personaAvatars";
+import { personaAvatarSrc } from "@/lib/personaAvatars";
+import { fetchPersonas, type Persona } from "@/lib/personas";
 
 const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
@@ -67,11 +67,14 @@ const DIFFICULTY_LABELS: Record<string, string> = {
   hard: "Hard",
 };
 
-function findPersonaForScenario(area: string, persona: string): { id: string; name: string } | null {
-  const list = PERSONAS_BY_AREA[area as PracticeArea];
-  if (!list) return null;
+function findPersonaForScenario(
+  personas: Persona[],
+  area: string,
+  persona: string,
+): Persona | null {
+  const list = personas.filter((p) => p.practice_area === area);
   const match = list.find((p) => persona.startsWith(p.name));
-  return match ? { id: match.id, name: match.name } : null;
+  return match ?? null;
 }
 
 const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
@@ -89,15 +92,46 @@ const Index = () => {
   const callType: CallType = audience === "sales" ? "discovery" : "service";
 
   const [practiceArea, setPracticeArea] = useState<PracticeArea>("hubspot");
-  const personas = useMemo(() => PERSONAS_BY_AREA[practiceArea], [practiceArea]);
+  const [allPersonas, setAllPersonas] = useState<Persona[]>([]);
+  const [personasLoading, setPersonasLoading] = useState<boolean>(true);
+  const personas = useMemo(
+    () => allPersonas.filter((p) => p.practice_area === practiceArea),
+    [allPersonas, practiceArea],
+  );
   const [topics, setTopics] = useState("");
   const [consultantName, setConsultantName] = useState("");
   const [repEmail, setRepEmail] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty>("realistic");
-  const [personaId, setPersonaId] = useState<string>(personas[0].id);
+  const [personaId, setPersonaId] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
   const [rubric, setRubric] = useState<Rubric>("sales_discovery");
+
+  useEffect(() => {
+    let cancelled = false;
+    setPersonasLoading(true);
+    fetchPersonas()
+      .then((list) => {
+        if (cancelled) return;
+        setAllPersonas(list);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setPersonasLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!personas.length) {
+      setPersonaId("");
+      return;
+    }
+    if (!personas.find((p) => p.id === personaId)) {
+      setPersonaId(personas[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personas]);
 
   useEffect(() => {
     let cancelled = false;
@@ -145,7 +179,6 @@ const Index = () => {
 
   const handleAreaChange = (id: PracticeArea) => {
     setPracticeArea(id);
-    setPersonaId(PERSONAS_BY_AREA[id][0].id);
     setTopics("");
   };
 
@@ -157,7 +190,8 @@ const Index = () => {
   const start = () => {
     const email = repEmail.trim();
     if (!email) return;
-    const persona = personas.find((p) => p.id === personaId)!;
+    const persona = personas.find((p) => p.id === personaId);
+    if (!persona) return;
     reset();
     const finalTopics = topics.trim();
     setConfig({
@@ -170,7 +204,8 @@ const Index = () => {
       goal: buildGoal(practiceArea, callType, finalTopics, durationMin),
       scenario: pickScenario(practiceArea, callType, finalTopics),
       personaId: persona.id,
-      personaAvatar: PERSONA_AVATARS[persona.id],
+      personaAvatar: personaAvatarSrc(persona.id, persona.avatar_url),
+      personaGender: persona.gender ?? null,
       repEmail: email,
       rubric,
     });
@@ -192,7 +227,7 @@ const Index = () => {
   };
 
   const currentArea = PRACTICE_AREAS.find((a) => a.id === practiceArea)!;
-  const selectedPersona = personas.find((p) => p.id === personaId)!;
+  const selectedPersona = personas.find((p) => p.id === personaId);
   const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty)!;
   const selectedDuration = DURATION_OPTIONS.find((d) => d.value === durationMin)!;
 
@@ -229,6 +264,14 @@ const Index = () => {
           <Label className="text-base font-semibold">Choose your prospect</Label>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {personasLoading && (
+            <div className="col-span-full py-6 text-center text-sm text-muted-foreground">Loading personas…</div>
+          )}
+          {!personasLoading && personas.length === 0 && (
+            <div className="col-span-full rounded-md border border-dashed border-border/60 bg-background/30 p-4 text-center text-sm text-muted-foreground">
+              No personas yet for this practice area — add one in Admin → Personas.
+            </div>
+          )}
           {personas.map((p) => {
             const selected = personaId === p.id;
             return (
@@ -243,7 +286,7 @@ const Index = () => {
                 }`}
               >
                 <img
-                  src={PERSONA_AVATARS[p.id]}
+                  src={personaAvatarSrc(p.id, p.avatar_url)}
                   alt={p.name}
                   className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-border"
                 />
@@ -359,8 +402,8 @@ const Index = () => {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {featured.map((s) => {
-          const personaInfo = findPersonaForScenario(s.practice_area, s.persona);
-          const avatar = personaInfo ? PERSONA_AVATARS[personaInfo.id] : undefined;
+          const personaInfo = findPersonaForScenario(allPersonas, s.practice_area, s.persona);
+          const avatar = personaInfo ? personaAvatarSrc(personaInfo.id, personaInfo.avatar_url) : undefined;
           const personaName = personaInfo?.name ?? s.persona.split(" — ")[0];
           return (
             <Card
@@ -473,7 +516,7 @@ const Index = () => {
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm">
             <div className="font-semibold">
-              Ready to call <span className="text-primary">{selectedPersona.name}</span>?
+              Ready to call <span className="text-primary">{selectedPersona?.name ?? "your prospect"}</span>?
             </div>
             <div className="text-xs text-muted-foreground">
               {audience === "sales" ? "Sales Discovery" : "Service / Onboarding"} · {selectedDifficulty.label} ·{" "}
