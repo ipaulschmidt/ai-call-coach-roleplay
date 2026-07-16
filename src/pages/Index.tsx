@@ -516,7 +516,7 @@ const Index = () => {
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm">
             <div className="font-semibold">
-              Ready to call <span className="text-primary">{selectedPersona.name}</span>?
+              Ready to call <span className="text-primary">{selectedPersona?.name ?? "your prospect"}</span>?
             </div>
             <div className="text-xs text-muted-foreground">
               {audience === "sales" ? "Sales Discovery" : "Service / Onboarding"} · {selectedDifficulty.label} ·{" "}
