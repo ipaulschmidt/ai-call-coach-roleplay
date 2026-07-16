@@ -15,6 +15,15 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import SessionCard, { type Row } from "@/components/admin/SessionCard";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RTooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const LEADERBOARD_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leaderboard`;
 
@@ -121,6 +130,49 @@ const HeaderWithTip = ({
 
 const areaLabel = (a: string | null) =>
   !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
+
+type Granularity = "day" | "week" | "month";
+
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function startOfWeek(d: Date) {
+  const x = startOfDay(d);
+  const day = (x.getDay() + 6) % 7; // Monday = 0
+  x.setDate(x.getDate() - day);
+  return x;
+}
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function addUnit(d: Date, g: Granularity, n = 1) {
+  const x = new Date(d);
+  if (g === "day") x.setDate(x.getDate() + n);
+  else if (g === "week") x.setDate(x.getDate() + 7 * n);
+  else x.setMonth(x.getMonth() + n);
+  return x;
+}
+function bucketStart(d: Date, g: Granularity) {
+  return g === "day" ? startOfDay(d) : g === "week" ? startOfWeek(d) : startOfMonth(d);
+}
+function formatBucket(d: Date, g: Granularity) {
+  if (g === "month") return d.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+  if (g === "week") return `Wk of ${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+function pickGranularity(preset: Preset, start: Date | null, end: Date | null): Granularity {
+  if (preset === "7d") return "day";
+  if (preset === "30d") return "week";
+  if (preset === "all") return "month";
+  if (!start) return "month";
+  const e = end ?? new Date();
+  const days = Math.max(1, Math.round((e.getTime() - start.getTime()) / 86400000));
+  if (days <= 14) return "day";
+  if (days <= 75) return "week";
+  return "month";
+}
 
 interface Props {
   password: string;
