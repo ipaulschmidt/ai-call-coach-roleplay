@@ -67,6 +67,21 @@ const DIFFICULTY_LABELS: Record<string, string> = {
   hard: "Hard",
 };
 
+const BRAND_META: Record<string, { label: string; className: string }> = {
+  hubspot: {
+    label: "SmartBug",
+    className: "border-orange-500/40 bg-orange-500/15 text-orange-300",
+  },
+  paid_media: {
+    label: "Point Success",
+    className: "border-sky-500/40 bg-sky-500/15 text-sky-300",
+  },
+  globalia: {
+    label: "Globalia",
+    className: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
+  },
+};
+
 function findPersonaForScenario(
   personas: Persona[],
   area: string,
@@ -439,7 +454,16 @@ const Index = () => {
               key={s.id}
               className="flex flex-col gap-4 border-border/60 bg-card/70 p-5 backdrop-blur transition-all hover:border-primary/60 hover:shadow-elevated"
             >
-              <div className="text-base font-semibold leading-snug">{s.name}</div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="text-base font-semibold leading-snug">{s.name}</div>
+                {BRAND_META[s.practice_area] && (
+                  <span
+                    className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${BRAND_META[s.practice_area].className}`}
+                  >
+                    {BRAND_META[s.practice_area].label}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 {avatar && (
                   <img
