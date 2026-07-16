@@ -120,7 +120,20 @@ const Index = () => {
   const [personaId, setPersonaId] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
-  const [featuredArea, setFeaturedArea] = useState<PracticeArea | "all">("all");
+  const [featuredArea, setFeaturedArea] = useState<PracticeArea | "all">(() => {
+    if (typeof window === "undefined") return "all";
+    const saved = window.localStorage.getItem("featuredArea");
+    if (saved === "all" || saved === "hubspot" || saved === "paid_media" || saved === "globalia") {
+      return saved as PracticeArea | "all";
+    }
+    return "all";
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("featuredArea", featuredArea);
+    } catch {}
+  }, [featuredArea]);
   const [rubric, setRubric] = useState<Rubric>("sales_discovery");
 
   useEffect(() => {
