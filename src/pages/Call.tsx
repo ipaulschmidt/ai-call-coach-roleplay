@@ -773,7 +773,7 @@ const Call = () => {
     const text = textInput.trim();
     if (!text) return;
     setTextInput("");
-    const next = [...transcript, { role: "user" as const, content: text }];
+    const next = [...transcript, { role: "user" as const, content: `Typed Input: ${text}` }];
     setTranscript(next);
     void sendToAI(next);
   };
@@ -821,7 +821,7 @@ const Call = () => {
   if (!config) return null;
 
   return (
-    <main className="min-h-screen px-4 py-6 md:py-10">
+    <main className={`min-h-screen px-4 py-6 md:py-10 ${callStarted ? "pb-32 md:pb-36" : ""}`}>
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -847,9 +847,11 @@ const Call = () => {
                 ? "Overtime"
                 : `${remainingMin}:${remainingSec.toString().padStart(2, "0")}`}
             </div>
-            <Button variant="destructive" onClick={endCall} className="gap-2">
-              <PhoneOff className="h-4 w-4" /> End call
-            </Button>
+            {!callStarted && (
+              <Button variant="destructive" onClick={endCall} className="gap-2">
+                <PhoneOff className="h-4 w-4" /> End call
+              </Button>
+            )}
           </div>
         </div>
 
@@ -889,7 +891,11 @@ const Call = () => {
               </div>
             </div>
             {!callStarted && (
-              <Button onClick={handleStartCall} size="lg" className="gap-2 shrink-0">
+              <Button
+                onClick={handleStartCall}
+                size="lg"
+                className="gap-2 shrink-0 bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30"
+              >
                 <Mic className="h-4 w-4" /> Start the call
               </Button>
             )}
@@ -1090,6 +1096,17 @@ const Call = () => {
           </Card>
         </div>
       </div>
+      {callStarted && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center p-4 md:p-6 bg-gradient-to-t from-background via-background/90 to-transparent">
+          <Button
+            onClick={endCall}
+            size="lg"
+            className="pointer-events-auto gap-3 bg-red-600 hover:bg-red-500 text-white font-bold text-lg px-10 md:px-14 py-6 rounded-2xl shadow-2xl shadow-red-600/40 border border-red-500/50"
+          >
+            <PhoneOff className="h-5 w-5" /> End call
+          </Button>
+        </div>
+      )}
     </main>
   );
 };
