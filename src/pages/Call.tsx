@@ -1096,6 +1096,17 @@ const Call = () => {
           </Card>
         </div>
       </div>
+      {callStarted && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center p-4 md:p-6 bg-gradient-to-t from-background via-background/90 to-transparent">
+          <Button
+            onClick={endCall}
+            size="lg"
+            className="pointer-events-auto gap-3 bg-red-600 hover:bg-red-500 text-white font-bold text-lg px-10 md:px-14 py-6 rounded-2xl shadow-2xl shadow-red-600/40 border border-red-500/50"
+          >
+            <PhoneOff className="h-5 w-5" /> End call
+          </Button>
+        </div>
+      )}
     </main>
   );
 };
