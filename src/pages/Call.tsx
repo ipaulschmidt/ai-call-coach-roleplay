@@ -773,7 +773,7 @@ const Call = () => {
     const text = textInput.trim();
     if (!text) return;
     setTextInput("");
-    const next = [...transcript, { role: "user" as const, content: text }];
+    const next = [...transcript, { role: "user" as const, content: `Typed Input: ${text}` }];
     setTranscript(next);
     void sendToAI(next);
   };
