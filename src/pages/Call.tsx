@@ -847,11 +847,9 @@ const Call = () => {
                 ? "Overtime"
                 : `${remainingMin}:${remainingSec.toString().padStart(2, "0")}`}
             </div>
-            {!callStarted && (
-              <Button variant="destructive" onClick={endCall} className="gap-2">
-                <PhoneOff className="h-4 w-4" /> End call
-              </Button>
-            )}
+            <Button variant="destructive" onClick={endCall} className="gap-2">
+              <PhoneOff className="h-4 w-4" /> End call
+            </Button>
           </div>
         </div>
 
@@ -1097,7 +1095,7 @@ const Call = () => {
         </div>
       </div>
       {callStarted && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center p-4 md:p-6 bg-gradient-to-t from-background via-background/90 to-transparent">
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pt-2 pb-3 md:px-6 md:pt-2 md:pb-4 bg-gradient-to-t from-background via-background/90 to-transparent">
           <Button
             onClick={endCall}
             size="lg"
