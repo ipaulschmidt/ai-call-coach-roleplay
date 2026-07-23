@@ -821,7 +821,7 @@ const Call = () => {
   if (!config) return null;
 
   return (
-    <main className="min-h-screen px-4 py-6 md:py-10">
+    <main className={`min-h-screen px-4 py-6 md:py-10 ${callStarted ? "pb-32 md:pb-36" : ""}`}>
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
