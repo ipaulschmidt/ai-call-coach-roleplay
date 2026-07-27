@@ -1091,10 +1091,7 @@ const Call = () => {
                 onChange={(e) => setTextInput(e.target.value)}
                 onPaste={(e) => {
                   e.preventDefault();
-                  toast({
-                    title: "Pasting is disabled",
-                    description: "Type your reply in your own words — no pasting during a live roleplay.",
-                  });
+                  toast.info("Pasting is disabled during a live roleplay — type your reply.");
                 }}
                 onDrop={(e) => e.preventDefault()}
                 placeholder={supportsSTT ? "Or type instead…" : "Type your reply…"}
