@@ -65,7 +65,6 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model: "openai/gpt-4o-mini-tts",
-          text,
           input: text,
           voice: voiceForRequest(voiceId),
           response_format: "mp3",
