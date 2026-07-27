@@ -1041,7 +1041,12 @@ const Call = () => {
           </Card>
 
           {/* Transcript */}
-          <Card className="flex flex-col border-border/60 bg-card/60 backdrop-blur min-h-[360px] max-h-[60vh]">
+          <Card
+            className="flex flex-col border-border/60 bg-card/60 backdrop-blur min-h-[360px] max-h-[60vh] select-none"
+            onCopy={(e) => e.preventDefault()}
+            onCut={(e) => e.preventDefault()}
+            onContextMenu={(e) => e.preventDefault()}
+          >
             <div className="border-b border-border/60 px-5 py-3 text-xs uppercase tracking-widest text-muted-foreground">
               Live transcript
             </div>
@@ -1084,8 +1089,14 @@ const Call = () => {
               <Input
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  toast.info("Pasting is disabled during a live roleplay — type your reply.");
+                }}
+                onDrop={(e) => e.preventDefault()}
                 placeholder={supportsSTT ? "Or type instead…" : "Type your reply…"}
                 className="bg-background/50"
+                autoComplete="off"
               />
               <Button type="submit" size="icon" disabled={!textInput.trim() || status === "thinking"}>
                 <Send className="h-4 w-4" />
