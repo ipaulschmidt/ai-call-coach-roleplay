@@ -41,6 +41,9 @@ verify_jwt = false
 [functions.get-featured-scenarios]
 verify_jwt = false
 
+[functions.get-scenarios-by-category]
+verify_jwt = false
+
 [functions.classify-rubric]
 verify_jwt = false
 

@@ -127,6 +127,7 @@ export type Database = {
       scenarios: {
         Row: {
           call_type: string
+          category: string
           created_at: string
           created_by_hint: string | null
           difficulty: string
@@ -144,6 +145,7 @@ export type Database = {
         }
         Insert: {
           call_type: string
+          category?: string
           created_at?: string
           created_by_hint?: string | null
           difficulty: string
@@ -161,6 +163,7 @@ export type Database = {
         }
         Update: {
           call_type?: string
+          category?: string
           created_at?: string
           created_by_hint?: string | null
           difficulty?: string

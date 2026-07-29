@@ -53,6 +53,7 @@ interface FeaturedScenario {
   difficulty: string;
   duration_minutes: number;
   practice_area: string;
+  category?: string | null;
 }
 
 const CALL_TYPE_LABELS: Record<string, string> = {
@@ -98,13 +99,13 @@ const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
   { id: "hard", label: "Hard", desc: "Tough objections, expert pushback" },
 ];
 
-type Audience = "sales" | "service";
+type Audience = "sales" | "bdr" | "service";
 
 const Index = () => {
   const navigate = useNavigate();
   const { setConfig, reset } = useSession();
   const [audience, setAudience] = useState<Audience>("sales");
-  const callType: CallType = audience === "sales" ? "discovery" : "service";
+  const callType: CallType = audience === "service" ? "service" : "discovery";
 
   const [practiceArea, setPracticeArea] = useState<PracticeArea>("hubspot");
   const [allPersonas, setAllPersonas] = useState<Persona[]>([]);
@@ -120,6 +121,7 @@ const Index = () => {
   const [personaId, setPersonaId] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+  const [bdrScenarios, setBdrScenarios] = useState<FeaturedScenario[]>([]);
   const [featuredArea, setFeaturedArea] = useState<PracticeArea | "all">(() => {
     if (typeof window === "undefined") return "all";
     const saved = window.localStorage.getItem("featuredArea");
@@ -173,6 +175,23 @@ const Index = () => {
         if (!cancelled && Array.isArray(d?.scenarios)) setFeatured(d.scenarios);
       })
       .catch((e) => console.error("featured fetch failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BASE}/get-scenarios-by-category`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: ANON },
+      body: JSON.stringify({ category: "bdr" }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && Array.isArray(d?.scenarios)) setBdrScenarios(d.scenarios);
+      })
+      .catch((e) => console.error("bdr scenarios fetch failed", e));
     return () => {
       cancelled = true;
     };
@@ -693,7 +712,7 @@ const Index = () => {
       <Accordion type="multiple" defaultValue={["sales"]} className="w-full">
         <AccordionItem value="sales">
           <AccordionTrigger className="text-left">
-            Discovery scenarios
+            Discovery Scenarios / AE
             <span className="ml-auto mr-2 text-xs font-normal text-muted-foreground">
               Pre-sale conversations with prospects
             </span>
@@ -724,6 +743,51 @@ const Index = () => {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    </Card>
+  );
+
+  const BdrLibrary = (
+    <Card className="border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
+      <div className="mb-4">
+        <h2
+          className="text-xl font-bold tracking-tight md:text-2xl"
+          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+        >
+          Business Development / BDR
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Cold calls and first-touch outreach. Earn attention fast, handle the brush-off, and book the meeting.
+        </p>
+      </div>
+      <div className="space-y-2">
+        {bdrScenarios.length === 0 && (
+          <div className="rounded-md border border-dashed border-border/60 bg-background/30 p-6 text-center text-sm text-muted-foreground">
+            No BDR scenarios yet.
+          </div>
+        )}
+        {bdrScenarios.map((s) => (
+          <div
+            key={s.id}
+            className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-background/30 px-3 py-2.5 transition-colors hover:border-border"
+          >
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium">{s.name.replace(/^BDR\s*—\s*/, "")}</div>
+              <div className="truncate text-xs text-muted-foreground">
+                {s.persona.split(" — ")[0]} · {DIFFICULTY_LABELS[s.difficulty] ?? s.difficulty} · {s.duration_minutes} min
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/scenario/${s.id}`)}
+              className="shrink-0 gap-1"
+            >
+              Start
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 
@@ -791,7 +855,7 @@ const Index = () => {
         {/* Audience tabs */}
         <div className="mb-8">
           <div className="inline-flex rounded-full border border-border/60 bg-card/40 p-1 backdrop-blur">
-            {(["sales", "service"] as Audience[]).map((a) => (
+            {(["sales", "bdr", "service"] as Audience[]).map((a) => (
               <button
                 key={a}
                 type="button"
@@ -802,18 +866,20 @@ const Index = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {a === "sales" ? "Sales" : "Service"}
+                {a === "sales" ? "Sales (AE)" : a === "bdr" ? "Business Development (BDR)" : "Service"}
               </button>
             ))}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {audience === "sales"
               ? "Pre-sale discovery with prospects who haven't bought yet."
-              : "Post-sale: kickoffs, scope & expansion, and tough client conversations."}
+              : audience === "bdr"
+                ? "Cold calls and first-touch outreach — earn the meeting."
+                : "Post-sale: kickoffs, scope & expansion, and tough client conversations."}
           </p>
         </div>
 
-        {audience === "sales" ? SalesLibrary : ServiceLibrary}
+        {audience === "sales" ? SalesLibrary : audience === "bdr" ? BdrLibrary : ServiceLibrary}
         {OrBuildSeparator}
         {CollapsedBuilder}
 

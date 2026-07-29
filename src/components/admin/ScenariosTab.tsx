@@ -30,12 +30,20 @@ interface Scenario {
   created_by_hint: string | null;
   featured?: boolean;
   rubric?: string | null;
+  category?: string | null;
 }
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
   { id: "discovery", label: "Sales Discovery" },
   { id: "service", label: "Service / Onboarding" },
   { id: "tough", label: "Tough Conversation" },
+];
+
+type ScenarioCategory = "ae" | "bdr";
+
+const CATEGORIES: { id: ScenarioCategory; label: string }[] = [
+  { id: "ae", label: "AE" },
+  { id: "bdr", label: "BDR" },
 ];
 
 const RUBRIC_OPTIONS: { id: Rubric; label: string; description: string }[] = [
@@ -259,6 +267,7 @@ export default function ScenariosTab({ password }: { password: string }) {
                   <th className="px-4 py-3 text-left">Name</th>
                   <th className="px-3 py-3 text-left">Practice Area</th>
                   <th className="px-3 py-3 text-left">Call Type</th>
+                  <th className="px-3 py-3 text-left">Category</th>
                   <th className="px-3 py-3 text-left">Difficulty</th>
                   <th className="px-3 py-3 text-left">Persona</th>
                   <th className="px-3 py-3 text-left">Duration</th>
@@ -272,6 +281,7 @@ export default function ScenariosTab({ password }: { password: string }) {
                     <td className="px-4 py-3 font-medium">{r.name}</td>
                     <td className="px-3 py-3 text-muted-foreground">{areaLabel(r.practice_area)}</td>
                     <td className="px-3 py-3 text-muted-foreground">{callTypeLabel(r.call_type)}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{r.category === "bdr" ? "BDR" : "AE"}</td>
                     <td className="px-3 py-3 text-muted-foreground">{difficultyLabel(r.difficulty)}</td>
                     <td className="px-3 py-3 text-muted-foreground">{personaFirstName(r.persona)}</td>
                     <td className="px-3 py-3 text-muted-foreground">{r.duration_minutes} min</td>
@@ -385,6 +395,9 @@ function ScenarioForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceArea]);
   const [callType, setCallType] = useState<CallType>((initial?.call_type as CallType) || "discovery");
+  const [category, setCategory] = useState<ScenarioCategory>(
+    (initial?.category as ScenarioCategory) === "bdr" ? "bdr" : "ae",
+  );
   const [difficulty, setDifficulty] = useState<Difficulty>(
     (initial?.difficulty as Difficulty) || "realistic",
   );
@@ -480,6 +493,7 @@ function ScenarioForm({
         name: name.trim(),
         practice_area: practiceArea,
         call_type: callType,
+        category,
         difficulty,
         persona: personaString,
         duration_minutes: duration,
@@ -607,6 +621,32 @@ function ScenarioForm({
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Category */}
+        <section>
+          <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+            Category
+          </Label>
+          <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setCategory(c.id)}
+                className={`rounded-full px-4 py-1.5 text-sm transition-all ${
+                  category === c.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            AE scenarios appear under Discovery Scenarios on the homepage; BDR scenarios appear under Business Development.
+          </p>
         </section>
 
         {/* Difficulty */}

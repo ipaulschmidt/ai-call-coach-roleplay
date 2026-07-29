@@ -16,7 +16,7 @@ serve(async (req) => {
     );
     const { data, error } = await supabase
       .from("scenarios")
-      .select("id, name, persona, call_type, difficulty, duration_minutes, practice_area")
+      .select("id, name, persona, call_type, difficulty, duration_minutes, practice_area, category")
       .eq("featured", true)
       .order("created_at", { ascending: false });
     if (error) throw error;
