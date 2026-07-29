@@ -712,7 +712,7 @@ const Index = () => {
       <Accordion type="multiple" defaultValue={["sales"]} className="w-full">
         <AccordionItem value="sales">
           <AccordionTrigger className="text-left">
-            Discovery scenarios
+            Discovery Scenarios / AE
             <span className="ml-auto mr-2 text-xs font-normal text-muted-foreground">
               Pre-sale conversations with prospects
             </span>
@@ -743,6 +743,51 @@ const Index = () => {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    </Card>
+  );
+
+  const BdrLibrary = (
+    <Card className="border-border/60 bg-card/70 p-6 shadow-elevated backdrop-blur md:p-8">
+      <div className="mb-4">
+        <h2
+          className="text-xl font-bold tracking-tight md:text-2xl"
+          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+        >
+          Business Development / BDR
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Cold calls and first-touch outreach. Earn attention fast, handle the brush-off, and book the meeting.
+        </p>
+      </div>
+      <div className="space-y-2">
+        {bdrScenarios.length === 0 && (
+          <div className="rounded-md border border-dashed border-border/60 bg-background/30 p-6 text-center text-sm text-muted-foreground">
+            No BDR scenarios yet.
+          </div>
+        )}
+        {bdrScenarios.map((s) => (
+          <div
+            key={s.id}
+            className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-background/30 px-3 py-2.5 transition-colors hover:border-border"
+          >
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium">{s.name.replace(/^BDR\s*—\s*/, "")}</div>
+              <div className="truncate text-xs text-muted-foreground">
+                {s.persona.split(" — ")[0]} · {DIFFICULTY_LABELS[s.difficulty] ?? s.difficulty} · {s.duration_minutes} min
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/scenario/${s.id}`)}
+              className="shrink-0 gap-1"
+            >
+              Start
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 
