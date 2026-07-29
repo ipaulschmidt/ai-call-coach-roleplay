@@ -53,6 +53,7 @@ interface FeaturedScenario {
   difficulty: string;
   duration_minutes: number;
   practice_area: string;
+  category?: string | null;
 }
 
 const CALL_TYPE_LABELS: Record<string, string> = {
@@ -98,13 +99,13 @@ const DIFFICULTIES: { id: Difficulty; label: string; desc: string }[] = [
   { id: "hard", label: "Hard", desc: "Tough objections, expert pushback" },
 ];
 
-type Audience = "sales" | "service";
+type Audience = "sales" | "bdr" | "service";
 
 const Index = () => {
   const navigate = useNavigate();
   const { setConfig, reset } = useSession();
   const [audience, setAudience] = useState<Audience>("sales");
-  const callType: CallType = audience === "sales" ? "discovery" : "service";
+  const callType: CallType = audience === "service" ? "service" : "discovery";
 
   const [practiceArea, setPracticeArea] = useState<PracticeArea>("hubspot");
   const [allPersonas, setAllPersonas] = useState<Persona[]>([]);
@@ -120,6 +121,7 @@ const Index = () => {
   const [personaId, setPersonaId] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(10);
   const [featured, setFeatured] = useState<FeaturedScenario[]>([]);
+  const [bdrScenarios, setBdrScenarios] = useState<FeaturedScenario[]>([]);
   const [featuredArea, setFeaturedArea] = useState<PracticeArea | "all">(() => {
     if (typeof window === "undefined") return "all";
     const saved = window.localStorage.getItem("featuredArea");
@@ -173,6 +175,23 @@ const Index = () => {
         if (!cancelled && Array.isArray(d?.scenarios)) setFeatured(d.scenarios);
       })
       .catch((e) => console.error("featured fetch failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BASE}/get-scenarios-by-category`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: ANON },
+      body: JSON.stringify({ category: "bdr" }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && Array.isArray(d?.scenarios)) setBdrScenarios(d.scenarios);
+      })
+      .catch((e) => console.error("bdr scenarios fetch failed", e));
     return () => {
       cancelled = true;
     };
