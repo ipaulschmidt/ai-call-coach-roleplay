@@ -621,6 +621,32 @@ function ScenarioForm({
           </div>
         </section>
 
+        {/* Category */}
+        <section>
+          <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+            Category
+          </Label>
+          <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setCategory(c.id)}
+                className={`rounded-full px-4 py-1.5 text-sm transition-all ${
+                  category === c.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            AE scenarios appear under Discovery Scenarios on the homepage; BDR scenarios appear under Business Development.
+          </p>
+        </section>
+
         {/* Difficulty */}
         <section>
           <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
