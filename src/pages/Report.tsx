@@ -49,11 +49,14 @@ const Report = () => {
   const scenarioName = viewConfig?.scenarioName?.trim() || null;
   const rubric: Rubric = viewConfig?.rubric ?? deriveDefaultRubric(viewConfig?.callType);
   const isSalesDiscovery = rubric === "sales_discovery";
+  const isColdCall = rubric === "business_development";
+  const hasFullSchema = isSalesDiscovery || isColdCall;
   const LABEL_SETS: Record<Rubric, {
     sales_strategy: string;
     technical_delivery: string;
     consultant_confidence: string;
     agenda_setting: string;
+    active_listening?: string;
     next_steps: string;
   }> = {
     sales_discovery: {
@@ -83,6 +86,14 @@ const Report = () => {
       consultant_confidence: "Firmness & Boundaries",
       agenda_setting: "Scope & Money Protected",
       next_steps: "Concrete Next Step",
+    },
+    business_development: {
+      sales_strategy: "Qualifying Without Over-Discovery",
+      technical_delivery: "Signal Accuracy",
+      consultant_confidence: "Consultant Confidence",
+      agenda_setting: "Hook & Reason for Call",
+      active_listening: "Handling the Brush-Off",
+      next_steps: "Ask for the Meeting",
     },
   };
   const labels = LABEL_SETS[rubric];
@@ -352,9 +363,11 @@ const Report = () => {
                     notes={evaluation.agenda_setting.notes}
                   />
                 )}
-                {isSalesDiscovery && evaluation.active_listening && (
+                {hasFullSchema && evaluation.active_listening && (
                   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Active Listening</div>
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground">
+                      {labels.active_listening ?? "Active Listening"}
+                    </div>
                     <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                       {evaluation.active_listening.score}
                       <span className="text-xl text-muted-foreground">/100</span>
@@ -380,7 +393,7 @@ const Report = () => {
                       <span className="text-xl text-muted-foreground">/100</span>
                     </div>
                     <p className="mt-3 text-sm text-muted-foreground">{evaluation.next_steps.notes}</p>
-                    {isSalesDiscovery && (
+                    {hasFullSchema && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         <span className={`rounded-full px-2.5 py-1 text-xs ${evaluation.next_steps.offered_times ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
                           {evaluation.next_steps.offered_times ? "Offered specific times" : "No times offered"}
