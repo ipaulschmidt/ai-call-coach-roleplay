@@ -855,7 +855,7 @@ const Index = () => {
         {/* Audience tabs */}
         <div className="mb-8">
           <div className="inline-flex rounded-full border border-border/60 bg-card/40 p-1 backdrop-blur">
-            {(["sales", "service"] as Audience[]).map((a) => (
+            {(["sales", "bdr", "service"] as Audience[]).map((a) => (
               <button
                 key={a}
                 type="button"
@@ -866,18 +866,20 @@ const Index = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {a === "sales" ? "Sales" : "Service"}
+                {a === "sales" ? "Sales (AE)" : a === "bdr" ? "Business Development (BDR)" : "Service"}
               </button>
             ))}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {audience === "sales"
               ? "Pre-sale discovery with prospects who haven't bought yet."
-              : "Post-sale: kickoffs, scope & expansion, and tough client conversations."}
+              : audience === "bdr"
+                ? "Cold calls and first-touch outreach — earn the meeting."
+                : "Post-sale: kickoffs, scope & expansion, and tough client conversations."}
           </p>
         </div>
 
-        {audience === "sales" ? SalesLibrary : ServiceLibrary}
+        {audience === "sales" ? SalesLibrary : audience === "bdr" ? BdrLibrary : ServiceLibrary}
         {OrBuildSeparator}
         {CollapsedBuilder}
 
