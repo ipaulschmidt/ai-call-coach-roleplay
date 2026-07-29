@@ -15,6 +15,7 @@ const ALLOWED_RUBRICS = new Set([
   "service_kickoff",
   "scope_expansion",
   "tough_recovery",
+  "business_development",
 ]);
 
 function buildGoal(callType: string, name: string): string {
