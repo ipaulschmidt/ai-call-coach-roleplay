@@ -92,7 +92,8 @@ const RUBRIC_LABEL_SETS: Record<Rubric, {
 
 const ScoresGrid = ({ ev, callType, rubric }: { ev: Evaluation; callType: string; rubric?: string | null }) => {
   const resolvedRubric: Rubric = (rubric as Rubric | undefined) ?? deriveDefaultRubric(callType);
-  const isSalesDiscovery = resolvedRubric === "sales_discovery";
+  const isSalesDiscovery =
+    resolvedRubric === "sales_discovery" || resolvedRubric === "business_development";
   const labels = RUBRIC_LABEL_SETS[resolvedRubric];
   return (
     <div>
