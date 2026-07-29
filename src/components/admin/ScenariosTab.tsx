@@ -30,12 +30,20 @@ interface Scenario {
   created_by_hint: string | null;
   featured?: boolean;
   rubric?: string | null;
+  category?: string | null;
 }
 
 const CALL_TYPES: { id: CallType; label: string }[] = [
   { id: "discovery", label: "Sales Discovery" },
   { id: "service", label: "Service / Onboarding" },
   { id: "tough", label: "Tough Conversation" },
+];
+
+type ScenarioCategory = "ae" | "bdr";
+
+const CATEGORIES: { id: ScenarioCategory; label: string }[] = [
+  { id: "ae", label: "AE" },
+  { id: "bdr", label: "BDR" },
 ];
 
 const RUBRIC_OPTIONS: { id: Rubric; label: string; description: string }[] = [
@@ -385,6 +393,9 @@ function ScenarioForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceArea]);
   const [callType, setCallType] = useState<CallType>((initial?.call_type as CallType) || "discovery");
+  const [category, setCategory] = useState<ScenarioCategory>(
+    (initial?.category as ScenarioCategory) === "bdr" ? "bdr" : "ae",
+  );
   const [difficulty, setDifficulty] = useState<Difficulty>(
     (initial?.difficulty as Difficulty) || "realistic",
   );
@@ -480,6 +491,7 @@ function ScenarioForm({
         name: name.trim(),
         practice_area: practiceArea,
         call_type: callType,
+        category,
         difficulty,
         persona: personaString,
         duration_minutes: duration,
