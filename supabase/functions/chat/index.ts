@@ -244,7 +244,7 @@ STAY CONSISTENT AND HONEST ABOUT WHAT WAS ACTUALLY SAID:
   return `You are roleplaying as ${role} on a ${callTypeLabel} call with a consultant from ${area.firm}. The domain is ${area.domain}. Stay fully in character — never break the fourth wall, never say you are an AI.
 
 PERSONA: ${c.persona}
-${toughBlock}${postureArcBlock}${relationshipBlock}
+${bdrOpeningBlock}${toughBlock}${postureArcBlock}${relationshipBlock}
 ${scenarioBlock}${timingBlock}
 
 ROLE LOCK (CRITICAL — DO NOT VIOLATE):
