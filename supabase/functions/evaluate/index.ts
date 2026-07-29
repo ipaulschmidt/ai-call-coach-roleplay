@@ -17,7 +17,12 @@ serve(async (req) => {
     // Resolve the rubric. Prefer the explicit rubric on the session config;
     // fall back to the legacy callType-based default so older sessions/scenarios
     // still score correctly.
-    const rubric: "sales_discovery" | "service_kickoff" | "scope_expansion" | "tough_recovery" =
+    const rubric:
+      | "sales_discovery"
+      | "service_kickoff"
+      | "scope_expansion"
+      | "tough_recovery"
+      | "business_development" =
       config.rubric ??
       (config.callType === "tough"
         ? "tough_recovery"
@@ -25,6 +30,9 @@ serve(async (req) => {
         ? "service_kickoff"
         : "sales_discovery");
     const isSalesDiscovery = rubric === "sales_discovery";
+    const isColdCall = rubric === "business_development";
+    // Both of these rubrics use the full six-field evaluation schema.
+    const isFullSchema = isSalesDiscovery || isColdCall;
     const isTough = rubric === "tough_recovery";
 
     const systemPromptByRubric: Record<typeof rubric, string> = {
@@ -32,6 +40,7 @@ serve(async (req) => {
       service_kickoff: `You are a senior client-services coach evaluating a delivery KICKOFF or status call with a healthy, cooperative client — NOT a hard moment. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: realistic expectations, clear in/out of scope, value translated to business outcomes, calm assured delivery, and a concrete next step. Penalize: over-promising to please the client, vague scope, task-listing without business value, and ending without a real commitment.`,
       scope_expansion: `You are a senior client-services coach evaluating how the consultant handled a SCOPE-PROTECTION or EXPANSION moment with a friendly, satisfied client. The hard part is doing something slightly uncomfortable without damaging warmth. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: protecting the SOW/hours/rate, naming the scope-creep pattern or the expansion signal, converting the moment into something real (change order, properly scoped next engagement, paid path), and staying warm and consultative throughout. Penalize: caving to be liked, giving away free strategy, vague "let's talk later" closes, and a rigid/nickel-and-diming tone.`,
       tough_recovery: `You are a senior client-services coach evaluating a consultant's handling of a TOUGH client conversation (${config.situationLabel ?? "hard moment"}). Be specific, fair, and direct. Cite exact moments from the transcript. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. Reward: explicit empathy, firm boundaries, concrete options, scope/money protection, and a real next step. Penalize: over-apologizing, vague reassurances, caving on substance, blame-shifting, ending without a commitment.`,
+      business_development: `You are a senior BDR / business development coach evaluating an OUTBOUND COLD CALL. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. A cold call is NOT a discovery call: reward earning attention fast, a specific credible reason for the call, calmly handling brush-offs, asking only enough to confirm relevance, accurately referencing the signal (job posting, referral, event conversation, site visit, form fill), and closing for a specific meeting time. Penalize: generic openers, launching into a full pitch or a full needs assessment, over-explaining, getting flustered or over-apologizing, misrepresenting the signal, and vague "let's stay in touch" closes. Do NOT penalize the rep for keeping the call short — that is correct on a cold call.`,
     };
     const systemPrompt = systemPromptByRubric[rubric];
 
