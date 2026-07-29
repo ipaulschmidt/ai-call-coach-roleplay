@@ -141,6 +141,24 @@ function buildSystemPrompt(c: SimConfig, t?: Timing): string {
 
   const firstName = (c.consultantName || "").trim().split(/\s+/)[0] || "";
   const greetingName = firstName ? ` ${firstName}` : " there";
+
+  // BDR cold-call personas must answer the phone like a real person: a bare
+  // greeting with zero backstory, warmth, or scenario context on turn one.
+  const BDR_OPENERS: { match: RegExp; line: string }[] = [
+    { match: /alex\s+ferris/i, line: "Hello, this is Alex." },
+    { match: /nora\s+bianchi/i, line: "Hi, this is Nora." },
+    { match: /casey\s+odom/i, line: "Hello, this is Casey." },
+  ];
+  const bdrOpener = BDR_OPENERS.find((o) => o.match.test(c.persona || ""))?.line ?? null;
+  const bdrOpeningBlock = bdrOpener
+    ? `\nCOLD-CALL OPENING LOCK (HIGHEST PRIORITY — OVERRIDES EVERY OTHER OPENING INSTRUCTION):
+- You are picking up an unexpected phone call. You do NOT know who is calling or why.
+- Your very first message must be EXACTLY this and nothing else, verbatim, with nothing appended: "${bdrOpener}"
+- No scenario reference (no event, no INBOUND, no job posting, no referral, no form, no website visit). No warmth or gratitude ("glad", "great to connect", "appreciate"). No commentary on your time, schedule, or how busy you are. No use of the caller's name. No question. Just that line.
+- Everything in your persona — guardedness, warmth, annoyance, protectiveness of your time — starts on your SECOND message, purely in reaction to what the rep actually said first. Never before.
+- If the rep's opener is vague, react with mild, neutral confusion ("Sorry — what's this regarding?"). Do NOT reveal or hint at backstory-specific knowledge you would have no reason to connect yet.
+- Only once the rep gives a real, specific reason for the call should your actual scenario context start coming through.\n`
+    : "";
   const callLen = t?.durationMin ?? c.durationMin;
   const scenarioBlock = c.scenario
     ? `\nHOW THIS CALL CAME ABOUT (your backstory — weave it in naturally if asked, do not recite verbatim):\n${c.scenario}\n`
@@ -254,7 +272,9 @@ ${c.topics
 YOUR JOB:
 - Probe the consultant's knowledge of those exact topics through realistic ${isService ? "client" : "prospect"} questions and objections.
 - Speak like a human on a call: 1–3 short sentences per turn. Conversational. No lists, no markdown, no stage directions.
-- OPENING (your very first turn ONLY): one short, friendly line and then hand it back — e.g. "Hey${greetingName}, good to meet you — thanks for the time." or "Hi${greetingName}, glad we could connect." Do NOT ask "how's your week going" or any other small-talk question. Do NOT launch into questions or an agenda.
+- OPENING (your very first turn ONLY): ${bdrOpener
+    ? `say exactly "${bdrOpener}" and nothing more — see COLD-CALL OPENING LOCK above.`
+    : `one short, friendly line and then hand it back — e.g. "Hey${greetingName}, good to meet you — thanks for the time." or "Hi${greetingName}, glad we could connect." Do NOT ask "how's your week going" or any other small-talk question. Do NOT launch into questions or an agenda.`}
 - NO SMALL-TALK LOOPS: do not ask the consultant how their week/day is going, how they've been, weekend plans, etc. If the consultant asks YOU a pleasantry, give a one-clause answer ("Good, thanks —") and immediately pivot to substance or hand the mic back. Never spend more than one short turn on pleasantries total.
 - IMPORTANT: You are a real ${isService ? "client" : "prospect"} — you did NOT show up with a polished agenda. Do not say things like "I was hoping we could cover X, Y, Z". Wait for the consultant to set the agenda. If they don't, just describe what's on your mind in plain terms (1–2 sentences) and let them lead.
 - SECOND TURN: skip further pleasantries. If they ask what's going on or what brought you here, share your top ${isService ? "current project friction" : "business pain"} in a natural, human way (tied to the quiz topics if relevant) — but DO NOT structure it as an agenda. End by handing the mic back.
