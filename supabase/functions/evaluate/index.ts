@@ -66,6 +66,27 @@ Also evaluate two additional skills:
 - active_listening: Did the consultant paraphrase or repeat back what the prospect said before responding (e.g. "So what I'm hearing is…", "Just to make sure I understand, you're saying…")? Score based on how often and how accurately they reflected the prospect's actual words / pain back to them. Cite 1–3 short examples (or note their absence) in the examples array.
 - next_steps: Did the consultant clearly land a next step before the call ended? The gold standard is offering 2+ specific date/time options for a follow-up meeting. Even if the prospect declined to schedule, the consultant should still have proposed concrete times (e.g. "How about Tuesday at 2pm or Thursday morning?"). Score 95+ if a meeting was actually scheduled, 80–90 if specific times were offered but not booked, 50–70 if a vague next step was discussed ("I'll send something over"), 0–30 if no next step was raised at all. Set 'offered_times' true if specific dates/times were proposed. Set 'secured_meeting' true only if the prospect agreed to a specific time.`;
 
+    const coldCallUserPrompt = `CALL CONFIG:
+- Persona: ${config.persona}
+- Difficulty: ${config.difficulty}
+- Practice area: ${config.practiceArea}
+- Target call length: ${config.durationMin} min
+- Rep's goal: ${config.goal ?? "(none)"}
+- Scenario / signal context: ${config.scenario ?? "(none)"}
+
+TRANSCRIPT (consultant = the BDR making the cold call, prospect = the AI):
+${transcript}
+
+Score this as a COLD CALL, not a discovery call. Use these definitions for each field (0–100 score plus direct notes citing exact moments):
+- agenda_setting → HOOK & REASON FOR CALL: Did the rep give a specific, credible reason for the call in the first 15–30 seconds, rather than a generic opener? 90+ for a sharp, specific, permission-respecting hook; 40–60 for generic ("just checking in"); 0–30 for no reason given at all.
+- active_listening → HANDLING THE BRUSH-OFF: Did the rep handle "I'm busy", "not interested", or "how did you get this number" calmly, without getting flustered, over-apologizing, or over-explaining? Cite 1–3 short examples (or their absence) in the examples array.
+- sales_strategy → QUALIFYING WITHOUT OVER-DISCOVERY: Did the rep ask just enough to confirm relevance and then stop, instead of launching into a full needs assessment or a product pitch? Penalize both extremes: no qualification at all, and a full discovery interrogation.
+- technical_delivery → SIGNAL ACCURACY: Did the rep correctly and specifically reference the signal for this call (the job posting, the referral, the INBOUND conversation, the website visit, the original form fill) without misrepresenting or overclaiming what it means? Leave topics_covered and topics_missed as empty arrays.
+- consultant_confidence: Tone, pacing, and filler words. Infer from filler words ("um", "uh", "like", "you know"), hedging, and sentence length — note that this is transcript-based.
+- next_steps → ASK FOR THE MEETING: This is the core scored outcome. Did the rep propose a specific day/time rather than a vague "let's connect"? Score 95+ if a meeting was booked, 80–90 if specific times were offered but not booked, 50–70 if only a vague next step was raised, 0–30 if no ask was made. Set 'offered_times' true if specific dates/times were proposed, 'secured_meeting' true only if the prospect agreed to a specific time.
+
+Then provide corrective_feedback (2–4 specific, actionable improvements with quoted moments), wins (2–4 with quotes), and a 2–3 sentence summary.`;
+
     const toughUserPrompt = `CALL CONFIG:
 - Tough conversation type: ${config.situationLabel ?? "(unspecified)"}
 - Persona: ${config.persona}
