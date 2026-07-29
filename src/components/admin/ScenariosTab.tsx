@@ -267,6 +267,7 @@ export default function ScenariosTab({ password }: { password: string }) {
                   <th className="px-4 py-3 text-left">Name</th>
                   <th className="px-3 py-3 text-left">Practice Area</th>
                   <th className="px-3 py-3 text-left">Call Type</th>
+                  <th className="px-3 py-3 text-left">Category</th>
                   <th className="px-3 py-3 text-left">Difficulty</th>
                   <th className="px-3 py-3 text-left">Persona</th>
                   <th className="px-3 py-3 text-left">Duration</th>
@@ -280,6 +281,7 @@ export default function ScenariosTab({ password }: { password: string }) {
                     <td className="px-4 py-3 font-medium">{r.name}</td>
                     <td className="px-3 py-3 text-muted-foreground">{areaLabel(r.practice_area)}</td>
                     <td className="px-3 py-3 text-muted-foreground">{callTypeLabel(r.call_type)}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{r.category === "bdr" ? "BDR" : "AE"}</td>
                     <td className="px-3 py-3 text-muted-foreground">{difficultyLabel(r.difficulty)}</td>
                     <td className="px-3 py-3 text-muted-foreground">{personaFirstName(r.persona)}</td>
                     <td className="px-3 py-3 text-muted-foreground">{r.duration_minutes} min</td>
