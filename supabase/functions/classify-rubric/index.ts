@@ -11,6 +11,7 @@ const ALLOWED = new Set([
   "service_kickoff",
   "scope_expansion",
   "tough_recovery",
+  "business_development",
 ]);
 
 function fallback(callType: string | undefined): string {
@@ -40,11 +41,12 @@ Rubrics:
 - service_kickoff — post-sale onboarding, kickoff, or status call with a friendly, cooperative client: set expectations, clarify scope, translate work into business value.
 - scope_expansion — healthy-relationship moment where the rep must hold scope, name scope creep, or convert an expansion signal into a real paid path while staying warm.
 - tough_recovery — hard moment with an existing client (past-due payment, dispute, scope-creep pushback, churn risk, escalation): empathy, firm boundaries, options, scope/money protection.
+- business_development — outbound BDR cold call or first-touch call to someone who is not expecting it (intent signal, job posting, referral, event follow-up, stale inbound lead): earn attention fast with a specific reason for the call, handle the brush-off, qualify lightly without over-discovering, and book a meeting.
 
 Call type tag (hint, not authoritative): ${callType ?? "(none)"}
 Rep goal: ${goalText}
 
-Answer with exactly one of: sales_discovery, service_kickoff, scope_expansion, tough_recovery`;
+Answer with exactly one of: sales_discovery, service_kickoff, scope_expansion, tough_recovery, business_development`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

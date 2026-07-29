@@ -7,13 +7,15 @@ export type Rubric =
   | "sales_discovery"
   | "service_kickoff"
   | "scope_expansion"
-  | "tough_recovery";
+  | "tough_recovery"
+  | "business_development";
 
 export const RUBRIC_LABELS: Record<Rubric, string> = {
   sales_discovery: "Sales Discovery",
   service_kickoff: "Service Kickoff",
   scope_expansion: "Scope & Expansion",
   tough_recovery: "Tough Recovery",
+  business_development: "Business Development / Cold Call",
 };
 
 /** Default rubric for legacy sessions/scenarios that have no rubric set. */

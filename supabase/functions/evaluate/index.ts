@@ -17,7 +17,12 @@ serve(async (req) => {
     // Resolve the rubric. Prefer the explicit rubric on the session config;
     // fall back to the legacy callType-based default so older sessions/scenarios
     // still score correctly.
-    const rubric: "sales_discovery" | "service_kickoff" | "scope_expansion" | "tough_recovery" =
+    const rubric:
+      | "sales_discovery"
+      | "service_kickoff"
+      | "scope_expansion"
+      | "tough_recovery"
+      | "business_development" =
       config.rubric ??
       (config.callType === "tough"
         ? "tough_recovery"
@@ -25,6 +30,9 @@ serve(async (req) => {
         ? "service_kickoff"
         : "sales_discovery");
     const isSalesDiscovery = rubric === "sales_discovery";
+    const isColdCall = rubric === "business_development";
+    // Both of these rubrics use the full six-field evaluation schema.
+    const isFullSchema = isSalesDiscovery || isColdCall;
     const isTough = rubric === "tough_recovery";
 
     const systemPromptByRubric: Record<typeof rubric, string> = {
@@ -32,6 +40,7 @@ serve(async (req) => {
       service_kickoff: `You are a senior client-services coach evaluating a delivery KICKOFF or status call with a healthy, cooperative client — NOT a hard moment. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: realistic expectations, clear in/out of scope, value translated to business outcomes, calm assured delivery, and a concrete next step. Penalize: over-promising to please the client, vague scope, task-listing without business value, and ending without a real commitment.`,
       scope_expansion: `You are a senior client-services coach evaluating how the consultant handled a SCOPE-PROTECTION or EXPANSION moment with a friendly, satisfied client. The hard part is doing something slightly uncomfortable without damaging warmth. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: protecting the SOW/hours/rate, naming the scope-creep pattern or the expansion signal, converting the moment into something real (change order, properly scoped next engagement, paid path), and staying warm and consultative throughout. Penalize: caving to be liked, giving away free strategy, vague "let's talk later" closes, and a rigid/nickel-and-diming tone.`,
       tough_recovery: `You are a senior client-services coach evaluating a consultant's handling of a TOUGH client conversation (${config.situationLabel ?? "hard moment"}). Be specific, fair, and direct. Cite exact moments from the transcript. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. Reward: explicit empathy, firm boundaries, concrete options, scope/money protection, and a real next step. Penalize: over-apologizing, vague reassurances, caving on substance, blame-shifting, ending without a commitment.`,
+      business_development: `You are a senior BDR / business development coach evaluating an OUTBOUND COLD CALL. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. A cold call is NOT a discovery call: reward earning attention fast, a specific credible reason for the call, calmly handling brush-offs, asking only enough to confirm relevance, accurately referencing the signal (job posting, referral, event conversation, site visit, form fill), and closing for a specific meeting time. Penalize: generic openers, launching into a full pitch or a full needs assessment, over-explaining, getting flustered or over-apologizing, misrepresenting the signal, and vague "let's stay in touch" closes. Do NOT penalize the rep for keeping the call short — that is correct on a cold call.`,
     };
     const systemPrompt = systemPromptByRubric[rubric];
 
@@ -56,6 +65,27 @@ Also evaluate two additional skills:
   • If no agenda was established at all and the call wandered: 0–30.
 - active_listening: Did the consultant paraphrase or repeat back what the prospect said before responding (e.g. "So what I'm hearing is…", "Just to make sure I understand, you're saying…")? Score based on how often and how accurately they reflected the prospect's actual words / pain back to them. Cite 1–3 short examples (or note their absence) in the examples array.
 - next_steps: Did the consultant clearly land a next step before the call ended? The gold standard is offering 2+ specific date/time options for a follow-up meeting. Even if the prospect declined to schedule, the consultant should still have proposed concrete times (e.g. "How about Tuesday at 2pm or Thursday morning?"). Score 95+ if a meeting was actually scheduled, 80–90 if specific times were offered but not booked, 50–70 if a vague next step was discussed ("I'll send something over"), 0–30 if no next step was raised at all. Set 'offered_times' true if specific dates/times were proposed. Set 'secured_meeting' true only if the prospect agreed to a specific time.`;
+
+    const coldCallUserPrompt = `CALL CONFIG:
+- Persona: ${config.persona}
+- Difficulty: ${config.difficulty}
+- Practice area: ${config.practiceArea}
+- Target call length: ${config.durationMin} min
+- Rep's goal: ${config.goal ?? "(none)"}
+- Scenario / signal context: ${config.scenario ?? "(none)"}
+
+TRANSCRIPT (consultant = the BDR making the cold call, prospect = the AI):
+${transcript}
+
+Score this as a COLD CALL, not a discovery call. Use these definitions for each field (0–100 score plus direct notes citing exact moments):
+- agenda_setting → HOOK & REASON FOR CALL: Did the rep give a specific, credible reason for the call in the first 15–30 seconds, rather than a generic opener? 90+ for a sharp, specific, permission-respecting hook; 40–60 for generic ("just checking in"); 0–30 for no reason given at all.
+- active_listening → HANDLING THE BRUSH-OFF: Did the rep handle "I'm busy", "not interested", or "how did you get this number" calmly, without getting flustered, over-apologizing, or over-explaining? Cite 1–3 short examples (or their absence) in the examples array.
+- sales_strategy → QUALIFYING WITHOUT OVER-DISCOVERY: Did the rep ask just enough to confirm relevance and then stop, instead of launching into a full needs assessment or a product pitch? Penalize both extremes: no qualification at all, and a full discovery interrogation.
+- technical_delivery → SIGNAL ACCURACY: Did the rep correctly and specifically reference the signal for this call (the job posting, the referral, the INBOUND conversation, the website visit, the original form fill) without misrepresenting or overclaiming what it means? Leave topics_covered and topics_missed as empty arrays.
+- consultant_confidence: Tone, pacing, and filler words. Infer from filler words ("um", "uh", "like", "you know"), hedging, and sentence length — note that this is transcript-based.
+- next_steps → ASK FOR THE MEETING: This is the core scored outcome. Did the rep propose a specific day/time rather than a vague "let's connect"? Score 95+ if a meeting was booked, 80–90 if specific times were offered but not booked, 50–70 if only a vague next step was raised, 0–30 if no ask was made. Set 'offered_times' true if specific dates/times were proposed, 'secured_meeting' true only if the prospect agreed to a specific time.
+
+Then provide corrective_feedback (2–4 specific, actionable improvements with quoted moments), wins (2–4 with quotes), and a 2–3 sentence summary.`;
 
     const toughUserPrompt = `CALL CONFIG:
 - Tough conversation type: ${config.situationLabel ?? "(unspecified)"}
@@ -262,7 +292,7 @@ Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence sum
       },
     };
 
-    const isFiveDim = !isSalesDiscovery;
+    const isFiveDim = !isFullSchema;
     const fiveDimDims = isFiveDim ? FIVE_DIM_RUBRICS[rubric as keyof typeof FIVE_DIM_RUBRICS] : null;
     const fiveDimTool = isFiveDim
       ? buildFiveDimensionTool(`submit_${rubric}_evaluation`, fiveDimDims as unknown as string[])
@@ -284,13 +314,20 @@ Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence sum
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: isSalesDiscovery ? userPromptWithExtras : fiveDimUserPrompt },
+          {
+            role: "user",
+            content: isColdCall
+              ? coldCallUserPrompt
+              : isSalesDiscovery
+              ? userPromptWithExtras
+              : fiveDimUserPrompt,
+          },
         ],
-        tools: [isSalesDiscovery ? tool : (fiveDimTool as unknown)],
+        tools: [isFullSchema ? tool : (fiveDimTool as unknown)],
         tool_choice: {
           type: "function",
           function: {
-            name: isSalesDiscovery ? "submit_evaluation" : `submit_${rubric}_evaluation`,
+            name: isFullSchema ? "submit_evaluation" : `submit_${rubric}_evaluation`,
           },
         },
       }),

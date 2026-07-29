@@ -88,11 +88,20 @@ const RUBRIC_LABEL_SETS: Record<Rubric, {
     agenda_setting: "Scope & Money Protected",
     next_steps: "Concrete Next Step",
   },
+  business_development: {
+    sales_strategy: "Qualifying Without Over-Discovery",
+    technical_delivery: "Signal Accuracy",
+    consultant_confidence: "Consultant Confidence",
+    agenda_setting: "Hook & Reason for Call",
+    active_listening: "Handling the Brush-Off",
+    next_steps: "Ask for the Meeting",
+  },
 };
 
 const ScoresGrid = ({ ev, callType, rubric }: { ev: Evaluation; callType: string; rubric?: string | null }) => {
   const resolvedRubric: Rubric = (rubric as Rubric | undefined) ?? deriveDefaultRubric(callType);
-  const isSalesDiscovery = resolvedRubric === "sales_discovery";
+  const isSalesDiscovery =
+    resolvedRubric === "sales_discovery" || resolvedRubric === "business_development";
   const labels = RUBRIC_LABEL_SETS[resolvedRubric];
   return (
     <div>
