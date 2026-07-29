@@ -292,7 +292,7 @@ Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence sum
       },
     };
 
-    const isFiveDim = !isSalesDiscovery;
+    const isFiveDim = !isFullSchema;
     const fiveDimDims = isFiveDim ? FIVE_DIM_RUBRICS[rubric as keyof typeof FIVE_DIM_RUBRICS] : null;
     const fiveDimTool = isFiveDim
       ? buildFiveDimensionTool(`submit_${rubric}_evaluation`, fiveDimDims as unknown as string[])
@@ -314,13 +314,20 @@ Then provide corrective_feedback (2–4), wins (2–4), and a 2–3 sentence sum
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: isSalesDiscovery ? userPromptWithExtras : fiveDimUserPrompt },
+          {
+            role: "user",
+            content: isColdCall
+              ? coldCallUserPrompt
+              : isSalesDiscovery
+              ? userPromptWithExtras
+              : fiveDimUserPrompt,
+          },
         ],
-        tools: [isSalesDiscovery ? tool : (fiveDimTool as unknown)],
+        tools: [isFullSchema ? tool : (fiveDimTool as unknown)],
         tool_choice: {
           type: "function",
           function: {
-            name: isSalesDiscovery ? "submit_evaluation" : `submit_${rubric}_evaluation`,
+            name: isFullSchema ? "submit_evaluation" : `submit_${rubric}_evaluation`,
           },
         },
       }),
