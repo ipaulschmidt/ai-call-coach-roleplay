@@ -63,6 +63,12 @@ const RUBRIC_OPTIONS: { id: Rubric; label: string; description: string }[] = [
     description:
       "For hard conversations where something has gone wrong. Scores: empathy and acknowledgement, firmness and boundaries, options offered, protecting scope and money, and a concrete next step.",
   },
+  {
+    id: "business_development",
+    label: "Business Development / Cold Call",
+    description:
+      "For outbound BDR cold calls and first-touch calls. Scores: hook and reason for call, handling the brush-off, qualifying without over-discovery, signal accuracy, confidence, and asking for the meeting.",
+  },
 ];
 
 function RubricSection({
