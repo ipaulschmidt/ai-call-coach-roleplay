@@ -40,6 +40,7 @@ import {
 } from "@/lib/session";
 import logo from "@/assets/smartbug-logo.png";
 import { personaAvatarSrc } from "@/lib/personaAvatars";
+import { getSavedRepEmail, getSavedRepName, saveRep } from "@/lib/rep";
 import { fetchPersonas, type Persona } from "@/lib/personas";
 
 const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
@@ -115,8 +116,8 @@ const Index = () => {
     [allPersonas, practiceArea],
   );
   const [topics, setTopics] = useState("");
-  const [consultantName, setConsultantName] = useState("");
-  const [repEmail, setRepEmail] = useState("");
+  const [consultantName, setConsultantName] = useState(getSavedRepName);
+  const [repEmail, setRepEmail] = useState(getSavedRepEmail);
   const [difficulty, setDifficulty] = useState<Difficulty>("realistic");
   const [personaId, setPersonaId] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(10);
@@ -257,6 +258,7 @@ const Index = () => {
       repEmail: email,
       rubric,
     });
+    saveRep(email, consultantName);
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.removeItem("draftSessionId");
     sessionStorage.setItem("repEmail", email);

@@ -22,6 +22,7 @@ import {
 } from "@/lib/session";
 import { fetchPersonas, type Persona } from "@/lib/personas";
 import { personaAvatarSrc } from "@/lib/personaAvatars";
+import { getSavedRepEmail, getSavedRepName, saveRep } from "@/lib/rep";
 import logo from "@/assets/smartbug-logo.png";
 
 type Kind = "kickoff" | "scope" | "sales" | "tough";
@@ -55,8 +56,8 @@ export default function LibraryIntake() {
       .finally(() => setPersonasLoading(false));
   }, [practiceArea]);
   const [durationMin, setDurationMin] = useState<number>(10);
-  const [repEmail, setRepEmail] = useState("");
-  const [consultantName, setConsultantName] = useState("");
+  const [repEmail, setRepEmail] = useState(getSavedRepEmail);
+  const [consultantName, setConsultantName] = useState(getSavedRepName);
 
   const { label, subtitle, notFound } = useMemo(() => {
     if (kind === "kickoff") {
@@ -163,6 +164,7 @@ export default function LibraryIntake() {
     if (!cfg) return;
 
     setConfig(cfg);
+    saveRep(email, consultantName);
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.removeItem("draftSessionId");
     sessionStorage.setItem("repEmail", email);
