@@ -4,6 +4,8 @@ import { ArrowRight, CheckCircle2, Copy, Link2, RefreshCw, Target, XCircle } fro
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import RelatedScenarios from "@/components/RelatedScenarios";
+
 import { toast } from "sonner";
 import { useSession, deriveDefaultRubric, type Evaluation, type Rubric, type Turn, type SimConfig } from "@/lib/session";
 
@@ -570,7 +572,16 @@ const Report = () => {
                 </Button>
               </div>
             )}
+
+            <RelatedScenarios
+              practiceArea={viewConfig?.practiceArea}
+              callType={viewConfig?.callType}
+              rubric={rubric}
+              currentName={scenarioName}
+              currentId={typeof window !== "undefined" ? sessionStorage.getItem("scenarioId") : null}
+            />
           </>
+
         )}
       </div>
     </main>
