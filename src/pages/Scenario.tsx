@@ -19,6 +19,7 @@ import {
 } from "@/lib/session";
 import { fetchPersonas, type Persona } from "@/lib/personas";
 import { personaAvatarSrc } from "@/lib/personaAvatars";
+import { getSavedRepEmail, getSavedRepName, saveRep } from "@/lib/rep";
 import logo from "@/assets/smartbug-logo.png";
 
 interface ScenarioRow {
@@ -56,8 +57,8 @@ export default function Scenario() {
   const [loading, setLoading] = useState(true);
   const [scenario, setScenario] = useState<ScenarioRow | null>(null);
   const [notFound, setNotFound] = useState(false);
-  const [repEmail, setRepEmail] = useState("");
-  const [consultantName, setConsultantName] = useState("");
+  const [repEmail, setRepEmail] = useState(getSavedRepEmail);
+  const [consultantName, setConsultantName] = useState(getSavedRepName);
 
   useEffect(() => {
     if (!id) {
@@ -136,6 +137,7 @@ export default function Scenario() {
       scenarioName: scenario.name,
       rubric: (scenario.rubric as Rubric) || deriveDefaultRubric(scenario.call_type),
     });
+    saveRep(email, consultantName);
     sessionStorage.setItem("consultantName", consultantName.trim());
     sessionStorage.removeItem("draftSessionId");
     sessionStorage.setItem("repEmail", email);
