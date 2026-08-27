@@ -14,12 +14,20 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const { data, error } = await supabase
-      .from("scenarios")
-      .select("id, name, persona, call_type, difficulty, duration_minutes, practice_area, category")
-      .eq("featured", true)
-      .order("created_at", { ascending: false });
-    if (error) throw error;
+    const run = async () =>
+      await supabase
+        .from("scenarios")
+        .select("id, name, persona, call_type, difficulty, duration_minutes, practice_area, category")
+        .eq("featured", true)
+        .order("created_at", { ascending: false });
+
+    let { data, error } = await run();
+    // Transient clock-skew between runtime and DB ("JWT issued at future") — retry once.
+    if (error && (error.code === "PGRST303" || /issued at future/i.test(error.message ?? ""))) {
+      await new Promise((r) => setTimeout(r, 1500));
+      ({ data, error } = await run());
+    }
+    if (error) throw new Error(`${error.code ?? "DB"}: ${error.message ?? "query failed"}`);
     return new Response(JSON.stringify({ scenarios: data ?? [] }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
