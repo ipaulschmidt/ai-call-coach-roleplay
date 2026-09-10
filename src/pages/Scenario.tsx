@@ -49,6 +49,18 @@ const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   hard: "Hard",
 };
 
+function renderBold(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? (
+      <strong key={i} className="font-semibold text-foreground">
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
 export default function Scenario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -95,6 +107,17 @@ export default function Scenario() {
     if (!scenario) return null;
     return personas.find((p) => scenario.persona.startsWith(p.name)) ?? null;
   }, [scenario, personas]);
+
+  const brief = useMemo(() => {
+    const text = scenario?.scenario?.trim() ?? "";
+    if (!text) return null;
+    const [intro, rest] = text.split(/\n\s*Key points to cover:\s*\n?/i);
+    const bullets = (rest ?? "")
+      .split("\n")
+      .map((l) => l.replace(/^\s*[-•]\s*/, "").trim())
+      .filter(Boolean);
+    return { intro: intro.trim(), bullets };
+  }, [scenario]);
 
   const areaLabel = scenario
     ? PRACTICE_AREAS.find((a) => a.id === scenario.practice_area)?.label ?? scenario.practice_area
@@ -230,6 +253,30 @@ export default function Scenario() {
               <div className="mt-0.5 font-medium">{scenario.duration_minutes} min</div>
             </div>
           </div>
+
+          {brief && (brief.intro || brief.bullets.length > 0) && (
+            <div className="mt-6 rounded-lg border border-border/60 bg-background/40 p-4">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Your brief
+              </div>
+              {brief.intro && (
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{brief.intro}</p>
+              )}
+              {brief.bullets.length > 0 && (
+                <>
+                  <div className="mt-4 text-sm font-semibold">Key points to cover</div>
+                  <ul className="mt-2 space-y-2">
+                    {brief.bullets.map((b, i) => (
+                      <li key={i} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        <span>{renderBold(b)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div>
