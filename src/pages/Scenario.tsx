@@ -49,6 +49,18 @@ const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   hard: "Hard",
 };
 
+function renderBold(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? (
+      <strong key={i} className="font-semibold text-foreground">
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
 export default function Scenario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
