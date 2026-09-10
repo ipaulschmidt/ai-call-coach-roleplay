@@ -19,6 +19,8 @@ import noraBianchi from "@/assets/personas/nora-bianchi.jpg";
 import reeseKwan from "@/assets/personas/reese-kwan.jpg";
 import samOkafor from "@/assets/personas/sam-okafor.jpg";
 import whitneyCalder from "@/assets/personas/whitney-calder.jpg";
+import taylorBrennan from "@/assets/personas/taylor-brennan.jpg";
+import chrisMabry from "@/assets/personas/chris-mabry.jpg";
 
 export const PERSONA_AVATARS: Record<string, string> = {
   "skeptical-cfo": margaretVale,
@@ -42,6 +44,8 @@ export const PERSONA_AVATARS: Record<string, string> = {
   "reads-every-word-on-signage": reeseKwan,
   "ops-minded-evaluator": samOkafor,
   "select-marketing-director": whitneyCalder,
+  "highlights-owner": taylorBrennan,
+  "forecast-protective-vp": chrisMabry,
 };
 
 
