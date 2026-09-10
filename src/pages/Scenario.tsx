@@ -96,6 +96,17 @@ export default function Scenario() {
     return personas.find((p) => scenario.persona.startsWith(p.name)) ?? null;
   }, [scenario, personas]);
 
+  const brief = useMemo(() => {
+    const text = scenario?.scenario?.trim() ?? "";
+    if (!text) return null;
+    const [intro, rest] = text.split(/\n\s*Key points to cover:\s*\n?/i);
+    const bullets = (rest ?? "")
+      .split("\n")
+      .map((l) => l.replace(/^\s*[-•]\s*/, "").trim())
+      .filter(Boolean);
+    return { intro: intro.trim(), bullets };
+  }, [scenario]);
+
   const areaLabel = scenario
     ? PRACTICE_AREAS.find((a) => a.id === scenario.practice_area)?.label ?? scenario.practice_area
     : "";
