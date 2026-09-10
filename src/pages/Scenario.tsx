@@ -242,6 +242,30 @@ export default function Scenario() {
             </div>
           </div>
 
+          {brief && (brief.intro || brief.bullets.length > 0) && (
+            <div className="mt-6 rounded-lg border border-border/60 bg-background/40 p-4">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Your brief
+              </div>
+              {brief.intro && (
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{brief.intro}</p>
+              )}
+              {brief.bullets.length > 0 && (
+                <>
+                  <div className="mt-4 text-sm font-semibold">Key points to cover</div>
+                  <ul className="mt-2 space-y-2">
+                    {brief.bullets.map((b, i) => (
+                      <li key={i} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        <span>{renderBold(b)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div>
               <Label htmlFor="email" className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
