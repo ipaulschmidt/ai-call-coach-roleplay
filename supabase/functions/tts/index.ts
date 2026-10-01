@@ -66,6 +66,7 @@ Deno.serve(async (req) => {
           model: "google/gemini-2.5-pro-tts",
           contents: [
             {
+              role: "user",
               parts: [
                 {
                   text: `Say this naturally, like a real person on a phone call — conversational, warm but professional, with realistic pacing: ${text}`,
