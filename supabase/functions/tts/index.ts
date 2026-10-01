@@ -4,36 +4,35 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const OPENAI_VOICES = new Set([
-  "alloy",
-  "ash",
-  "ballad",
-  "coral",
-  "echo",
-  "fable",
-  "nova",
+// Gemini 2.5 Pro TTS voices. Existing callers pass legacy ElevenLabs/OpenAI
+// voice IDs; map them by the gender they represented.
+const FEMALE_VOICE = "Kore"; // warm, natural female
+const MALE_VOICE = "Charon"; // deep, natural male
+
+const MALE_LEGACY_IDS = new Set([
+  "JBFqnCBsd6RMkjVDRZzb", // George
+  "CwhRBWXzGAHq8TQ4Fs17", // Roger
+  "IKne3meq5aSn9XLyUdCD", // Charlie
+  "TX3LPaxmHKxFdv7VOQHJ", // Liam
   "onyx",
-  "sage",
-  "shimmer",
+  "echo",
+  "ash",
+  "fable",
+  "ballad",
+]);
+
+const GEMINI_VOICES = new Set([
+  "Kore", "Charon", "Puck", "Fenrir", "Aoede", "Leda", "Orus", "Zephyr",
+  "Callirrhoe", "Achernar", "Sulafat", "Vindemiatrix", "Sadachbia",
+  "Sadaltager", "Zubenelgenubi", "Algenib", "Rasalgethi", "Laomedeia",
+  "Achird", "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Algieba",
+  "Despina", "Erinome", "Enceladus", "Iapetus", "Umbriel", "Autonoe",
 ]);
 
 const voiceForRequest = (voiceId?: string) => {
-  if (voiceId && OPENAI_VOICES.has(voiceId)) return voiceId;
-
-  // Existing callers pass ElevenLabs voice IDs. Map the common app defaults to
-  // Lovable AI voices so exhausted ElevenLabs quota can no longer break calls.
-  const elevenLabsVoiceMap: Record<string, string> = {
-    EXAVITQu4vr4xnSDxMaL: "nova", // Sarah
-    FGY2WhTYpPnrIDTdsKH5: "coral", // Laura
-    Xb7hH8MSUJpSbSDYk0k2: "shimmer", // Alice
-    pFZP5JQG7iQjIQuC4Bku: "sage", // Lily
-    JBFqnCBsd6RMkjVDRZzb: "onyx", // George
-    CwhRBWXzGAHq8TQ4Fs17: "echo", // Roger
-    IKne3meq5aSn9XLyUdCD: "ash", // Charlie
-    TX3LPaxmHKxFdv7VOQHJ: "fable", // Liam
-  };
-
-  return voiceId ? elevenLabsVoiceMap[voiceId] || "nova" : "nova";
+  if (voiceId && GEMINI_VOICES.has(voiceId)) return voiceId;
+  if (voiceId && MALE_LEGACY_IDS.has(voiceId)) return MALE_VOICE;
+  return FEMALE_VOICE;
 };
 
 Deno.serve(async (req) => {
@@ -64,11 +63,24 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-4o-mini-tts",
-          input: text,
-          voice: voiceForRequest(voiceId),
-          response_format: "mp3",
-          instructions: "Natural, conversational sales roleplay voice. Keep the delivery realistic and concise.",
+          model: "google/gemini-2.5-pro-tts",
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Say this naturally, like a real person on a phone call — conversational, warm but professional, with realistic pacing: ${text}`,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: voiceForRequest(voiceId) },
+              },
+            },
+          },
         }),
       },
     );
@@ -88,7 +100,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const contentType = resp.headers.get("Content-Type") || "audio/mpeg";
+    const contentType = resp.headers.get("Content-Type") || "audio/wav";
     if (!contentType.startsWith("audio/")) {
       const body = await resp.text();
       return new Response(JSON.stringify({ error: "TTS returned a non-audio response", details: body }), {
@@ -102,7 +114,7 @@ Deno.serve(async (req) => {
       status: 200,
       headers: {
         ...corsHeaders,
-        "Content-Type": "audio/mpeg",
+        "Content-Type": contentType,
         "Content-Length": String(audio.byteLength),
         "Cache-Control": "no-store",
       },
