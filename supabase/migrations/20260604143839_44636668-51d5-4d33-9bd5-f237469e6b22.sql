@@ -1,1 +1,0 @@
-ALTER TABLE public.scenarios ADD COLUMN topics_distilled text;

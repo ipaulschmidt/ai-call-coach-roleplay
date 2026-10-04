@@ -1,1 +1,0 @@
-ALTER TABLE public.coaching_sessions ADD COLUMN scenario_name text;
