@@ -72,7 +72,7 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 const BRAND_META: Record<string, { label: string; className: string }> = {
   hubspot: {
     label: "CRM & Marketing",
-    className: "border-orange-500/40 bg-orange-500/15 text-orange-300",
+    className: "border-primary/40 bg-primary/15 text-primary",
   },
   paid_media: {
     label: "Paid Media",

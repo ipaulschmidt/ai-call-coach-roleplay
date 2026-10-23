@@ -23,7 +23,7 @@ const AREA_LABELS: Record<string, string> = {
 };
 
 const AREA_CHIP: Record<string, string> = {
-  hubspot: "border-orange-500/40 bg-orange-500/10 text-orange-400",
+  hubspot: "border-primary/40 bg-primary/10 text-primary",
   paid_media: "border-sky-500/40 bg-sky-500/10 text-sky-400",
   globalia: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
 };

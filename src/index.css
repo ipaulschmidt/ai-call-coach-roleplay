@@ -8,41 +8,41 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* HubCoach — Consultant Mode (dark by default) */
-    --background: 222 47% 9%;
+    /* Call Coach — deep slate + teal */
+    --background: 200 30% 7%;
     --foreground: 210 40% 98%;
 
-    --card: 222 40% 13%;
+    --card: 200 25% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 40% 13%;
+    --popover: 200 25% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 22 95% 55%;
-    --primary-foreground: 222 47% 9%;
-    --primary-glow: 22 100% 65%;
+    --primary: 168 65% 45%;
+    --primary-foreground: 200 30% 7%;
+    --primary-glow: 168 70% 58%;
 
-    --secondary: 217 25% 20%;
+    --secondary: 200 18% 17%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 25% 18%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 200 18% 15%;
+    --muted-foreground: 200 10% 64%;
 
-    --accent: 22 95% 55%;
-    --accent-foreground: 222 47% 9%;
+    --accent: 168 65% 45%;
+    --accent-foreground: 200 30% 7%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 25% 22%;
-    --input: 217 25% 22%;
-    --ring: 22 95% 55%;
+    --border: 200 16% 20%;
+    --input: 200 16% 20%;
+    --ring: 168 65% 45%;
 
     --radius: 0.75rem;
 
-    --gradient-hero: radial-gradient(1200px 600px at 50% -10%, hsl(22 95% 55% / 0.18), transparent 60%), linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 7%));
-    --gradient-orb: radial-gradient(circle at 30% 30%, hsl(22 100% 65% / 0.9), hsl(22 95% 45% / 0.4) 60%, transparent 70%);
-    --shadow-glow: 0 0 60px hsl(22 95% 55% / 0.35);
+    --gradient-hero: radial-gradient(1200px 600px at 50% -10%, hsl(168 65% 45% / 0.14), transparent 60%), linear-gradient(180deg, hsl(200 30% 7%), hsl(200 32% 5%));
+    --gradient-orb: radial-gradient(circle at 30% 30%, hsl(168 70% 58% / 0.9), hsl(168 65% 38% / 0.4) 60%, transparent 70%);
+    --shadow-glow: 0 0 60px hsl(168 65% 45% / 0.3);
     --shadow-elevated: 0 20px 60px -20px hsl(0 0% 0% / 0.6);
 
     --sidebar-background: 0 0% 98%;
@@ -112,12 +112,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
     background: var(--gradient-hero);
     background-attachment: fixed;
   }
 
   h1, h2, h3 {
+    font-family: 'Fraunces', serif;
     letter-spacing: -0.02em;
   }
 }
