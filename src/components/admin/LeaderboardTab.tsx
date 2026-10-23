@@ -136,7 +136,7 @@ const HeaderWithTip = ({
 );
 
 const areaLabel = (a: string | null) =>
-  !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
+  !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Digital Build" : a;
 
 type Granularity = "day" | "week" | "month";
 
@@ -280,7 +280,7 @@ const LeaderboardTab = ({ password, rows: allRows, onRowUpdate, onRowDeleted }: 
     const lines = sorted.map(
       (r, i) => `${i + 1}. ${r.name} — ${r.total_sessions} roleplay${r.total_sessions === 1 ? "" : "s"}`,
     );
-    return `🏆 Top SmartBug Coach users (${range.label})\n\n${lines.join("\n")}`;
+    return `🏆 Top Call Coach users (${range.label})\n\n${lines.join("\n")}`;
   }, [rows, range.label]);
 
   const chart = useMemo(() => {

@@ -23,7 +23,7 @@ const ScoreCard = ({
 }) => (
   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
     <div className="text-xs uppercase tracking-widest text-muted-foreground">{title}</div>
-    <div className={`mt-2 text-5xl font-bold ${scoreColor(score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className={`mt-2 text-5xl font-bold ${scoreColor(score)}`} style={{ fontFamily: "'Fraunces', serif" }}>
       {score}
       <span className="text-xl text-muted-foreground">/100</span>
     </div>
@@ -273,7 +273,7 @@ const Report = () => {
         <header className="mb-8">
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Post-game report</div>
           <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl" style={{ fontFamily: "'Fraunces', serif" }}>
               How you did
             </h1>
             {id && (
@@ -370,7 +370,7 @@ const Report = () => {
                     <div className="text-xs uppercase tracking-widest text-muted-foreground">
                       {labels.active_listening ?? "Active Listening"}
                     </div>
-                    <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.active_listening.score)}`} style={{ fontFamily: "'Fraunces', serif" }}>
                       {evaluation.active_listening.score}
                       <span className="text-xl text-muted-foreground">/100</span>
                     </div>
@@ -390,7 +390,7 @@ const Report = () => {
                 {evaluation.next_steps && (
                   <Card className="border-border/60 bg-card/70 p-5 backdrop-blur">
                     <div className="text-xs uppercase tracking-widest text-muted-foreground">{labels.next_steps}</div>
-                    <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.next_steps.score)}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    <div className={`mt-2 text-5xl font-bold ${scoreColor(evaluation.next_steps.score)}`} style={{ fontFamily: "'Fraunces', serif" }}>
                       {evaluation.next_steps.score}
                       <span className="text-xl text-muted-foreground">/100</span>
                     </div>

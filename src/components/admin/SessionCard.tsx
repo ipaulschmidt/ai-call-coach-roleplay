@@ -168,7 +168,7 @@ const SignalsBlock = ({ ev }: { ev: Evaluation }) => {
 };
 
 const areaLabel = (a: string) =>
-  a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Globalia" : a;
+  a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Digital Build" : a;
 
 interface Props {
   row: Row;

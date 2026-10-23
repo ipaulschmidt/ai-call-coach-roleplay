@@ -102,19 +102,19 @@ export const PRACTICE_AREAS: {
 }[] = [
   {
     id: "hubspot",
-    label: "SmartBug",
+    label: "CRM & Marketing",
     tagline: "Discovery & service calls for HubSpot consulting (2026 product set: AEO Brand Visibility, Breeze AI agents, Smart CRM, Service Hub, etc.).",
     defaultTopics: "AEO Brand Visibility Dashboard, Breeze Prospecting Agents, Smart CRM, Service Hub workflows, Marketing Hub campaigns",
   },
   {
     id: "paid_media",
-    label: "Point Success Media",
+    label: "Paid Media",
     tagline: "Lead-gen paid media for home-service franchise brands (Budget Blinds, Kitchen Tune-Up, College HUNKS, ProLift Garage Doors, etc.) — Google Ads, Meta, Microsoft.",
     defaultTopics: "Google Search campaigns, Performance Max, Meta awareness + remarketing, Microsoft Ads, local lead-gen, CPL & lead quality, territory targeting, franchisor preferred-vendor dynamics",
   },
   {
     id: "globalia",
-    label: "Globalia",
+    label: "Digital Build",
     tagline: "E-commerce builds (Shopify/WooCommerce), custom AI solutions, custom application development, and WordPress.",
     defaultTopics: "Shopify & WooCommerce builds, headless commerce, custom AI agents & RAG, application development (web/mobile), WordPress design & maintenance, performance & SEO",
   },
@@ -140,22 +140,22 @@ type ScenarioTemplate = (topic: string) => string;
 
 const DISCOVERY_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
   hubspot: [
-    (t) => `We met this prospect at INBOUND last month — they swung by the SmartBug booth and mentioned they're trying to figure out ${t}.`,
-    (t) => `They filled out the 'Talk to a HubSpot expert' form on the SmartBug website this week, specifically asking about ${t}.`,
+    (t) => `We met this prospect at INBOUND last month — they swung by the agency booth and mentioned they're trying to figure out ${t}.`,
+    (t) => `They filled out the 'Talk to a HubSpot expert' form on the agency website this week, specifically asking about ${t}.`,
     (t) => `A HubSpot sales rep introduced us — the prospect is evaluating HubSpot and the rep flagged ${t} as the area they need partner help on.`,
-    (t) => `They were referred by an existing SmartBug client and want to talk through ${t} on this first call.`,
+    (t) => `They were referred by an existing client and want to talk through ${t} on this first call.`,
   ],
   paid_media: [
-    (t) => `New franchisee just opened their location and was given Point Success as a vetted vendor by their franchisor. They want to talk through ${t} before signing on.`,
+    (t) => `New franchisee just opened their location and was given the agency as a vetted vendor by their franchisor. They want to talk through ${t} before signing on.`,
     (t) => `Franchisee booked an intro call after a corporate webinar — leads have slowed down and they're hoping ${t} is the answer.`,
     (t) => `Existing franchisor partner referred them. They've been running ads with another vendor and aren't happy with results around ${t}.`,
     (t) => `Multi-unit owner heard about us from another franchisee in the network. They want to consolidate ad spend across locations and dig into ${t}.`,
   ],
   globalia: [
     (t) => `We met this prospect at a Shopify / e-commerce meetup — they're exploring ${t} and want to see if we're a fit.`,
-    (t) => `They filled out the contact form on the Globalia Digital website asking specifically about ${t}.`,
+    (t) => `They filled out the contact form on the agency website asking specifically about ${t}.`,
     (t) => `A partner agency referred them after they hit the limits of their current setup around ${t}.`,
-    (t) => `They were referred by an existing Globalia client and want to scope ${t} on this first call.`,
+    (t) => `They were referred by an existing agency client and want to scope ${t} on this first call.`,
   ],
 };
 
@@ -190,9 +190,9 @@ export function pickScenario(area: PracticeArea, callType: CallType = "discovery
 }
 
 const FIRM_BY_AREA: Record<PracticeArea, string> = {
-  hubspot: "SmartBug",
-  paid_media: "Point Success Media",
-  globalia: "Globalia Digital",
+  hubspot: "CRM & Marketing",
+  paid_media: "Paid Media",
+  globalia: "Digital Build",
 };
 
 export function buildGoal(

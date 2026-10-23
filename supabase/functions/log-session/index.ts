@@ -171,7 +171,7 @@ function buildNote(b: Body, when: Date): string {
     : "";
 
   return [
-    `<h2 style="margin:0 0 12px 0;">🎯 SmartBug Coach — Role-Play Session</h2>`,
+    `<h2 style="margin:0 0 12px 0;">🎯 Call Coach — Role-Play Session</h2>`,
     `<table style="border-collapse:collapse;font-size:14px;margin-bottom:16px;"><tbody>${meta}</tbody></table>`,
     `<hr style="border:none;border-top:1px solid #cbd6e2;margin:16px 0;" />`,
     summaryHtml,

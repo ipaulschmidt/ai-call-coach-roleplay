@@ -20,7 +20,7 @@ import {
 import { fetchPersonas, type Persona } from "@/lib/personas";
 import { personaAvatarSrc } from "@/lib/personaAvatars";
 import { getSavedRepEmail, getSavedRepName, saveRep } from "@/lib/rep";
-import logo from "@/assets/smartbug-logo.png";
+import Wordmark from "@/components/Wordmark";
 
 interface ScenarioRow {
   id: string;
@@ -194,7 +194,7 @@ export default function Scenario() {
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-10 flex items-center justify-between">
-          <img src={logo} alt="SmartBug" className="h-7 md:h-8" />
+          <Wordmark />
           <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">
             Main session builder →
           </Link>
@@ -204,7 +204,7 @@ export default function Scenario() {
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Roleplay</div>
           <h1
             className="mt-1 text-balance text-4xl font-bold tracking-tight md:text-5xl"
-            style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+            style={{ fontFamily: "'Fraunces', serif" }}
           >
             {scenario.name}
           </h1>

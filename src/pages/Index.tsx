@@ -38,7 +38,7 @@ import {
   type LibrarySituation,
   type ToughSituation,
 } from "@/lib/session";
-import logo from "@/assets/smartbug-logo.png";
+import Wordmark from "@/components/Wordmark";
 import { personaAvatarSrc } from "@/lib/personaAvatars";
 import { getSavedRepEmail, getSavedRepName, saveRep } from "@/lib/rep";
 import { fetchPersonas, type Persona } from "@/lib/personas";
@@ -71,15 +71,15 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 
 const BRAND_META: Record<string, { label: string; className: string }> = {
   hubspot: {
-    label: "SmartBug",
-    className: "border-orange-500/40 bg-orange-500/15 text-orange-300",
+    label: "CRM & Marketing",
+    className: "border-primary/40 bg-primary/15 text-primary",
   },
   paid_media: {
-    label: "Point Success",
+    label: "Paid Media",
     className: "border-sky-500/40 bg-sky-500/15 text-sky-300",
   },
   globalia: {
-    label: "Globalia",
+    label: "Digital Build",
     className: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
   },
 };
@@ -447,7 +447,7 @@ const Index = () => {
         <div>
           <h2
             className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl"
-            style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+            style={{ fontFamily: "'Fraunces', serif" }}
           >
             <Star className="h-6 w-6 fill-primary text-primary" />
             Featured practice scenarios
@@ -629,7 +629,7 @@ const Index = () => {
       <div className="mb-4">
         <h2
           className="text-xl font-bold tracking-tight md:text-2xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          style={{ fontFamily: "'Fraunces', serif" }}
         >
           Pick a topic to roleplay
         </h2>
@@ -703,7 +703,7 @@ const Index = () => {
       <div className="mb-4">
         <h2
           className="text-xl font-bold tracking-tight md:text-2xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          style={{ fontFamily: "'Fraunces', serif" }}
         >
           Pick a topic to roleplay
         </h2>
@@ -753,7 +753,7 @@ const Index = () => {
       <div className="mb-4">
         <h2
           className="text-xl font-bold tracking-tight md:text-2xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          style={{ fontFamily: "'Fraunces', serif" }}
         >
           Business Development / BDR
         </h2>
@@ -823,7 +823,7 @@ const Index = () => {
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-10 flex items-center justify-between">
-          <img src={logo} alt="SmartBug" className="h-7 md:h-8" />
+          <Wordmark />
           <Link
             to="/admin"
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
@@ -836,17 +836,17 @@ const Index = () => {
         <header className="mb-10 max-w-3xl md:mb-12">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            SmartBug · Consultant Mode
+            Consultant Mode
           </div>
           <h1
             className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl"
-            style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+            style={{ fontFamily: "'Fraunces', serif" }}
           >
             Sharpen your craft.<br />
             <span className="text-primary">One call at a time.</span>
           </h1>
           <p className="mt-5 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
-            Roleplay SmartBug, Point Success, and Globalia discovery & delivery conversations against an AI client.
+            Roleplay discovery & delivery conversations against an AI client.
             Get coached on strategy, technical accuracy, and confidence.
           </p>
         </header>
