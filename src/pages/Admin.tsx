@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import logo from "@/assets/smartbug-logo.png";
+import Wordmark from "@/components/Wordmark";
 import ScenariosTab from "@/components/admin/ScenariosTab";
 import PersonasTab from "@/components/admin/PersonasTab";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
@@ -72,7 +72,7 @@ const Admin = () => {
       <main className="min-h-screen px-4 py-16">
         <div className="mx-auto max-w-md">
           <div className="mb-6 flex items-center justify-between">
-            <img src={logo} alt="Call Coach" className="h-7" />
+            <Wordmark />
             <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </Link>
@@ -110,7 +110,7 @@ const Admin = () => {
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img src={logo} alt="Call Coach" className="h-7" />
+            <Wordmark />
             <div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground">Admin</div>
               <h1 className="text-2xl font-bold">Call Coach admin</h1>

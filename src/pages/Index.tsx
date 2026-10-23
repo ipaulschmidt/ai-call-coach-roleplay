@@ -38,7 +38,7 @@ import {
   type LibrarySituation,
   type ToughSituation,
 } from "@/lib/session";
-import logo from "@/assets/smartbug-logo.png";
+import Wordmark from "@/components/Wordmark";
 import { personaAvatarSrc } from "@/lib/personaAvatars";
 import { getSavedRepEmail, getSavedRepName, saveRep } from "@/lib/rep";
 import { fetchPersonas, type Persona } from "@/lib/personas";
@@ -447,7 +447,7 @@ const Index = () => {
         <div>
           <h2
             className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl"
-            style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+            style={{ fontFamily: "'Fraunces', serif" }}
           >
             <Star className="h-6 w-6 fill-primary text-primary" />
             Featured practice scenarios
@@ -629,7 +629,7 @@ const Index = () => {
       <div className="mb-4">
         <h2
           className="text-xl font-bold tracking-tight md:text-2xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          style={{ fontFamily: "'Fraunces', serif" }}
         >
           Pick a topic to roleplay
         </h2>
@@ -703,7 +703,7 @@ const Index = () => {
       <div className="mb-4">
         <h2
           className="text-xl font-bold tracking-tight md:text-2xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          style={{ fontFamily: "'Fraunces', serif" }}
         >
           Pick a topic to roleplay
         </h2>
@@ -753,7 +753,7 @@ const Index = () => {
       <div className="mb-4">
         <h2
           className="text-xl font-bold tracking-tight md:text-2xl"
-          style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+          style={{ fontFamily: "'Fraunces', serif" }}
         >
           Business Development / BDR
         </h2>
@@ -823,7 +823,7 @@ const Index = () => {
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-10 flex items-center justify-between">
-          <img src={logo} alt="Call Coach" className="h-7 md:h-8" />
+          <Wordmark />
           <Link
             to="/admin"
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
@@ -840,7 +840,7 @@ const Index = () => {
           </div>
           <h1
             className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl"
-            style={{ fontFamily: "'Space Grotesk', Inter, sans-serif" }}
+            style={{ fontFamily: "'Fraunces', serif" }}
           >
             Sharpen your craft.<br />
             <span className="text-primary">One call at a time.</span>
