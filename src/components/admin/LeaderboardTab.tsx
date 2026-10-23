@@ -136,7 +136,7 @@ const HeaderWithTip = ({
 );
 
 const areaLabel = (a: string | null) =>
-  !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "globalia" ? "Digital Build" : a;
+  !a ? "" : a === "hubspot" ? "HubSpot" : a === "paid_media" ? "Paid Media" : a === "digital_build" ? "Digital Build" : a;
 
 type Granularity = "day" | "week" | "month";
 

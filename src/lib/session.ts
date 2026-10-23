@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type Difficulty = "easy" | "realistic" | "hard";
 export type CallType = "discovery" | "service" | "tough";
-export type PracticeArea = "hubspot" | "paid_media" | "globalia";
+export type PracticeArea = "hubspot" | "paid_media" | "digital_build";
 export type Rubric =
   | "sales_discovery"
   | "service_kickoff"
@@ -113,7 +113,7 @@ export const PRACTICE_AREAS: {
     defaultTopics: "Google Search campaigns, Performance Max, Meta awareness + remarketing, Microsoft Ads, local lead-gen, CPL & lead quality, territory targeting, franchisor preferred-vendor dynamics",
   },
   {
-    id: "globalia",
+    id: "digital_build",
     label: "Digital Build",
     tagline: "E-commerce builds (Shopify/WooCommerce), custom AI solutions, custom application development, and WordPress.",
     defaultTopics: "Shopify & WooCommerce builds, headless commerce, custom AI agents & RAG, application development (web/mobile), WordPress design & maintenance, performance & SEO",
@@ -151,7 +151,7 @@ const DISCOVERY_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
     (t) => `Existing franchisor partner referred them. They've been running ads with another vendor and aren't happy with results around ${t}.`,
     (t) => `Multi-unit owner heard about us from another franchisee in the network. They want to consolidate ad spend across locations and dig into ${t}.`,
   ],
-  globalia: [
+  digital_build: [
     (t) => `We met this prospect at a Shopify / e-commerce meetup — they're exploring ${t} and want to see if we're a fit.`,
     (t) => `They filled out the contact form on the agency website asking specifically about ${t}.`,
     (t) => `A partner agency referred them after they hit the limits of their current setup around ${t}.`,
@@ -172,7 +172,7 @@ const SERVICE_SCENARIOS_BY_AREA: Record<PracticeArea, ScenarioTemplate[]> = {
     (t) => `Long-time franchisee — quarterly performance review. ${t} is the headline topic for the next 90 days.`,
     (t) => `Multi-unit franchisee — wants to revisit budget allocation across locations and zoom in on ${t}.`,
   ],
-  globalia: [
+  digital_build: [
     (t) => `Existing client — they just purchased a block of dev hours and want to spend them on ${t}.`,
     (t) => `New build kickoff — they signed a SOW and ${t} is the first deliverable on the roadmap.`,
     (t) => `Retainer client of 6 months — this month's check-in is focused on ${t}: open tickets and what to ship next sprint.`,
@@ -192,7 +192,7 @@ export function pickScenario(area: PracticeArea, callType: CallType = "discovery
 const FIRM_BY_AREA: Record<PracticeArea, string> = {
   hubspot: "CRM & Marketing",
   paid_media: "Paid Media",
-  globalia: "Digital Build",
+  digital_build: "Digital Build",
 };
 
 export function buildGoal(

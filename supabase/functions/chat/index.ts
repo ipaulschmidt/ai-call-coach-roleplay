@@ -11,7 +11,7 @@ interface SimConfig {
   difficulty: "easy" | "realistic" | "hard";
   persona: string;
   callType: "discovery" | "service" | "tough";
-  practiceArea: "hubspot" | "paid_media" | "globalia";
+  practiceArea: "hubspot" | "paid_media" | "digital_build";
   durationMin: number;
   goal: string;
   consultantName?: string;
@@ -42,7 +42,7 @@ const AREA_CONTEXT: Record<SimConfig["practiceArea"], { firm: string; domain: st
     knowledge:
       "ICP: home-service franchise brands like Budget Blinds, The Tailored Closet, PremierGarage, Concrete Craft, Kitchen Tune-Up, Bath Tune-Up, Two Maids, College HUNKS Hauling Junk & Moving, ProLift Garage Doors, Closet & Storage Concepts, More Space Place, AdvantaClean / Lightspeed Restoration. Average franchisee MRR ~$600/mo, low-budget / high-volume model. Channels: Google Search (every account, ad groups per core service), Performance Max, Demand Gen, Display, Microsoft Ads (Search), Meta (awareness, lookalike, remarketing — creative often supplied by corporate). Funnel language: Search → Click → Site Visit → Lead → Consultation → Job. KPIs that matter: leads, CPL, lead quality, consultations, jobs, revenue, ROAS — NOT vanity metrics. Real-world realities: franchisor preferred-vendor relationships (HFC Homerun partner, CHHJ preferred, ProLift up against Scorpion, CSC/MSP rebuilding); franchisor buy-in often required to expand services; 1:1 account manager model with franchisees, sometimes centralized (Two Maids); decision-makers are usually NOT marketers — keep things simple and high-level until they ask to go deeper; franchisees are emotional decision-makers (it's their own money), often cash-strapped, often overwhelmed by training/SBA loans. Tracking jobs back to paid effort is hard — be honest about it. Avoid generic DTC / B2B SaaS framing (no MMM/MTA jargon, no LinkedIn ABM, no retail media unless they bring it up).",
   },
-  globalia: {
+  digital_build: {
     firm: "a digital product and development studio",
     domain: "e-commerce, custom AI, application development, and WordPress",
     knowledge:
