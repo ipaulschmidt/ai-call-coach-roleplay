@@ -194,7 +194,7 @@ export default function Scenario() {
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-10 flex items-center justify-between">
-          <img src={logo} alt="SmartBug" className="h-7 md:h-8" />
+          <img src={logo} alt="Call Coach" className="h-7 md:h-8" />
           <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">
             Main session builder →
           </Link>

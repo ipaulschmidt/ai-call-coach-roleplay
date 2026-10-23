@@ -36,7 +36,7 @@ serve(async (req) => {
     const isTough = rubric === "tough_recovery";
 
     const systemPromptByRubric: Record<typeof rubric, string> = {
-      sales_discovery: `You are a senior HubSpot sales coach evaluating a SmartBug consultant's roleplay call. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter.`,
+      sales_discovery: `You are a senior HubSpot sales coach evaluating a consultant's roleplay call. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter.`,
       service_kickoff: `You are a senior client-services coach evaluating a delivery KICKOFF or status call with a healthy, cooperative client — NOT a hard moment. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: realistic expectations, clear in/out of scope, value translated to business outcomes, calm assured delivery, and a concrete next step. Penalize: over-promising to please the client, vague scope, task-listing without business value, and ending without a real commitment.`,
       scope_expansion: `You are a senior client-services coach evaluating how the consultant handled a SCOPE-PROTECTION or EXPANSION moment with a friendly, satisfied client. The hard part is doing something slightly uncomfortable without damaging warmth. Be specific, fair, and direct. Cite exact moments. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Reward: protecting the SOW/hours/rate, naming the scope-creep pattern or the expansion signal, converting the moment into something real (change order, properly scoped next engagement, paid path), and staying warm and consultative throughout. Penalize: caving to be liked, giving away free strategy, vague "let's talk later" closes, and a rigid/nickel-and-diming tone.`,
       tough_recovery: `You are a senior client-services coach evaluating a consultant's handling of a TOUGH client conversation (${config.situationLabel ?? "hard moment"}). Be specific, fair, and direct. Cite exact moments from the transcript. Score on a 0–100 scale where 70 = competent, 85 = strong, 95+ = expert. Do not flatter. Reward: explicit empathy, firm boundaries, concrete options, scope/money protection, and a real next step. Penalize: over-apologizing, vague reassurances, caving on substance, blame-shifting, ending without a commitment.`,
@@ -50,7 +50,7 @@ serve(async (req) => {
 - Call type: ${config.callType}
 - Quiz topics the consultant chose to be tested on: ${config.topics || "(none)"}
 
-TRANSCRIPT (consultant = the SmartBug rep, prospect = the AI):
+TRANSCRIPT (consultant = the rep, prospect = the AI):
 ${transcript}
 
 Evaluate the consultant on the three metrics. For technical_delivery, focus on whether they accurately explained the listed quiz topics. For consultant_confidence, infer from filler words ("um", "uh", "like", "you know"), hedging language, and pacing inferred from sentence length — note in your rationale that this is transcript-based.`;

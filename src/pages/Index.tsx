@@ -71,15 +71,15 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 
 const BRAND_META: Record<string, { label: string; className: string }> = {
   hubspot: {
-    label: "SmartBug",
+    label: "CRM & Marketing",
     className: "border-orange-500/40 bg-orange-500/15 text-orange-300",
   },
   paid_media: {
-    label: "Point Success",
+    label: "Paid Media",
     className: "border-sky-500/40 bg-sky-500/15 text-sky-300",
   },
   globalia: {
-    label: "Globalia",
+    label: "Digital Build",
     className: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
   },
 };
@@ -823,7 +823,7 @@ const Index = () => {
     <main className="min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-10 flex items-center justify-between">
-          <img src={logo} alt="SmartBug" className="h-7 md:h-8" />
+          <img src={logo} alt="Call Coach" className="h-7 md:h-8" />
           <Link
             to="/admin"
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
@@ -836,7 +836,7 @@ const Index = () => {
         <header className="mb-10 max-w-3xl md:mb-12">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            SmartBug · Consultant Mode
+            Consultant Mode
           </div>
           <h1
             className="text-balance text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl"
@@ -846,7 +846,7 @@ const Index = () => {
             <span className="text-primary">One call at a time.</span>
           </h1>
           <p className="mt-5 max-w-xl text-balance text-base text-muted-foreground md:text-lg">
-            Roleplay SmartBug, Point Success, and Globalia discovery & delivery conversations against an AI client.
+            Roleplay discovery & delivery conversations against an AI client.
             Get coached on strategy, technical accuracy, and confidence.
           </p>
         </header>

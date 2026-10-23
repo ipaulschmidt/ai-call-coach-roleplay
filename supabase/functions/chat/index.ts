@@ -31,20 +31,20 @@ interface Timing {
 
 const AREA_CONTEXT: Record<SimConfig["practiceArea"], { firm: string; domain: string; knowledge: string }> = {
   hubspot: {
-    firm: "SmartBug, an Elite HubSpot Solutions Partner",
+    firm: "a HubSpot Solutions Partner consultancy",
     domain: "HubSpot consulting (discovery & service calls)",
     knowledge:
       "Use up-to-date 2026 HubSpot product knowledge: AEO Brand Visibility, Breeze AI agents, Smart CRM, Marketing/Sales/Service/Content/Operations Hubs, workflows, custom objects, reporting, Breeze Intelligence, integrations.",
   },
   paid_media: {
-    firm: "Point Success Media (paid media division of SmartBug, Google Premier Partner)",
+    firm: "a performance marketing agency specializing in paid media (Google Premier Partner)",
     domain: "lead-gen paid media for home-service franchise brands — franchisees (local owners) and franchisors (corporate)",
     knowledge:
       "ICP: home-service franchise brands like Budget Blinds, The Tailored Closet, PremierGarage, Concrete Craft, Kitchen Tune-Up, Bath Tune-Up, Two Maids, College HUNKS Hauling Junk & Moving, ProLift Garage Doors, Closet & Storage Concepts, More Space Place, AdvantaClean / Lightspeed Restoration. Average franchisee MRR ~$600/mo, low-budget / high-volume model. Channels: Google Search (every account, ad groups per core service), Performance Max, Demand Gen, Display, Microsoft Ads (Search), Meta (awareness, lookalike, remarketing — creative often supplied by corporate). Funnel language: Search → Click → Site Visit → Lead → Consultation → Job. KPIs that matter: leads, CPL, lead quality, consultations, jobs, revenue, ROAS — NOT vanity metrics. Real-world realities: franchisor preferred-vendor relationships (HFC Homerun partner, CHHJ preferred, ProLift up against Scorpion, CSC/MSP rebuilding); franchisor buy-in often required to expand services; 1:1 account manager model with franchisees, sometimes centralized (Two Maids); decision-makers are usually NOT marketers — keep things simple and high-level until they ask to go deeper; franchisees are emotional decision-makers (it's their own money), often cash-strapped, often overwhelmed by training/SBA loans. Tracking jobs back to paid effort is hard — be honest about it. Avoid generic DTC / B2B SaaS framing (no MMM/MTA jargon, no LinkedIn ABM, no retail media unless they bring it up).",
   },
   globalia: {
-    firm: "Globalia Digital",
-    domain: "e-commerce, custom AI, application development, and WordPress (https://www.globaliadigital.com/en/)",
+    firm: "a digital product and development studio",
+    domain: "e-commerce, custom AI, application development, and WordPress",
     knowledge:
       "Service lines include: E-commerce (Shopify, Shopify Plus, WooCommerce, headless commerce, Shopify Hydrogen, payment & shipping integrations, conversion optimization), Custom AI (RAG agents, OpenAI/Anthropic/Gemini integrations, internal copilots, AI workflow automation, evals & guardrails), Application Development (custom web & mobile apps, React/Next.js, Node, Laravel, mobile via React Native/Flutter, API design, DevOps), WordPress (custom theme/plugin dev, WooCommerce, performance optimization, security hardening, multilingual sites, ongoing maintenance & SEO). Talk in real terms: tech stack, timelines, QA, hosting, Core Web Vitals, accessibility, ROI.",
   },

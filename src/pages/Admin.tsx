@@ -72,7 +72,7 @@ const Admin = () => {
       <main className="min-h-screen px-4 py-16">
         <div className="mx-auto max-w-md">
           <div className="mb-6 flex items-center justify-between">
-            <img src={logo} alt="SmartBug" className="h-7" />
+            <img src={logo} alt="Call Coach" className="h-7" />
             <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </Link>
@@ -110,10 +110,10 @@ const Admin = () => {
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img src={logo} alt="SmartBug" className="h-7" />
+            <img src={logo} alt="Call Coach" className="h-7" />
             <div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground">Admin</div>
-              <h1 className="text-2xl font-bold">SmartBug Coach admin</h1>
+              <h1 className="text-2xl font-bold">Call Coach admin</h1>
             </div>
           </div>
           <div className="flex gap-2">

@@ -17,9 +17,9 @@ type ScenarioRow = {
 };
 
 const AREA_LABELS: Record<string, string> = {
-  hubspot: "SmartBug",
-  paid_media: "Point Success Media",
-  globalia: "Globalia",
+  hubspot: "CRM & Marketing",
+  paid_media: "Paid Media",
+  globalia: "Digital Build",
 };
 
 const AREA_CHIP: Record<string, string> = {
