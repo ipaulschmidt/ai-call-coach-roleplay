@@ -78,7 +78,7 @@ const BRAND_META: Record<string, { label: string; className: string }> = {
     label: "Paid Media",
     className: "border-sky-500/40 bg-sky-500/15 text-sky-300",
   },
-  globalia: {
+  digital_build: {
     label: "Digital Build",
     className: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
   },
@@ -126,7 +126,7 @@ const Index = () => {
   const [featuredArea, setFeaturedArea] = useState<PracticeArea | "all">(() => {
     if (typeof window === "undefined") return "all";
     const saved = window.localStorage.getItem("featuredArea");
-    if (saved === "all" || saved === "hubspot" || saved === "paid_media" || saved === "globalia") {
+    if (saved === "all" || saved === "hubspot" || saved === "paid_media" || saved === "digital_build") {
       return saved as PracticeArea | "all";
     }
     return "all";
